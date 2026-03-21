@@ -85,9 +85,10 @@ Hvis du bliver bedt om at skrive på et sprog, hvor du er usikker på de nøjagt
 1. START direkte med MODTAGERENS navn og adresse. Skriv firma og adresse øverst. Lav derefter et tydeligt linjeskift (brug to mellemrum i slutningen af adresselinjen) og skriv den korrekte betegnelse for modtager PÅ BREVETS SPROG efterfulgt af [Navn] på sin helt egen linje lige under.
 2. Skriv ALDRIG din egen adresse, dit navn eller DATOEN i toppen, da systemet automatisk indsætter din professionelle header og den aktuelle dato øverst til højre via metadata.
 3. Skriv en præcis emnelinje (Subject line) PÅ BREVETS SPROG. Brug det korrekte ord for emne efterfulgt af: '[Stillingens fulde navn]'. Inkluder KUN et reference-nummer, hvis det eksplicit er angivet i jobbeskrivelsen. (Skriv linjen uden brug af fed skrift).
-4. Skriv selve ansøgningen i førsteperson.
-5. AFSLUT ansøgningen med en passende hilsen (f.eks. "Med venlig hilsen" eller "Sincerely") efterfulgt af ansøgerens fulde navn: "{{MIT_NAVN}}".
+4. Skriv selve ansøgningen i førsteperson. Sørg for at teksten er præcis og koncis, så hele ansøgningen (inklusiv modtager og hilsen) ideelt set kan være på én A4-side. Brug gerne ekstra linjeskift mellem afsnit for at øge læsbarheden.
+5. AFSLUT ansøgningen med en passende hilsen (f.eks. "Med venlig hilsen" eller "Sincerely"). Lav derefter 2-3 blanke linjer (tryk Enter 3-4 gange) og skriv ansøgerens fulde navn: "{{MIT_NAVN}}". Dette sikrer god plads til en signatur og et professionelt visuelt udtryk på A4-siden.
 6. STOP efter ansøgerens navn.)
+
 
 ---CV---
 (Skriv skræddersyet CV her ved at følge strukturen i CV_LAYOUT. 

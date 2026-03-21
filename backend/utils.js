@@ -7,28 +7,12 @@ const cheerio = require('cheerio');
 
 const execPromise = promisify(exec);
 
-const cleanMarkdown = (md) => {
-    if (!md) return "";
-    // Fjern AI-signaturer (udvidet liste til både dansk og engelsk)
-    const signOffRegexes = [
-        /(?:Med venlig hilsen|Venlig hilsen|De bedste hilsner|Hilsen),?[\s\n\r]*[\w\s\. ]+$/gi,
-        /(?:Sincerely|Best regards|Kind regards|Regards|Yours faithfully|Yours sincerely),?[\s\n\r]*[\w\s\. ]+$/gi
-    ];
-
-    let cleaned = md;
-    signOffRegexes.forEach(pattern => {
-        cleaned = cleaned.replace(pattern, '');
-    });
-    return cleaned.trim();
-};
-
 const mdToHtml = async (md, filePath, outputFileName) => {
     if (!md) return "";
-    const cleanedMd = cleanMarkdown(md);
 
     try {
         const outputPath = path.join(path.dirname(filePath), outputFileName);
-        fs.writeFileSync(filePath, cleanedMd);
+        fs.writeFileSync(filePath, md);
 
         // Vi tilføjer '--smart' med minus foran for at DEAKTIVERE det i visse Pandoc versioner,
         // eller vi bruger '-smart' (uden plus) for at sikre at vi får almindelige tegn.

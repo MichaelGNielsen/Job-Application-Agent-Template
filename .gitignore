@@ -1,12 +1,11 @@
 node_modules/
 dist/
 .env
+.env_ai
 output/new/
 # data/* is removed to allow tracking of the data folder
 frontend/node_modules/
 backend/node_modules/
 *.log
 data/*.html
-# templates/*.html is removed to allow tracking of base layout templates
-!templates/master_layout.html
-!templates/cv_layout.html
+# Ingen template-ignore mønstre her
