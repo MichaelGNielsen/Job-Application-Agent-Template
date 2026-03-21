@@ -1,9 +1,3 @@
-<!-- 
-ERSTAT ALT INDHOLD HERUNDER MED DINE EGNE DATA. 
-Dette er et eksempel (Tintin) for at vise formatet. 
-Brug præcise labels som 'Navn:', 'Adresse:', 'Mobil:' og 'E-mail:' for at PDF-headeren virker.
--->
-
 # Tintin - Brutto CV
 Navn: Tintin
 Adresse: Slottet Møllenborg, 1000 Bruxelles, Belgien
