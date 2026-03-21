@@ -1,0 +1,43 @@
+services:
+  redis:
+    image: redis:alpine
+    container_name: jaa-redis
+    ports:
+      - "6379:6379"
+    restart: always
+
+  backend:
+    build: ./backend
+    container_name: jaa-backend
+    ports:
+      - "9001:3002"
+    environment:
+      - REDIS_HOST=redis
+      - PORT=3002
+      - TZ=Europe/Copenhagen
+    env_file:
+      - .env_ai
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - .:/app/shared # Adgang til alle job mapperne
+      - /home/mgn/.gemini:/root/.gemini
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: jaa-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - TZ=Europe/Copenhagen
+    env_file:
+      - .env_ai
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules # Forhindrer at node_modules bliver overskrevet af den tomme lokale mappe
+    depends_on:
+      - backend
+    restart: unless-stopped

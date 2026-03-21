@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+output/new/
+# data/* is removed to allow tracking of the data folder
+frontend/node_modules/
+backend/node_modules/
+*.log
+data/*.html
+templates/*.html
