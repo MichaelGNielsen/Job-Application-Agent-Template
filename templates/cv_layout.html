@@ -2,78 +2,69 @@
 <html lang="da">
 <head>
     <meta charset="UTF-8">
-    <title>{{DOC_TITLE}}</title>
+    <title>CV - {{NAME}}</title>
     <style>
-        @page {
-            margin: 1.5cm;
+        @page { size: A4; margin: 1.2cm; }
+        @media print {
+            .print-btn { display: none !important; }
+            body { padding: 0; margin: 0; font-size: 10pt; }
         }
         body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            margin: 0; 
-            padding: 0;
-            color: #333; 
-            line-height: 1.5;
-            font-size: 10pt;
+            font-family: "Segoe UI", "Calibri", Arial, sans-serif; 
+            color: #2c3e50; 
+            line-height: 1.3; 
+            max-width: 850px; 
+            margin: 0 auto; 
+            padding: 30px;
+            background-color: white;
         }
-        .header { 
-            display: flex; 
-            justify-content: space-between; 
-            border-bottom: 2px solid #2c3e50; 
+        header { 
+            border-bottom: 2px solid #34495e; 
             padding-bottom: 10px; 
-            margin-bottom: 25px; 
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
         }
-        .name-section h1 { 
+        .contact-info h1 { 
             margin: 0; 
-            font-size: 26pt;
-            color: #2c3e50;
-            text-transform: uppercase;
+            font-size: 1.6em; 
+            color: #2c3e50; 
+            text-transform: uppercase; 
             letter-spacing: 1px;
+            font-weight: 800;
         }
-        .contact-info { 
-            text-align: right; 
-            font-size: 8.5pt; 
-            color: #444;
-        }
-        .contact-info p { margin: 1px 0; }
-        .content { 
-            margin-top: 0;
-        }
-        h2 { 
-            font-size: 13pt; 
-            margin-top: 18pt; 
-            margin-bottom: 8pt;
-            color: #2c3e50;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 3px;
-            text-transform: uppercase;
-        }
-        h3 { 
-            font-size: 11pt; 
-            margin-top: 12pt; 
-            margin-bottom: 4pt;
-            color: #34495e;
+        .contact-info p { 
+            margin: 1px 0; 
+            font-size: 0.85em; 
+            color: #555;
         }
         
-        /* Pandoc specific styling */
-        p { margin-bottom: 8pt; }
-        ul, ol { margin-bottom: 8pt; padding-left: 15pt; }
-        li { margin-bottom: 3pt; }
+        .content { min-height: 600px; }
         
-        .experience-item { margin-bottom: 15pt; }
-        .date-location { font-style: italic; color: #666; font-size: 9pt; }
+        h1, h2, h3 { color: #2c3e50; margin-top: 1.2em; margin-bottom: 0.4em; }
+        h1 { font-size: 1.4em; border-bottom: 1px solid #eee; padding-bottom: 3px; }
+        h2 { font-size: 1.15em; color: #34495e; border-left: 3px solid #34495e; padding-left: 8px; text-transform: uppercase; }
+        h3 { font-size: 1.05em; font-weight: bold; }
+        
+        p { margin-bottom: 8px; }
+        ul { margin-bottom: 10px; padding-left: 18px; }
+        li { margin-bottom: 3px; }
+        
+        /* CV specifikke elementer */
+        .experience-item { margin-bottom: 15px; }
+        .date-location { font-style: italic; color: #7f8c8d; font-size: 0.9em; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="name-section">
-            <h1>{{NAME}}</h1>
-        </div>
+    <header>
         <div class="contact-info">
-            {{ADDRESS_BLOCK}}
-            <p>{{PHONE}}</p>
-            <p>{{EMAIL}}</p>
+            <h1>{{NAME}}</h1>
+            <p>{{ADDRESS}}</p>
+            <p>{{PHONE}} | {{EMAIL}}</p>
         </div>
-    </div>
+    </header>
+
     <div class="content">
         {{CONTENT}}
     </div>

@@ -40,5 +40,17 @@ Ved ændringer i `templates/ai_instructions.md`, skal du sikre dig at alle mærk
 - `docker-compose up -d --build`: Genstart hele systemet efter kodeændringer.
 - `gemini < test_prompt.txt`: Manuel test af AI-generering uden om web-interfacet.
 
+## 📝 Markdown Formatering (Vigtigt)
+
+For at sikre korrekt visning i alle editorer, skal disse regler altid følges:
+
+1. **Overskrifter:** Altid en tom linje efter enhver overskrift (`#`, `##`, osv.).
+2. **Kodeblokke:** Altid en tom linje før og efter kodeblokke.
+3. **Lister:** Altid en tom linje før en ny liste starter.
+4. **List-markører:** Brug altid asterisk (`*`) til uordnede lister.
+5. **Afstand:** Maksimalt én tom linje i træk.
+6. **H1:** Kun én top-level overskrift pr. dokument.
+7. **Niveauer:** Spring aldrig overskriftsniveauer over (MD001).
+
 ---
 *Sidst opdateret: 21. marts 2026*

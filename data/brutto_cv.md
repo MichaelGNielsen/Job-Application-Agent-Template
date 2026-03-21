@@ -1,13 +1,30 @@
-# Tintin - Brutto CV
-Navn: Tintin
-Adresse: Slottet Møllenborg, 1000 Bruxelles, Belgien
+# Brutto CV - Tintin
+
+## Personlige oplysninger
+- Navn: Tintin
+- Adresse: Slottet Møllenborg, 1000 Bruxelles, Belgien
 Mobil: +32 123 456 789
 E-mail: reporter@moulin-le-chateau.be
+- LinkedIn: https://www.linkedin.com/in/tintin
+
+---
 
 ## Profil
+
+### Senior reporter og eterforsker med fokus på AI-integration
 Jeg er en uforfærdet og dedikeret reporter og undersøgende journalist med over 20 års erfaring i at afdække internationale komplotter, bekæmpe organiseret kriminalitet og udforske ukendte egne af verden – herunder månen. Jeg er kendt for min skarpe analytiske sans, min evne til at bevare overblikket under ekstremt pres og min urokkelige integritet. Jeg rejser sjældent uden min trofaste ledsager, Terry, og jeg har et omfattende netværk af kontakter globalt (og interstellart).
 
-## Erfaring
+### Kompetencer & Tilgang
+
+---
+
+## Kernekompetencer
+---
+
+## Udvalgte AI- & Automationsprojekter (2024 – 2026)
+---
+
+## Erhvervserfaring
 
 **Undersøgende Journalist | Le Petit Vingtième (1929 - nu)**
 - Afdækket omfattende narkotikasmugling i Orienten og Sydamerika (bl.a. "Faraos Cigarer" og "Den Blå Lotus").
@@ -30,9 +47,9 @@ Jeg er en uforfærdet og dedikeret reporter og undersøgende journalist med over
 - Ekspert i navigation og logistik i komplekse miljøer.
 
 ## Udvalgte Projekter
-- **Operation Måne:** Planlægning og gennemførelse af den første bemandede månelanding ombord på Syldavisk raket-teknologi.
+- **Operation Måne tur retur:** Planlægning og gennemførelse af den første bemandede månelanding ombord på Syldavisk raket-teknologi.
 - **Det Knuste Øre:** Genfinding af en stjålet Arumbaya-fetiš og afsløring af en militær konflikt i San Theodoros.
-- **Rhamadan-komplottet:** Afsløring af en moderne slavehandel i det Røde Hav.
+- **Koks i lasten:** Afsløring af en moderne slavehandel i det Røde Hav.
 
 ## Sprog
 - Fransk: Modersmål.
