@@ -10,16 +10,17 @@ Systemet er designet til at håndtere internationale jobopslag automatisk:
 
 ## 🚀 Kom i gang
 
-1. **Konfiguration:** Opret en `.env_ai` fil i rodmappen med din Gemini API-nøgle.
-2. **Master CV:** Opdater `data/brutto_cv.md` med din personlige erhvervserfaring og kontaktdata.
+1. **Konfiguration:** Kopier `.env_ai_template` til `.env_ai` i rodmappen og indsæt din Gemini API-nøgle.
+2. **Eksempel:** Se mappen `output/2026-03-21-15-27-08_senior_efterforsker_interpol/` for at se hvordan et færdigt resultat ser ud.
+3. **Master CV:** Opdater `data/brutto_cv.md` med din personlige erhvervserfaring og kontaktdata.
    - **Vigtigt:** Brug de præcise labels `Navn:`, `Adresse:`, `Mobil:` og `E-mail:` for at sikre, at dine PDF-headere bliver udfyldt korrekt.
-3. **Start systemet:**
+4. **Start systemet:**
    ```bash
    docker-compose up -d --build
    ```
-4. **Adgang:** Åbn `http://localhost:3000` i din browser.
-5. **Generering:** Indsæt teksten fra et jobopslag og tryk på **🚀 Start Automatisering**.
-6. **Resultat:** Efter ca. 30-60 sekunder vises dine dokumenter i browseren.
+5. **Adgang:** Åbn `http://localhost:3000` i din browser.
+6. **Generering:** Indsæt teksten fra et jobopslag og tryk på **🚀 Start Automatisering**.
+7. **Resultat:** Efter ca. 30-60 sekunder vises dine dokumenter i browseren.
 
 ## 📄 Dokumenter & Features
 
