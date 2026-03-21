@@ -12,13 +12,14 @@ Systemet er designet til at håndtere internationale jobopslag automatisk:
 
 1. **Konfiguration:** Opret en `.env_ai` fil i rodmappen med din Gemini API-nøgle.
 2. **Master CV:** Opdater `data/brutto_cv.md` med din personlige erhvervserfaring og kontaktdata.
+   - **Vigtigt:** Brug de præcise labels `Navn:`, `Adresse:`, `Mobil:` og `E-mail:` for at sikre, at dine PDF-headere bliver udfyldt korrekt.
 3. **Start systemet:**
    ```bash
    docker-compose up -d --build
    ```
 4. **Adgang:** Åbn `http://localhost:3000` i din browser.
 
-## 📄 Dokumenter
+## 📄 Dokumenter & Features
 
 Systemet genererer 4 centrale dokumenter for hvert jobopslag:
 
@@ -26,6 +27,12 @@ Systemet genererer 4 centrale dokumenter for hvert jobopslag:
 2. **CV (PDF):** Skræddersyet til jobbet med fokus på relevante kompetencer.
 3. **Match Analyse (PDF):** En objektiv vurdering af, hvor godt din profil matcher jobbet.
 4. **ICAN+ Pitch (PDF):** En strategisk guide til jobsamtalen (på dansk).
+
+### Særlige funktioner
+
+* **Autonom Research:** Systemet forsøger selv at finde virksomhedens hjemmeside og adresse via AI, hvis du ikke har angivet en URL. Dette sikrer et professionelt brevhoved.
+* **Personlige Hints:** Brug hint-feltet i browseren til at give AI'en specifikke instrukser (f.eks. "Læg vægt på min ledelseserfaring" eller "Skriv på tysk, selvom opslaget er engelsk").
+* **Live Design:** Når du retter i dit design-layout (HTML/CSS), opdateres alle dine åbne dokument-previews øjeblikkeligt.
 
 ## 🛠️ Teknologier
 
@@ -45,7 +52,7 @@ Følg altid disse regler for Markdown-filer for at sikre kompatibilitet:
 
 ---
 
-*Sidst opdateret: 19. marts 2026 (v3.1.0)*
+*Sidst opdateret: 21. marts 2026 (v3.1.2)*
 
 ## 📚 Dokumentation
 
@@ -54,3 +61,4 @@ For mere dybdegående information, se venligst følgende dokumenter:
 - [Docker Opsætning](docs/docker_setup.md) - Detaljeret guide til installation.
 - [Data Flow](docs/data_flow.md) - Hvordan data flyder gennem systemet.
 - [Journal & Roadmap](docs/journal.md) - Projektets historik og fremtidige planer.
+- [GEMINI.md](GEMINI.md) - Instruktioner til AI-udviklere (Gemini CLI).

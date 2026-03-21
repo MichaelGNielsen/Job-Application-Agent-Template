@@ -1,6 +1,6 @@
-# AGENTS.md - Job Application Agent MGN
+# AGENTS.md - Job Application Agent Template
 
-Dette dokument beskriver rollen for Job Application Agent MGN og hvordan du bruger den nye web-baserede motor.
+Dette dokument beskriver rollen for Job Application Agent Template og hvordan du bruger den nye web-baserede motor.
 
 ## 🤖 Formål
 
