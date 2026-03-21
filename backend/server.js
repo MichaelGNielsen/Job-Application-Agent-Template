@@ -182,6 +182,16 @@ app.post('/api/brutto', async (req, res) => {
  * /api/config/instructions:
  *   get:
  *     summary: Hent AI-instruktioner
+ *     responses:
+ *       200:
+ *         description: AI-instruktionerne i Markdown.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 content:
+ *                   type: string
  *   post:
  *     summary: Gem AI-instruktioner
  */
@@ -205,6 +215,16 @@ app.post('/api/config/instructions', (req, res) => {
  * /api/config/layout:
  *   get:
  *     summary: Hent Master Layout (HTML)
+ *     responses:
+ *       200:
+ *         description: Master Layoutet i HTML.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 content:
+ *                   type: string
  *   post:
  *     summary: Gem Master Layout (HTML)
  */
