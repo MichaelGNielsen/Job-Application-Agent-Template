@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <title>{{DOC_TITLE}}</title>
+    <style>
+        @page {
+            margin: 1.5cm;
+        }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            padding: 0;
+            color: #333; 
+            line-height: 1.5;
+            font-size: 10pt;
+        }
+        .header { 
+            display: flex; 
+            justify-content: space-between; 
+            border-bottom: 2px solid #2c3e50; 
+            padding-bottom: 10px; 
+            margin-bottom: 25px; 
+        }
+        .name-section h1 { 
+            margin: 0; 
+            font-size: 26pt;
+            color: #2c3e50;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .contact-info { 
+            text-align: right; 
+            font-size: 8.5pt; 
+            color: #444;
+        }
+        .contact-info p { margin: 1px 0; }
+        .content { 
+            margin-top: 0;
+        }
+        h2 { 
+            font-size: 13pt; 
+            margin-top: 18pt; 
+            margin-bottom: 8pt;
+            color: #2c3e50;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 3px;
+            text-transform: uppercase;
+        }
+        h3 { 
+            font-size: 11pt; 
+            margin-top: 12pt; 
+            margin-bottom: 4pt;
+            color: #34495e;
+        }
+        
+        /* Pandoc specific styling */
+        p { margin-bottom: 8pt; }
+        ul, ol { margin-bottom: 8pt; padding-left: 15pt; }
+        li { margin-bottom: 3pt; }
+        
+        .experience-item { margin-bottom: 15pt; }
+        .date-location { font-style: italic; color: #666; font-size: 9pt; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="name-section">
+            <h1>{{NAME}}</h1>
+        </div>
+        <div class="contact-info">
+            {{ADDRESS_BLOCK}}
+            <p>{{PHONE}}</p>
+            <p>{{EMAIL}}</p>
+        </div>
+    </div>
+    <div class="content">
+        {{CONTENT}}
+    </div>
+</body>
+</html>
