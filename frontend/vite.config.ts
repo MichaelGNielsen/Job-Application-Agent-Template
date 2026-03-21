@@ -12,6 +12,10 @@ export default defineConfig({
         target: 'http://backend:3002',
         changeOrigin: true,
       },
+      '/api-docs': {
+        target: 'http://backend:3002',
+        changeOrigin: true,
+      },
       '/socket.io': {
         target: 'http://backend:3002',
         ws: true,

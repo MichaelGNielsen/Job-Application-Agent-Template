@@ -29,23 +29,6 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
-// Swagger konfiguration
-const swaggerOptions = {
-    definition: {
-        openapi: '3.0.0',
-        info: {
-            title: 'Job Application Agent API',
-            version: '3.1.2',
-            description: 'API til automatisering af jobansøgninger og CV-skræddersyning.',
-        },
-        servers: [{ url: 'http://localhost:3000' }],
-    },
-    apis: ['./server.js', './backend/server.js'], // Prøv begge stier for robusthed
-};
-
-const swaggerSpec = swaggerJsdoc(swaggerOptions);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-
 const versionFilePath = path.join(rootDir, 'VERSION');
 
 /**
@@ -95,6 +78,23 @@ function parseCandidateInfo(bruttoCv) {
 
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json({ limit: '50mb' }));
+
+// Swagger setup (flyttet herned for korrekt middleware håndtering)
+const swaggerOptions = {
+    definition: {
+        openapi: '3.0.0',
+        info: {
+            title: 'Job Application Agent API',
+            version: '3.1.2',
+            description: 'API til automatisering af jobansøgninger og CV-skræddersyning.',
+        },
+        servers: [{ url: 'http://localhost:3000' }],
+    },
+    apis: ['./server.js', './backend/server.js'],
+};
+
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use('/api/applications', (req, res, next) => {
     try {
