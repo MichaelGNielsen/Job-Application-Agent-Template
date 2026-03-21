@@ -15,8 +15,12 @@ export default defineConfig({
       '/socket.io': {
         target: 'http://backend:3002',
         ws: true,
-        changeOrigin: true,
-      }
-    }
-  }
+      },
+    },
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.ts',
+  },
 })
