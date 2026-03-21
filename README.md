@@ -48,10 +48,10 @@ Systemet genererer 4 centrale dokumenter for hvert jobopslag:
 
 Følg altid disse regler for Markdown-filer for at sikre kompatibilitet:
 
-* Brug `*` til lister.
-* Altid en tom linje efter overskrifter.
-* Maksimalt én tom linje i træk.
-* Kun én H1 pr. fil.
+- Brug `-` til lister.
+- Altid en tom linje efter overskrifter.
+- Maksimalt én tom linje i træk.
+- Kun én H1 pr. fil.
 
 ---
 

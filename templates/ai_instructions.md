@@ -53,6 +53,11 @@ Du SKAL bruge de nøjagtige mærkater herunder til at adskille dine sektioner. S
 ---REDAKTØRENS_LOGBOG---
 (Her SKAL du forklare dine strategiske valg for alle dokumenter. Forklar præcis hvordan du har vinklet ansøgerens erfaring mod jobopslagets krav, dine overvejelser omkring sprog/kultur, og hvorfor du har valgt at fremhæve specifikke projekter eller kompetencer. Skriv mindst 6-10 linjer med faktiske observationer – ingen generiske fraser.)
 
+VIGTIG FORMATERING:
+- Brug ALTID bindestreg (`-`) til uordnede lister (aldrig `*` eller `+`).
+- Sørg altid for en tom linje efter enhver overskrift (`#`, `##`, osv.).
+- Sørg for en tom linje før og efter alle lister.
+
 ---LAYOUT_METADATA---
 (Udfyld disse felter på det sprog, der passer til jobopslaget:
 Sign-off: [F.eks. "Med venlig hilsen" eller "Sincerely"]
