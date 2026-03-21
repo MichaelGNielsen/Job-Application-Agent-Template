@@ -46,3 +46,11 @@ Følg altid disse regler for Markdown-filer for at sikre kompatibilitet:
 ---
 
 *Sidst opdateret: 19. marts 2026 (v3.1.0)*
+
+## 📚 Dokumentation
+
+For mere dybdegående information, se venligst følgende dokumenter:
+- [Systemarkitektur](docs/architecture.md) - Overblik over systemets opbygning.
+- [Docker Opsætning](docs/docker_setup.md) - Detaljeret guide til installation.
+- [Data Flow](docs/data_flow.md) - Hvordan data flyder gennem systemet.
+- [Journal & Roadmap](docs/journal.md) - Projektets historik og fremtidige planer.
