@@ -18,6 +18,8 @@ Systemet er designet til at håndtere internationale jobopslag automatisk:
    docker-compose up -d --build
    ```
 4. **Adgang:** Åbn `http://localhost:3000` i din browser.
+5. **Generering:** Indsæt teksten fra et jobopslag og tryk på **🚀 Start Automatisering**.
+6. **Resultat:** Efter ca. 30-60 sekunder vises dine dokumenter i browseren.
 
 ## 📄 Dokumenter & Features
 
