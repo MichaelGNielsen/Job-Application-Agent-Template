@@ -49,11 +49,26 @@ Efter ændringer i AI-instruktioner eller design-layouts, bør du altid køre en
 1. Start systemet: `docker-compose up -d --build`
 2. Åbn `http://localhost:3000`
 3. Indsæt et test-jobopslag og verificer det visuelle output.
-
 ### Gemini CLI Test
 Du kan teste selve AI-instruktionerne direkte mod en tekstfil uden om web-interfacet:
 ```bash
 gemini < test_prompt.txt
+```
+
+### Terminal & API Debugging (CURL)
+Hvis du vil teste om API'et svarer korrekt uden at bruge browseren:
+
+```bash
+# Tjek version
+curl -s http://localhost:3000/api/version
+
+# Tjek nuværende Brutto-CV via API
+curl -s http://localhost:3000/api/brutto | jq -r .content
+
+# Trigger en generering manuelt
+curl -X POST http://localhost:3000/api/generate \
+-H "Content-Type: application/json" \
+-d '{"jobText": "Test job...", "companyUrl": "https://test.dk"}'
 ```
 
 ### Overvågning af Logs
@@ -61,6 +76,7 @@ Hvis noget går galt under en generering, kan du følge med i real-tid i Docker 
 ```bash
 docker-compose logs -f backend
 ```
+
 
 ---
 
