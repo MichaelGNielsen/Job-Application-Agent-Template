@@ -42,7 +42,7 @@ Ved ændringer i `templates/ai_instructions.md`, skal du sikre dig at alle mærk
 
 ## 📝 Markdown Formatering (Vigtigt)
 
-For at sikre korrekt visning i alle editorer, skal disse regler altid følges:
+For at sikre optimal kompatibilitet med VS Code (især "Markdown All in One" extensionen), skal disse regler altid følges:
 
 1. **Overskrifter:** Altid en tom linje efter enhver overskrift (`#`, `##`, osv.).
 2. **Kodeblokke:** Altid en tom linje før og efter kodeblokke.

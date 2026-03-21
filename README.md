@@ -46,7 +46,7 @@ Systemet genererer 4 centrale dokumenter for hvert jobopslag:
 
 ## 📝 Markdown Formatering
 
-Følg altid disse regler for Markdown-filer for at sikre kompatibilitet:
+Følg altid disse regler for Markdown-filer for at sikre optimal kompatibilitet med VS Code (især "Markdown All in One" extensionen):
 
 - Brug `-` til lister.
 - Altid en tom linje efter overskrifter.
