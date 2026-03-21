@@ -71,6 +71,12 @@ curl -X POST http://localhost:3000/api/generate \
 -d '{"jobText": "Test job...", "companyUrl": "https://test.dk"}'
 ```
 
+### 📖 Interaktiv API Dokumentation (Swagger)
+For et visuelt og interaktivt overblik over alle API-endpoints, kan du bruge Swagger UI:
+
+- **URL:** `http://localhost:3000/api-docs` (når systemet kører i Docker)
+- **Funktioner:** Se endpoints, datamodeller og test API'et direkte i browseren.
+
 ### Overvågning af Logs
 Hvis noget går galt under en generering, kan du følge med i real-tid i Docker logs:
 ```bash

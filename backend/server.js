@@ -10,6 +10,8 @@ const dotenv = require('dotenv');
 const { exec } = require('child_process');
 const { promisify } = require('util');
 const { mdToHtml, wrap } = require('./utils');
+const swaggerUi = require('swagger-ui-express');
+const swaggerJsdoc = require('swagger-jsdoc');
 
 const execPromise = promisify(exec);
 
@@ -27,8 +29,34 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
+// Swagger konfiguration
+const swaggerOptions = {
+    definition: {
+        openapi: '3.0.0',
+        info: {
+            title: 'Job Application Agent API',
+            version: '3.1.2',
+            description: 'API til automatisering af jobansøgninger og CV-skræddersyning.',
+        },
+        servers: [{ url: 'http://localhost:3000' }],
+    },
+    apis: ['./server.js', './backend/server.js'], // Prøv begge stier for robusthed
+};
+
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 const versionFilePath = path.join(rootDir, 'VERSION');
 
+/**
+ * @openapi
+ * /api/version:
+ *   get:
+ *     summary: Hent den aktuelle systemversion
+ *     responses:
+ *       200:
+ *         description: Returnerer versionsnummeret.
+ */
 app.get('/api/version', (req, res) => {
     try {
         const currentVersion = fs.existsSync(versionFilePath) ? fs.readFileSync(versionFilePath, 'utf8').trim() : "2.6.x-dev";
@@ -107,6 +135,29 @@ async function callLocalGemini(prompt) {
     }
 }
 
+/**
+ * @openapi
+ * /api/brutto:
+ *   get:
+ *     summary: Hent det nuværende Brutto-CV (Markdown)
+ *     responses:
+ *       200:
+ *         description: Returnerer CV-indholdet.
+ *   post:
+ *     summary: Gem opdateret Brutto-CV
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               content:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: CV gemt succesfuldt.
+ */
 app.get('/api/brutto', async (req, res) => {
   try {
     const bruttoPath = path.join(rootDir, 'data', 'brutto_cv.md');
@@ -126,7 +177,14 @@ app.post('/api/brutto', async (req, res) => {
 
 // NYE ENDPOINTS TIL KARTOTEK-SYSTEMET (v3.0)
 
-// AI Instruktioner
+/**
+ * @openapi
+ * /api/config/instructions:
+ *   get:
+ *     summary: Hent AI-instruktioner
+ *   post:
+ *     summary: Gem AI-instruktioner
+ */
 app.get('/api/config/instructions', (req, res) => {
     try {
         const p = path.join(rootDir, 'templates', 'ai_instructions.md');
@@ -142,7 +200,14 @@ app.post('/api/config/instructions', (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// Master Layout (HTML/CSS)
+/**
+ * @openapi
+ * /api/config/layout:
+ *   get:
+ *     summary: Hent Master Layout (HTML)
+ *   post:
+ *     summary: Gem Master Layout (HTML)
+ */
 app.get('/api/config/layout', (req, res) => {
     try {
         const p = path.join(rootDir, 'templates', 'master_layout.html');
@@ -185,6 +250,35 @@ app.post('/api/brutto/translate', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+/**
+ * @openapi
+ * /api/generate:
+ *   post:
+ *     summary: Start generering af en ny ansøgningspakke
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               jobText:
+ *                 type: string
+ *               companyUrl:
+ *                 type: string
+ *               hint:
+ *                 type: string
+ *     responses:
+ *       202:
+ *         description: Job er tilføjet til køen.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 jobId:
+ *                   type: string
+ */
 app.post('/api/generate', async (req, res) => {
   try {
     const { jobText, companyUrl, hint } = req.body;
