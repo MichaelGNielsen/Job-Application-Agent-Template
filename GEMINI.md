@@ -38,6 +38,8 @@ Ved ændringer i `templates/ai_instructions.md`, skal du sikre dig at alle mærk
 
 ## 🛠️ Nyttige Kommandoer
 - `docker-compose up -d --build`: Genstart hele systemet efter kodeændringer.
+- `cd backend && npm test`: Kør de automatiske backend-tests (Jest).
+- `cd frontend && npm test`: Kør de automatiske frontend-tests (Vitest).
 - `gemini < test_prompt.txt`: Manuel test af AI-generering uden om web-interfacet.
 
 ## 📝 Markdown Formatering (Vigtigt)
