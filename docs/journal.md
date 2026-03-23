@@ -236,4 +236,30 @@ En dag præget af et kvantespring i agentens intelligens og autonomi. Vi er gåe
 2. **Auto-test**
    * Implementering af backend API tests via curl scripts.
 
+## Status: 23. Marts 2026 - Test-stabilitet & SmartLogger v4.0 🛠️✅
+
+Dagen har stået på teknisk gældsafvikling og sikring af test-stabilitet på tværs af platforme.
+
+### Dagens vigtigste resultater
+
+1. **Test-stabilitet (Frontend)**
+   * Fikset en kritisk fejl i `App.test.tsx`, hvor "Design" fanebladet kolliderede med footer-teksten.
+   * Skiftet fra `getByText` til `getByRole('button', { name: ... })` for at sikre entydige matches.
+2. **SmartLogger v4.0 (Backend)**
+   * Implementeret unit tests til `logger`-modulet i `utils.test.js`.
+   * Verificeret at `VERBOSE` miljøvariablen (fra `-v` til `-vvvvv`) bliver respekteret korrekt.
+   * Tilføjet tracing af dokument-generering (`wrap`-funktionen) for bedre debugging.
+3. **npm test workflow**
+   * Opdateret `package.json` i backenden til altid at køre med `--verbose`, så log-output er synligt under udvikling.
+   * Verificeret at alle 8 unit tests (5 backend, 3 frontend) nu består 100%.
+4. **Dependency Management**
+   * Identificeret og løst problemer med manglende `node_modules` i et friskt setup.
+
+### Læring & Best Practice
+
+* **Surgical Selectors:** Brug altid `getByRole` fremfor `getByText` i tests for at undgå utilsigtede matches med statisk tekst (footer, copyright, etc.).
+* **Logging i tests:** Ved at mocke `process.env` i Jest kan vi nu teste log-logikken uden at ændre på selve `.env_ai` filen.
+
+Fyraften og god stil! 🎩🚀🏁
+
 Fyraften og god weekend! 🎩🍺🚀
