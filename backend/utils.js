@@ -124,6 +124,7 @@ const mdToHtml = async (md, filePath, outputFileName) => {
 
 
 const wrap = (t, c, type = 'ansøgning', meta = {}, candidate = {}, lang = 'dk', layoutMeta = {}) => {
+    logger.info('wrap', `Wrapper dokument: ${type} (${t})`, { type, lang });
     // Brug /app/shared/templates hvis vi er i Docker, ellers brug relativ sti
     const rootDir = '/app/shared';
     

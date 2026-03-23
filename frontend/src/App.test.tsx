@@ -46,7 +46,7 @@ test('renders action button', async () => {
 
 test('renders config tabs', async () => {
   render(<App />);
-  expect(screen.getByText(/Master CV/i)).toBeDefined();
-  expect(screen.getByText(/AI Regler/i)).toBeDefined();
-  expect(screen.getByText(/Design/i)).toBeDefined();
+  expect(screen.getByRole('button', { name: /Master CV/i })).toBeDefined();
+  expect(screen.getByRole('button', { name: /AI Regler/i })).toBeDefined();
+  expect(screen.getByRole('button', { name: /Design/i })).toBeDefined();
 });
