@@ -21,7 +21,7 @@ const fs = require('fs');
 const dotenv = require('dotenv');
 const { exec } = require('child_process');
 const { promisify } = require('util');
-const { mdToHtml, wrap } = require('./utils');
+const { mdToHtml, wrap, logger } = require('./utils');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
 
@@ -74,8 +74,13 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
  */
 app.get('/api/version', (req, res) => {
     try {
-        const currentVersion = fs.existsSync(versionFilePath) ? fs.readFileSync(versionFilePath, 'utf8').trim() : "2.6.x-dev";
-        res.json({ version: currentVersion });
+        if (fs.existsSync(versionFilePath)) {
+            const content = fs.readFileSync(versionFilePath, 'utf8').trim();
+            const currentVersion = content.split('\n')[0].trim(); // Tag kun den første linje
+            res.json({ version: currentVersion });
+        } else {
+            res.json({ version: "2.6.x-dev" });
+        }
     } catch (e) {
         res.status(500).json({ version: "error" });
     }
@@ -129,7 +134,7 @@ async function printToPdf(htmlPath, pdfPath) {
         await execPromise(cmd);
         return true;
     } catch (error) {
-        console.error(`[Refine PDF] Fejl:`, error.message);
+        logger.error("printToPdf", "PDF-generering fejlede", { htmlPath }, error);
         return false;
     }
 }
@@ -142,7 +147,7 @@ async function callLocalGemini(prompt) {
         if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile);
         return stdout;
     } catch (error) {
-        console.error("Fejl ved kald til Gemini CLI:", error.message);
+        logger.error("callLocalGemini", "Fejl ved kald til Gemini CLI", { error: error.message });
         throw error;
     }
 }
@@ -315,9 +320,13 @@ app.post('/api/generate', async (req, res) => {
   try {
     const { jobText, companyUrl, hint } = req.body;
     const jobId = "job_" + Date.now().toString();
+    logger.info("Server", "Ny generering anmodet", { jobId, companyUrl });
     await jobQueue.add('generate_application', { jobId, jobText, companyUrl, hint, type: 'initial' }, { jobId });
     res.status(202).json({ jobId });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { 
+    logger.error("Server", "Fejl ved /api/generate", { error: err.message });
+    res.status(500).json({ error: err.message }); 
+  }
 });
 
 app.post('/api/refine', async (req, res) => {
@@ -384,6 +393,10 @@ io.on('connection', (socket) => {
 
 const PORT = 3002;
 server.listen(PORT, '0.0.0.0', () => {
-  const startVersion = fs.existsSync(versionFilePath) ? fs.readFileSync(versionFilePath, 'utf8').trim() : "2.6.x-dev";
-  console.log(`[SERVER v${startVersion}] kører på port ${PORT}`);
+  let startVersion = "2.6.x-dev";
+  if (fs.existsSync(versionFilePath)) {
+      const content = fs.readFileSync(versionFilePath, 'utf8').trim();
+      startVersion = content.split('\n')[0].trim();
+  }
+  logger.info("Server", "Systemet kører", { version: startVersion, port: PORT });
 });

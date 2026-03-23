@@ -18,7 +18,7 @@ const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
 const { io } = require('socket.io-client');
-const { mdToHtml, wrap, wrapAll, fetchCompanyContent } = require('./utils');
+const { mdToHtml, wrap, wrapAll, fetchCompanyContent, logger } = require('./utils');
 
 const execPromise = promisify(exec);
 const rootDir = '/app/shared';
@@ -42,6 +42,7 @@ function parseCandidateInfo(bruttoCv) {
     const info = { name: "", address: "", email: "", phone: "" };
     if (!bruttoCv) return info;
 
+    logger.info("parseCandidateInfo", "Parser kandidat-info fra Brutto-CV");
     const cleanValue = (val) => val ? val.replace(/^[\s\*\-#]+|[\s\*\-#]+$/g, '').trim() : "";
 
     const getName = bruttoCv.match(/(?:\*\*|\*|#|-)?\s*(?:Navn|Name)[:\s]+(.*?)(?:\n|$)/i);
@@ -54,6 +55,7 @@ function parseCandidateInfo(bruttoCv) {
     if (getEmail) info.email = cleanValue(getEmail[1]);
     if (getPhone) info.phone = cleanValue(getPhone[1]);
     
+    logger.info("parseCandidateInfo", "Kandidat-data udtrukket", info);
     return info;
 }
 
@@ -61,11 +63,19 @@ async function callLocalGemini(prompt) {
     try {
         const tempFile = path.join('/tmp', `prompt_${Date.now()}.txt`);
         fs.writeFileSync(tempFile, prompt);
+        
+        logger.info("callLocalGemini", "Sender prompt til Gemini CLI", { tempFile });
+        logger.info("callLocalGemini", "RÅ PROMPT", prompt);
+
         const { stdout } = await execPromise(`gemini < "${tempFile}"`);
+        
         if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile);
+        
+        logger.info("callLocalGemini", "RÅ AI RESPONS", stdout);
+        
         return stdout;
     } catch (error) {
-        console.error("Fejl ved kald til Gemini CLI:", error.message);
+        logger.error("callLocalGemini", "Fejl ved kald til Gemini CLI", { error: error.message });
         throw error;
     }
 }
@@ -73,9 +83,11 @@ async function callLocalGemini(prompt) {
 async function printToPdf(htmlPath, pdfPath) {
     try {
         const cmd = `chromium-browser --headless --disable-gpu --no-sandbox --no-pdf-header-footer --print-to-pdf="${pdfPath}" "${htmlPath}"`;
+        logger.info("printToPdf", "Genererer PDF via Chromium", { cmd });
         await execPromise(cmd);
         return true;
     } catch (error) {
+        logger.error("printToPdf", "PDF-generering fejlede", { htmlPath }, error);
         return false;
     }
 }
@@ -87,22 +99,26 @@ const worker = new Worker('job_queue', async (job) => {
   
   const updateStatus = (status, data = {}) => {
     socket.emit('job_status_update', { jobId, status, ...data });
-    console.log(`[Worker] Job ${jobId}: ${status}`);
+    logger.info("Worker", `Status: ${status}`, { jobId });
   };
 
   try {
+    logger.info("Worker", "--- STARTER NYT JOB ---", { jobId, jobType });
     // Indlæs Brutto-CV og ICAN+ definition
     let bruttoCv = "";
     const bruttoPath = path.join(rootDir, 'data', 'brutto_cv.md');
+    logger.assert(fs.existsSync(bruttoPath), "Worker", "Brutto-CV mangler!", { bruttoPath });
     if (fs.existsSync(bruttoPath)) bruttoCv = fs.readFileSync(bruttoPath, 'utf8');
 
     const candidate = parseCandidateInfo(bruttoCv);
 
     let icanDef = "";
     const icanDefPath = path.join(rootDir, 'resources', 'ICAN+_DEF.md');
+    logger.assert(fs.existsSync(icanDefPath), "Worker", "ICAN+ definition mangler!", { icanDefPath });
     if (fs.existsSync(icanDefPath)) icanDef = fs.readFileSync(icanDefPath, 'utf8');
 
     let folderName, folderPath, companyName, jobTitleRaw, jobTitleSafe, companyContext = "";
+    let docsPart = "";
 
     let lang = 'dk'; // Standard
 
@@ -181,7 +197,7 @@ const worker = new Worker('job_queue', async (job) => {
             if (research.address) {
                 foundCompanyAddress = research.address;
                 companyContext += `RELEVANT ADRESSE FUNDET: ${foundCompanyAddress}\n`;
-                console.log(`[Research] Fandt firma adresse: ${foundCompanyAddress}`);
+                logger.info("Worker", "Firma adresse fundet", { address: foundCompanyAddress });
             }
         }
 
@@ -246,7 +262,7 @@ ${cvLayout}
         docsPart = await callLocalGemini(generatePrompt);
     }
     
-    console.log(`[Worker] Rå AI-output modtaget (${docsPart.length} tegn).`);
+    logger.info("Worker", "Rå AI-output modtaget", { length: docsPart.length });
     
     const extractSection = (text, tag) => {
         const cleanTag = tag.replace(/^-+|-+$/g, '').toUpperCase();
@@ -302,9 +318,9 @@ ${aiNotes}
 ${jobText}
 `;
         fs.writeFileSync(path.join(folderPath, 'session.md'), sessionContent.trim());
-        console.log(`[Worker] session.md oprettet i ${folderName}`);
+        logger.info("Worker", "session.md oprettet", { folderName });
     } catch (e) {
-        console.error(`[Worker] Kunne ikke oprette session.md: ${e.message}`);
+        logger.error("Worker", "Kunne ikke oprette session.md", { error: e.message });
     }
 
     let ansMd = "", cvMd = "", icanMd = "", matchMd = "";
@@ -326,11 +342,13 @@ ${jobText}
             try {
                 if (!fs.existsSync(newFolderPath)) {
                     fs.renameSync(folderPath, newFolderPath);
-                    console.log(`[Worker] Mappe omdøbt: ${folderName} -> ${newFolderName}`);
+                    logger.info("Worker", "Mappe omdøbt", { old: folderName, new: newFolderName });
                     folderName = newFolderName;
                     folderPath = newFolderPath;
                 }
-            } catch (e) { console.error(`[Worker] Omdøbning fejlede: ${e.message}`); }
+            } catch (e) { 
+                logger.error("Worker", "Omdøbning fejlede", { error: e.message }); 
+            }
         }
     }
 
@@ -376,12 +394,14 @@ ${jobText}
             const srcPath = path.join(folderPath, fileName);
             if (fs.existsSync(srcPath)) fs.copyFileSync(srcPath, path.join(newDir, fileName));
         }
-    } catch (e) { console.error(`[Worker] Advarsel: Kunne ikke kopiere til new/ mappen: ${e.message}`); }
+    } catch (e) { 
+        logger.error("Worker", "Kunne ikke kopiere til new/ mappen", { error: e.message }); 
+    }
 
     updateStatus('Færdig!', { folder: folderName, lang: jobType === 'refine_with_ai' ? 'refine' : 'initial', ...results });
 
   } catch (error) {
-    console.error(`[Worker] KRITISK FEJL på job ${jobId}:`, error);
+    logger.error("Worker", "KRITISK FEJL på job", { jobId }, error);
     updateStatus('Fejl', { error: error.message });
   }
 }, { 
