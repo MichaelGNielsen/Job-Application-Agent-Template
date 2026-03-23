@@ -23,6 +23,7 @@ Du er en **Senior Softwareudvikler og Karriererådgiver**. Din opgave er at hjæ
 
 ## 📂 Nøglefiler & Mapper
 - `data/brutto_cv.md`: Brugerens kildemateriale. Skal altid holdes opdateret.
+- `docs/journal.md`: Projektets logbog over ændringer og milepæle. SKAL altid findes.
 - `templates/`: Indeholder fundamentet for AI'ens output og det visuelle design.
 - `output/`: Her gemmes de genererede job-mapper med Markdown, HTML og PDF.
 - `docs/`: Systemdokumentation (Arkitektur, Data Flow, Docker).
@@ -32,6 +33,7 @@ Du er en **Senior Softwareudvikler og Karriererådgiver**. Din opgave er at hjæ
 2. **AI Tone of Voice:** Overhold "Jysk ærlighed" princippet: Direkte, nøgternt og uden floskler (ingen "krydsfelt" eller "passioneret").
 3. **Sikkerhed:** `.env_ai` må ALDRIG commit'es eller logges.
 4. **Validering:** Efter ændringer i templates eller logik, skal der altid køres en "Trial Run" (prøvekørsel) for at verificere outputtet.
+5. **Journalisering:** Efter enhver væsentlig opgave eller ændring, SKAL `docs/journal.md` opdateres med status, så historikken bevares på tværs af platforme (f.eks. RPi5 og Win11).
 
 ## 🚀 Workflows
 
@@ -41,7 +43,12 @@ Når brugeren har ny erfaring, skal `data/brutto_cv.md` opdateres kirurgisk. Sø
 ### 2. Udvikling af AI Instruktioner
 Ved ændringer i `templates/ai_instructions.md`, skal du sikre dig at alle mærkater (`---ANSØGNING---` etc.) bevares præcis som de er, da backenden afhænger af dem.
 
-### 3. Debugging
+### 3. Journalisering (Vigtigt for Cross-Platform)
+Da dette repo kører på flere maskiner (RPi5, Win11, etc.), er `docs/journal.md` vores fælles hukommelse.
+- Dokumentér altid hvad der er lavet i slutningen af en session.
+- Læs altid de seneste logs i journalen når du starter på en ny maskine.
+
+### 4. Debugging
 - Tjek `docker-compose logs -f backend` for fejl i genereringen.
 - Tjek `redis` status hvis jobs ikke starter.
 - Verificer at `GEMINI_API_KEY` is korrekt i `.env_ai`.
@@ -65,4 +72,4 @@ For at sikre optimal kompatibilitet med VS Code (især "Markdown All in One" ext
 7. **Niveauer:** Spring aldrig overskriftsniveauer over (MD001).
 
 ---
-*Sidst opdateret: 21. marts 2026*
+*Sidst opdateret: 23. marts 2026*
