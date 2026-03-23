@@ -7,8 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "test": "vitest run",
-    "preview": "vite preview",
-    "server": "node server.js"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
