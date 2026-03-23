@@ -1,3 +1,13 @@
+<!--
+  Job Application Agent Template
+  Designer: MGN (mgn@mgnielsen.dk)
+  Copyright (c) 2026 MGN. All rights reserved.
+  BEMÆRK: Denne kode anvender AI til generering og behandling.
+  Brugeren skal selv verificere, at resultatet er som forventet.
+  Softwaren leveres "som den er", uden nogen form for garanti.
+  Brug af softwaren sker på eget ansvar.
+-->
+
 # Data & Fil-workflow (Processing Flow)
 
 Dette dokument beskriver den præcise proces, der sker fra det øjeblik en bruger trykker "Generér", til de færdige PDF-filer ligger klar.
