@@ -1,3 +1,13 @@
+<!--
+  Job Application Agent Template
+  Designer: MGN (mgn@mgnielsen.dk)
+  Copyright (c) 2026 MGN. All rights reserved.
+  BEMÆRK: Denne kode anvender AI til generering og behandling.
+  Brugeren skal selv verificere, at resultatet er som forventet.
+  Softwaren leveres "som den er", uden nogen form for garanti.
+  Brug af softwaren sker på eget ansvar.
+-->
+
 # Job Application Agent Template
 
 > **Bemærk:** Hele dette projekt – herunder kode, arkitektur, dokumentation og PUML-figurer – er genereret 100% af AI (Gemini CLI) udelukkende baseret på prompts (med striks styring fra min side 😊).
@@ -37,7 +47,7 @@ Systemet genererer 4 centrale dokumenter for hvert jobopslag:
 
 * **Autonom Research:** Systemet forsøger selv at finde virksomhedens hjemmeside og adresse via AI, hvis du ikke har angivet en URL. Dette sikrer et professionelt brevhoved.
 * **Personlige Hints:** Brug hint-feltet i browseren til at give AI'en specifikke instrukser (f.eks. "Læg vægt på min ledelseserfaring" eller "Skriv på tysk, selvom opslaget er engelsk").
-* **Live Design:** Når du retter i dit design-layout (HTML/CSS), opdateres alle dine åbne dokument-previews øjeblikkeligt.
+* **Live Design:** Når du retter i dit design-layout (HTML/CSS), opdateres alle dine åbne dokument-previews øjuelikkeligt.
 
 ## 🛠️ Teknologier
 

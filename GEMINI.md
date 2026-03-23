@@ -1,3 +1,13 @@
+<!--
+  Job Application Agent Template
+  Designer: MGN (mgn@mgnielsen.dk)
+  Copyright (c) 2026 MGN. All rights reserved.
+  BEMÆRK: Denne kode anvender AI til generering og behandling.
+  Brugeren skal selv verificere, at resultatet er som forventet.
+  Softwaren leveres "som den er", uden nogen form for garanti.
+  Brug af softwaren sker på eget ansvar.
+-->
+
 # GEMINI.md - Job Application Agent Template
 
 Dette dokument fungerer som den primære instruks for Gemini CLI i dette projekt. Det definerer roller, arkitektur og workflow for at sikre konsistent og høj kvalitet i hjælpen til brugeren.
