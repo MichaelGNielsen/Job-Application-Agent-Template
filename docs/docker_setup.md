@@ -8,7 +8,7 @@
   Brug af softwaren sker på eget ansvar.
 -->
 
-# Docker Opsætning: Job Application Agent Template
+# Docker Opsætning: Job Application Agent MGN
 
 Dette dokument beskriver, hvordan vi containeriserer applikationen for at gøre den bærbar og stabil.
 

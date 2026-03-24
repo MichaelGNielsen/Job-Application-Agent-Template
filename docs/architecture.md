@@ -10,7 +10,7 @@
 
 # Systemarkitektur: Job Application Agent Template
 
-Dette dokument beskriver arkitekturen for den moderne web-baserede version af Job Application Agent Template.
+Dette dokument beskriver arkitekturen for den moderne web-baserede version af Job Application Agent MGN.
 
 ## 🏗 Overordnet Arkitektur
 

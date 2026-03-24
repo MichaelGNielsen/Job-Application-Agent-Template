@@ -17,7 +17,8 @@ const socket = io();
 const THEME_COLOR = "cyan";
 
 const App: React.FC = () => {
-  const [version, setVersion] = useState('v2.8.x');
+  const [version, setVersion] = useState('v3.2.0');
+  const [instanceName, setInstanceName] = useState('');
   const [jobText, setJobText] = useState('');
   const [companyUrl, setCompanyUrl] = useState('');
   const [hint, setHint] = useState('');
@@ -160,7 +161,13 @@ const App: React.FC = () => {
   useEffect(() => {
     fetch('/api/version')
       .then(res => res.json())
-      .then(data => setVersion(`v${data.version}`))
+      .then(data => {
+        setVersion(`v${data.version}`);
+        // Vask instans-navnet: Fjern 'IDENTITY_' eller 'TAG_' (case-insensitive) og erstat '_' med ' '
+        const rawName = data.instance || '';
+        const cleanedName = rawName.replace(/^IDENTITY_/i, '').replace(/^TAG_/i, '').replace(/_/g, ' ').trim();
+        setInstanceName(cleanedName);
+      })
       .catch(e => console.error("Kunne ikke hente version fra API"));
 
     fetchData();
@@ -191,7 +198,9 @@ const App: React.FC = () => {
     <div className="min-h-screen w-full bg-[#0a192f] text-gray-100 p-8 font-sans scroll-smooth">
       <div className="max-w-6xl mx-auto">
         <header className="mb-12 text-center">
-          <h1 className="text-3xl font-light tracking-widest uppercase text-cyan-400 border-b border-cyan-500/30 pb-4 inline-block">Job Application Agent Template | {version.split(' ')[0]}</h1>
+          <h1 className="text-3xl font-light tracking-widest uppercase text-cyan-400 border-b border-cyan-500/30 pb-4 inline-block">
+            Job Application Agent {instanceName} | {version}
+          </h1>
         </header>
 
         <main className="space-y-8">
@@ -312,6 +321,7 @@ const App: React.FC = () => {
                             {viewModes[id] === 'html' ? 'VIS MARKDOWN' : 'VIS PREVIEW'}
                           </button>
                           <a href={getDocUrl(results.links[id]?.html)} target="_blank" rel="noreferrer" className="text-[10px] text-green-400 hover:underline">ÅBEN HTML</a>
+                          <a href={getDocUrl(results.links[id]?.pdf)} target="_blank" rel="noreferrer" className="text-[10px] text-red-400 hover:underline">ÅBEN PDF</a>
                         </div>
                       </div>
                       <div className="p-4 flex-1">

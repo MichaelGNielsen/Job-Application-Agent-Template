@@ -1,0 +1,1 @@
+RELEVANT ADRESSE FUNDET: Ved Stranden 10, 9000 Aalborg

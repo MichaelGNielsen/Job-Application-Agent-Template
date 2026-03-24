@@ -8,6 +8,13 @@
   Brug af softwaren sker på eget ansvar.
 -->
 
+# Job Application Agent (v3.2.0)
+
+Dette projekt automatiserer processen med at skræddersy ansøgninger og CV'er ved hjælp af AI (Google Gemini).
+
+## 🚀 Hurtig opstart
+Hvis det er første gang du bruger agenten, så følg vores **[Setup Guide](docs/setup.md)** for at komme i gang på få minutter.
+
 # Job Application Agent Template
 
 > **Bemærk:** Hele dette projekt – herunder kode, arkitektur, dokumentation og PUML-figurer – er genereret 100% af AI (Gemini CLI) udelukkende baseret på prompts (med striks styring fra min side 😊).
@@ -47,7 +54,7 @@ Systemet genererer 4 centrale dokumenter for hvert jobopslag:
 
 * **Autonom Research:** Systemet forsøger selv at finde virksomhedens hjemmeside og adresse via AI, hvis du ikke har angivet en URL. Dette sikrer et professionelt brevhoved.
 * **Personlige Hints:** Brug hint-feltet i browseren til at give AI'en specifikke instrukser (f.eks. "Læg vægt på min ledelseserfaring" eller "Skriv på tysk, selvom opslaget er engelsk").
-* **Live Design:** Når du retter i dit design-layout (HTML/CSS), opdateres alle dine åbne dokument-previews øjuelikkeligt.
+* **Live Design:** Når du retter i dit design-layout (HTML/CSS), opdateres alle dine åbne dokument-previews øjeblikkeligt.
 
 ## 🛠️ Teknologier
 
@@ -75,6 +82,7 @@ For mere dybdegående information, se venligst følgende dokumenter:
 - [Testvejledning](docs/test.md) - Hvordan du installerer og kører tests.
 - [Systemarkitektur](docs/architecture.md) - Overblik over systemets opbygning.
 - [Docker Opsætning](docs/docker_setup.md) - Detaljeret guide til installation.
+- [Logger Anvendelse](docs/logger_usage.md) - Detaljeret guide til lognings-systemet.
 - [Data Flow](docs/data_flow.md) - Hvordan data flyder gennem systemet.
 - [Journal & Roadmap](docs/journal.md) - Projektets historik og fremtidige planer.
 - [GEMINI.md](GEMINI.md) - Instruktioner til AI-udviklere (Gemini CLI).

@@ -18,7 +18,7 @@ const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
 const { io } = require('socket.io-client');
-const { mdToHtml, wrap, wrapAll, fetchCompanyContent, logger } = require('./utils');
+const { mdToHtml, wrap, wrapAll, fetchCompanyContent, logger, printToPdf } = require('./utils');
 
 const execPromise = promisify(exec);
 const rootDir = '/app/shared';
@@ -59,36 +59,26 @@ function parseCandidateInfo(bruttoCv) {
     return info;
 }
 
-async function callLocalGemini(prompt) {
+async function callLocalGemini(prompt, jobId = "default") {
+    const startTime = Date.now();
     try {
-        const tempFile = path.join('/tmp', `prompt_${Date.now()}.txt`);
+        const tempFile = path.join('/tmp', `prompt_${jobId}_${Date.now()}.txt`);
         fs.writeFileSync(tempFile, prompt);
         
-        logger.info("callLocalGemini", "Sender prompt til Gemini CLI", { tempFile });
-        logger.info("callLocalGemini", "RÅ PROMPT", prompt);
+        logger.info("callLocalGemini", `Sender prompt til Gemini CLI (Job: ${jobId})`, { tegn: prompt.length });
 
         const { stdout } = await execPromise(`gemini < "${tempFile}"`);
         
         if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile);
         
-        logger.info("callLocalGemini", "RÅ AI RESPONS", stdout);
+        const duration = ((Date.now() - startTime) / 1000).toFixed(1);
+        logger.info("callLocalGemini", `AI Respons modtaget på ${duration} sekunder`, { svarLængde: stdout.length });
         
         return stdout;
     } catch (error) {
-        logger.error("callLocalGemini", "Fejl ved kald til Gemini CLI", { error: error.message });
+        const duration = ((Date.now() - startTime) / 1000).toFixed(1);
+        logger.error("callLocalGemini", `Fejl ved kald efter ${duration} sekunder`, { error: error.message });
         throw error;
-    }
-}
-
-async function printToPdf(htmlPath, pdfPath) {
-    try {
-        const cmd = `chromium-browser --headless --disable-gpu --no-sandbox --no-pdf-header-footer --print-to-pdf="${pdfPath}" "${htmlPath}"`;
-        logger.info("printToPdf", "Genererer PDF via Chromium", { cmd });
-        await execPromise(cmd);
-        return true;
-    } catch (error) {
-        logger.error("printToPdf", "PDF-generering fejlede", { htmlPath }, error);
-        return false;
     }
 }
 
@@ -120,7 +110,7 @@ const worker = new Worker('job_queue', async (job) => {
     let folderName, folderPath, companyName, jobTitleRaw, jobTitleSafe, companyContext = "";
     let docsPart = "";
 
-    let lang = 'dk'; // Standard
+    let lang = 'da'; // Standard ISO
 
     if (jobType === 'refine_with_ai') {
         updateStatus('Forfiner dokumenter med AI...');
@@ -132,44 +122,56 @@ const worker = new Worker('job_queue', async (job) => {
             jobText = fs.readFileSync(path.join(folderPath, 'job.md'), 'utf8');
         }
         
-        // Prøv at finde URL i eksisterende session.md hvis muligt
+        // Prøv at finde URL og SPROG i eksisterende session.md hvis muligt
         if (fs.existsSync(path.join(folderPath, 'session.md'))) {
             const oldSession = fs.readFileSync(path.join(folderPath, 'session.md'), 'utf8');
             const urlMatch = oldSession.match(/## FIRMA URL\n(.*?)\n/);
             if (urlMatch && !companyUrl) companyUrl = urlMatch[1].trim();
+            
+            const langMatch = oldSession.match(/## SPROG\n(.*?)\n/);
+            if (langMatch) lang = langMatch[1].trim();
+            else lang = existingMarkdown.toLowerCase().includes('dear') || existingMarkdown.toLowerCase().includes('sincerely') ? 'en' : 'da';
+        } else {
+            lang = existingMarkdown.toLowerCase().includes('dear') || existingMarkdown.toLowerCase().includes('sincerely') ? 'en' : 'da';
         }
 
         companyName = folderName.split('_')[2] || 'firma';
         jobTitleSafe = folderName.split('_').slice(3).join('_') || 'stilling';
         jobTitleRaw = jobTitleSafe.replace(/_/g, ' ');
         
-        // Detekter sprog fra eksisterende markdown hvis muligt
-        lang = existingMarkdown.toLowerCase().includes('dear') || existingMarkdown.toLowerCase().includes('sincerely') ? 'en' : 'dk';
+        const refinePrompt = `Du er en præcis redaktør. Her er de nuværende dokumenter for ansøgeren, deres oprindelige BRUTTO_CV (kilde til sandhed) og en ny instruks fra brugeren.
         
-        const refinePrompt = `Du er en præcis redaktør. Her er de nuværende dokumenter for ansøgeren og en ny instruks fra brugeren.
+        VIGTIGT: Dokumenterne skal skrives på ${lang === 'en' ? 'ENGELSK' : 'DANSK'}.
         
         REGLER FOR OPDATERING:
-        1. Opdater din logbog i ---REDAKTØRENS_LOGBOG---. Vær detaljeret omkring hvad du har ændret.
-        2. Bevar ---LAYOUT_METADATA--- og opdater them hvis instruksen kræver det (f.eks. nyt sprog).
+        1. Opdater din logbog i ---REDAKTØRENS_LOGBOG--- på DANSK. Vær detaljeret omkring hvad du har ændret.
+        2. Bevar ---LAYOUT_METADATA--- og opdater dem hvis instruksen kræver det (f.eks. nyt sprog).
         3. Lav KUN ændringer der er direkte forespurgt i instruksen.
-        4. Bevar ordlyd, struktur og indhold i alle andre sektioner 100% uændret.
-        5. Returner ALLE sektioner med de korrekte mærkater.
+        4. Bevar ordlyd, struktur og indhold i alle andre sektioner 100% uændret, medmindre brugeren har bedt om andet.
+        5. VIGTIGT: Ansøgeren har IKKE fået jobbet endnu. Den ansøgte stilling ("${jobTitleRaw}") må ALDRIG stå som arbejdserfaring i CV'et.
+        6. Brug altid BRUTTO_CV som din ultimative kilde til erfaring og personlig info.
+        7. Returner ALLE sektioner med de korrekte mærkater.
         
-        INSTRUKS: "${hint}"
+        INSTRUKSER: "${hint}"
         
-        NUVÆRENDE DOKUMENTER:
+        KILDE (BRUTTO_CV):
+        """${bruttoCv}"""
+        
+        NUVÆRENDE DOKUMENTER (SKAL OPDATERES):
         ${existingMarkdown}
         
         Returner dokumenterne med mærkater: ---REDAKTØRENS_LOGBOG---, ---LAYOUT_METADATA---, ---ANSØGNING---, ---CV---, ---ICAN--- og ---MATCH---. Sørg for at MATCH altid har linjen: [SCORE] XX% [/SCORE].`;
         
-        docsPart = await callLocalGemini(refinePrompt);
+        docsPart = await callLocalGemini(refinePrompt, jobId);
     } else {
         updateStatus('Analyserer jobopslag...');
         // Kig på en bid af teksten lidt længere nede for at undgå at blive narret af kontaktinfo i toppen
         const sampleText = jobText.length > 500 ? jobText.substring(200, 1200) : jobText;
-        const langPrompt = `Hvilket sprog er dette jobopslag skrevet på? Svar KUN med ISO-kode på to bogstaver (f.eks. 'da', 'en', 'de', 'fr', 'es'): """${sampleText}"""`;
-        lang = (await callLocalGemini(langPrompt)).trim().toLowerCase().substring(0, 2);
+        const langPrompt = `Hvilket sprog er dette jobopslag primært skrevet på? Svar KUN med ISO-kode på to bogstaver (f.eks. 'da', 'en'): """${sampleText}"""`;
+        lang = (await callLocalGemini(langPrompt, jobId)).trim().toLowerCase().substring(0, 2);
         if (!/^[a-z]{2}$/.test(lang)) lang = 'da';
+        if (lang === 'dk') lang = 'da';
+        logger.info("Worker", `Detekteret sprog: ${lang}`);
 
         // --- AUTONOM RESEARCH FASE ---
         updateStatus('Laver autonom research på firmaet...');
@@ -177,7 +179,7 @@ const worker = new Worker('job_queue', async (job) => {
         // Find firmanavn, jobtitel og LOKATION
         const infoPrompt = `Udtræk firmanavn, jobtitel og arbejdssted (by) fra dette opslag: """${jobText.substring(0, 1500)}"""
         Svar KUN med JSON: {"company": "Navn", "title": "Job", "location": "By"}`;
-        const infoRaw = await callLocalGemini(infoPrompt);
+        const infoRaw = await callLocalGemini(infoPrompt, jobId);
         const info = infoRaw.match(/\{[\s\S]*\}/) ? JSON.parse(infoRaw.match(/\{[\s\S]*\}/)[0]) : { company: "firma", title: "stilling", location: "" };
         companyName = info.company;
         jobTitleRaw = info.title;
@@ -191,7 +193,7 @@ const worker = new Worker('job_queue', async (job) => {
             VIGTIGT: Du må ALDRIG kun svare med et bynavn. Jeg skal bruge den fulde adresse til et professionelt brevhoved.
             Svar KUN med JSON: {"url": "https://...", "address": "Vejnavn Nummer, Postnr By"}`;
             
-            const researchRaw = await callLocalGemini(researchPrompt);
+            const researchRaw = await callLocalGemini(researchPrompt, jobId);
             const research = researchRaw.match(/\{[\s\S]*\}/) ? JSON.parse(researchRaw.match(/\{[\s\S]*\}/)[0]) : { url: "", address: "" };
             if (research.url && research.url.startsWith('http')) companyUrl = research.url;
             if (research.address) {
@@ -240,6 +242,11 @@ const worker = new Worker('job_queue', async (job) => {
         const generatePrompt = `
 ${aiInstructions}
 
+### MÅLSPROG FOR ANSØGNING OG CV
+Det detekterede sprog for jobopslaget er: **${lang === 'en' ? 'ENGELSK (English)' : 'DANSK (Danish)'}**.
+Du SKAL skrive ---ANSØGNING--- og ---CV--- på dette sprog.
+Du SKAL skrive ---REDAKTØRENS_LOGBOG---, ---ICAN--- og ---MATCH--- på DANSK.
+
 ### DIN STRUKTUR-SKABELON (MASTER LAYOUT)
 Du SKAL udfylde denne skabelon med dit genererede indhold. Bevar alle mærkater (tags) præcis som de står:
 
@@ -259,7 +266,7 @@ ${cvLayout}
 - ICAN_DEF: """${icanDef}"""
 `;
 
-        docsPart = await callLocalGemini(generatePrompt);
+        docsPart = await callLocalGemini(generatePrompt, jobId);
     }
     
     logger.info("Worker", "Rå AI-output modtaget", { length: docsPart.length });
@@ -374,8 +381,7 @@ ${jobText}
         const fullHtml = wrap(s.title.replace(/_/g, ' '), htmlBody, s.id, { company: companyName, position: jobTitleRaw }, candidate, lang, layoutMeta);
         fs.writeFileSync(htmlPath, fullHtml);
         updateStatus(`Genererer PDF for ${s.title.replace(/_/g, ' ')}...`);
-        const absoluteHtmlPath = `file://${path.resolve(htmlPath)}`;
-        await printToPdf(absoluteHtmlPath, pdfPath);
+        await printToPdf(htmlPath, pdfPath);
         results.markdown[s.id] = s.md;
         results.html[s.id] = fullHtml;
         results.links[s.id] = {

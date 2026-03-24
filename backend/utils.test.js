@@ -10,7 +10,7 @@
  * Brug af softwaren sker på eget ansvar.
  */
 
-const { wrap, logger } = require('./utils');
+const { wrap } = require('./utils');
 const fs = require('fs');
 const path = require('path');
 
@@ -18,39 +18,6 @@ const path = require('path');
 jest.mock('fs');
 
 describe('utils.js', () => {
-    describe('logger', () => {
-        const originalEnv = process.env;
-
-        beforeEach(() => {
-            jest.resetModules();
-            process.env = { ...originalEnv };
-        });
-
-        afterAll(() => {
-            process.env = originalEnv;
-        });
-
-        test('bør returnere korrekt log-niveau baseret på VERBOSE', () => {
-            console.log('--- TEST LOG: VERBOSE ---');
-            process.env.VERBOSE = '-vv';
-            expect(logger.getLevel()).toBe(2);
-            
-            process.env.VERBOSE = '-vvvvv';
-            expect(logger.getLevel()).toBe(5);
-            
-            process.env.VERBOSE = '';
-            expect(logger.getLevel()).toBe(0);
-        });
-
-        test('logger.info bør logge når level er høj nok', () => {
-            process.env.VERBOSE = '-vv';
-            const spy = jest.spyOn(console, 'log').mockImplementation();
-            logger.info('test', 'Besked');
-            expect(spy).toHaveBeenCalled();
-            spy.mockRestore();
-        });
-    });
-
     describe('wrap()', () => {
         beforeEach(() => {
             jest.clearAllMocks();

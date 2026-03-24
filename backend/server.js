@@ -21,7 +21,7 @@ const fs = require('fs');
 const dotenv = require('dotenv');
 const { exec } = require('child_process');
 const { promisify } = require('util');
-const { mdToHtml, wrap, logger } = require('./utils');
+const { mdToHtml, wrap, logger, printToPdf } = require('./utils');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
 
@@ -52,7 +52,7 @@ const swaggerOptions = {
         openapi: '3.0.0',
         info: {
             title: 'Job Application Agent API',
-            version: '3.1.2',
+            version: '3.2.0',
             description: 'API til automatisering af jobansøgninger og CV-skræddersyning.',
         },
         servers: [{ url: 'http://localhost:3000' }],
@@ -74,15 +74,37 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
  */
 app.get('/api/version', (req, res) => {
     try {
+        let instanceName = "";
+        
+        // 1. Prioritet: Læs Master Identity direkte fra toppen af .env_ai
+        const envPath = path.join(rootDir, '.env_ai');
+        if (fs.existsSync(envPath)) {
+            const envContent = fs.readFileSync(envPath, 'utf8');
+            const lines = envContent.split('\n');
+            // Tjek de første 5 linjer for en identitet (for at være fleksibel)
+            for (let i = 0; i < Math.min(5, lines.length); i++) {
+                const identityMatch = lines[i].match(/#\s*(IDENTITY_[A-Z0-9_]+)/i);
+                if (identityMatch) {
+                    instanceName = identityMatch[1];
+                    break;
+                }
+            }
+        }
+
+        // 2. Prioritet: Brug miljøvariabel hvis ingen identitet blev fundet
+        if (!instanceName || instanceName === 'TAG_DINE_INITIALER' || instanceName === 'IDENTITY_DINE_INITIALER') {
+            instanceName = process.env.APP_INSTANCE_NAME || 'Default';
+        }
+
         if (fs.existsSync(versionFilePath)) {
             const content = fs.readFileSync(versionFilePath, 'utf8').trim();
-            const currentVersion = content.split('\n')[0].trim(); // Tag kun den første linje
-            res.json({ version: currentVersion });
+            const currentVersion = content.split('\n')[0].trim();
+            res.json({ version: currentVersion, instance: instanceName });
         } else {
-            res.json({ version: "2.6.x-dev" });
+            res.json({ version: "2.6.x-dev", instance: instanceName });
         }
     } catch (e) {
-        res.status(500).json({ version: "error" });
+        res.status(500).json({ version: "error", instance: "error" });
     }
 });
 
@@ -115,29 +137,23 @@ function parseCandidateInfo(bruttoCv) {
 
 app.use('/api/applications', (req, res, next) => {
     try {
+        const originalUrl = req.url;
         req.url = decodeURIComponent(req.url);
-    } catch (e) {}
+        logger.info("Server", "Fil anmodet fra /api/applications", { original: originalUrl, decoded: req.url });
+    } catch (e) {
+        logger.warn("Server", "Kunne ikke decode URL", { url: req.url, error: e.message });
+    }
     next();
 }, express.static(path.join(rootDir, 'output'), {
     index: false,
-    setHeaders: (res, path) => {
-        if (path.endsWith('.pdf')) {
+    fallthrough: false, // Tving fejl hvis fil ikke findes i stedet for at gå videre
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.pdf')) {
             res.setHeader('Content-Type', 'application/pdf');
             res.setHeader('Content-Disposition', 'inline');
         }
     }
 }));
-
-async function printToPdf(htmlPath, pdfPath) {
-    try {
-        const cmd = `chromium-browser --headless --disable-gpu --no-sandbox --no-pdf-header-footer --print-to-pdf="${pdfPath}" "${htmlPath}"`;
-        await execPromise(cmd);
-        return true;
-    } catch (error) {
-        logger.error("printToPdf", "PDF-generering fejlede", { htmlPath }, error);
-        return false;
-    }
-}
 
 async function callLocalGemini(prompt) {
     try {
@@ -372,7 +388,7 @@ app.post('/api/refine', async (req, res) => {
     const candidate = parseCandidateInfo(bruttoCv);
 
     // Detekter sprog fra det indsendte markdown
-    const lang = markdown.toLowerCase().includes('dear') || markdown.toLowerCase().includes('sincerely') ? 'en' : 'dk';
+    const lang = markdown.toLowerCase().includes('dear') || markdown.toLowerCase().includes('sincerely') ? 'en' : 'da';
 
     const htmlBody = await mdToHtml(markdown, mdPath, `${baseName}_body.html`);
     const companyName = folder.split('_')[2] || 'firma';
@@ -380,6 +396,8 @@ app.post('/api/refine', async (req, res) => {
     const fullHtml = wrap(typeLabel.replace('_', ' '), htmlBody, type, { company: companyName, position: jobTitle }, candidate, lang);
     
     fs.writeFileSync(htmlPath, fullHtml);
+    
+    // Brug utils.js version af printToPdf (håndterer selv file://)
     await printToPdf(htmlPath, pdfPath);
     
     res.json({ success: true, html: fullHtml });

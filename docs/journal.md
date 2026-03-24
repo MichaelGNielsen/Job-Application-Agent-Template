@@ -1,5 +1,3 @@
-<!--
-  Job Application Agent Template
   Designer: MGN (mgn@mgnielsen.dk)
   Copyright (c) 2026 MGN. All rights reserved.
   BEMÆRK: Denne kode anvender AI til generering og behandling.
@@ -99,7 +97,7 @@ En dag med enorme fremskridt! Vi er gået fra en statisk generator til et intera
 4. **Bulk Export**
   * En "Gem Alle" knap til at eksportere den fulde pakke af dokumenter.
 
-## TODO - Job Application Agent Template
+## TODO - Job Application Agent MGN
 
 ### 🐛 Kritiske Fixes (Høj Prioritet)
 
@@ -236,30 +234,100 @@ En dag præget af et kvantespring i agentens intelligens og autonomi. Vi er gåe
 2. **Auto-test**
    * Implementering af backend API tests via curl scripts.
 
-## Status: 23. Marts 2026 - Test-stabilitet & SmartLogger v4.0 🛠️✅
-
-Dagen har stået på teknisk gældsafvikling og sikring af test-stabilitet på tværs af platforme.
-
-### Dagens vigtigste resultater
-
-1. **Test-stabilitet (Frontend)**
-   * Fikset en kritisk fejl i `App.test.tsx`, hvor "Design" fanebladet kolliderede med footer-teksten.
-   * Skiftet fra `getByText` til `getByRole('button', { name: ... })` for at sikre entydige matches.
-2. **SmartLogger v4.0 (Backend)**
-   * Implementeret unit tests til `logger`-modulet i `utils.test.js`.
-   * Verificeret at `VERBOSE` miljøvariablen (fra `-v` til `-vvvvv`) bliver respekteret korrekt.
-   * Tilføjet tracing af dokument-generering (`wrap`-funktionen) for bedre debugging.
-3. **npm test workflow**
-   * Opdateret `package.json` i backenden til altid at køre med `--verbose`, så log-output er synligt under udvikling.
-   * Verificeret at alle 8 unit tests (5 backend, 3 frontend) nu består 100%.
-4. **Dependency Management**
-   * Identificeret og løst problemer med manglende `node_modules` i et friskt setup.
-
-### Læring & Best Practice
-
-* **Surgical Selectors:** Brug altid `getByRole` fremfor `getByText` i tests for at undgå utilsigtede matches med statisk tekst (footer, copyright, etc.).
-* **Logging i tests:** Ved at mocke `process.env` i Jest kan vi nu teste log-logikken uden at ændre på selve `.env_ai` filen.
-
-Fyraften og god stil! 🎩🚀🏁
-
 Fyraften og god weekend! 🎩🍺🚀
+
+## Status: 23. Marts 2026 - Stabilitet, Branding & Det Store Log-Format (v3.5.0) 🚀📡
+
+En ekstremt produktiv dag, hvor fokus har været på at gøre systemet professionelt, robust og visuelt konsistent. Vi har i dag synkroniseret med Template-versionen og implementeret et af de mest avancerede lognings-systemer til dato.
+
+### Dagens vigtigste resultater (v3.5.0)
+
+1. **Branding & Identitet (jaa-mgn)**
+   * Systemet er omdøbt til **`jaa-mgn`** (Job Application Agent MGN).
+   * Alle Docker-containere er opdateret med de nye navne (`jaa-mgn-backend`, `jaa-mgn-frontend`, `jaa-mgn-redis`).
+   * Port 3000 er nu standard for frontenden.
+
+2. **High-Alignment Log-System (v3.5)**
+   * **Fast Kolonneformat:** Loggen "hopper" ikke længere. Alle metadata-felter (Tid, Niveau, Linje, Funktion, Fil) har faste bredder.
+   * **INFO0-2 Logik:** Introduceret niveauerne `INFO0` (standard), `INFO1` (-v) og `INFO2` (-vv+). Jo højere niveau, jo mere data "folder" sig ud.
+   * **Robust Verbosity:** Systemet tæller antallet af `v`'er i `VERBOSE` variablen, men begrænser det nu til maksimalt niveau 2 (`-vv`). Dette sikrer, at vi får fuld information uden unødvendig kompleksitet. Dokumentation og kode er nu fuldt synkroniseret.
+   * **Auto-Expand på Fejl:** `WARNI`, `ERROR` og `FATAL` tvinger altid systemet til maksimal detaljegrad (INFO2 format), så fejl altid kan findes uden genstart.
+
+3. **Sprogstyring & Kvalitetskontrol**
+   * **Strikt Sprog-diktat:** AI'en får nu eksplicit besked om målssproget (f.eks. ENGELSK) i selve prompten. Dette har løst problemet med, at ansøgninger pludselig skiftede sprog.
+   * **Dobbelt-Tjek:** Implementeret en "mental gennemgang" regel i AI-instrukserne, hvor AI'en selv retter stavefejl og fjerner floskler (som "krydsfelt") inden returnering.
+   * **Signatur-præcision:** `Sign-off` og `Date-Prefix` styres nu dynamisk af AI'en baseret på det valgte sprog.
+
+4. **Stabilitet & Infrastruktur**
+   * **BullMQ Resilience:** LockDuration er øget til 5 minutter (300.000 ms) for at forhindre utilsigtede genstarter ("to gennemløb") ved langsomme AI-responser.
+   * **Unikke Job-filer:** Hvert Gemini-kald bruger nu unikke midlertidige filer baseret på `jobId`, hvilket muliggør parallelle kørsler uden fil-konflikter.
+   * **Layout Forbedringer:** Tilføjet en diskret AI-disclaimer footer til alle genererede dokumenter for at sikre transparens.
+
+5. **Dokumentation**
+   * Oprettet `docs/logger_usage.md` med fuld specifikation af det nye log-format.
+   * Opdateret `README.md` med links til de nye vejledninger.
+   * Tilføjet `GEMINI.md` instruks om altid at opdatere journalen ved commit/push.
+
+5. **CI/CD Fiks**
+   * Rettet fejl i GitHub Actions ved at begrænse Jest-test i backenden til kun at scanne backend-mappen (ignorering af `/shared/frontend`).
+   * Rettet fejl i frontend-test (`App.test.tsx`), hvor flere elementer med teksten "Design" skabte konflikt. Nu benyttes `getAllByText`.
+
+6. **PDF Stabilitet (Redundans & URL-fiks) [VERIFICERET]**
+   * **Kritisk rettelse:** Fjernet tre redundante versioner af `printToPdf` i hhv. `server.js`, `worker.js` og `utils.js`.
+   * **URL Bug-fiks:** Rettet en fejl, hvor `file://` blev præfikset to gange (`file://file:///...`), hvilket fik Chromium til at vise systemets `/` mappeliste i stedet for dokumentets indhold.
+   * **Standardisering:** Al PDF-generering foregår nu gennem en fælles, robust `printToPdf` funktion i `utils.js`, som håndterer midlertidige filer uden specialtegn.
+   * **Validering:** Verificeret med manuelle "Refine" iterationer og store dokument-størrelser (49KB).
+
+7. **AI-Instrukser & Kilde-integritet**
+   * **Source of Truth:** Opdateret `worker.js` så `refinePrompt` altid inkluderer det oprindelige `brutto_cv.md` som kilde til sandhed for at forhindre hallucinationer.
+   * **Rolle-integritet:** Tilføjet eksplicit instruks om at ansøgeren ikke må indsættes som ansat i CV-sektionen ("Head of Software (Candidate)" i stedet for ansat).
+   * **Teknisk præcision:** Rettet SMA (Simple Moving Average) filter-beskrivelsen i `brutto_cv.md` til at bruge korrekt terminologi (O(1) kompleksitet, fixed-point, cirkulær buffer).
+
+### 🚀 Næste skridt / Arkitektur-TODO
+- [ ] **Fælles Bibliotek:** Flyt `callLocalGemini`, `parseCandidateInfo` og `extractSection` fra `server.js` og `worker.js` til `utils.js` for at undgå kode-duplikering (DRY princip).
+- [ ] **Test-Suite:** Udvid `utils.test.js` til også at dække `printToPdf` med mocks af `exec`.
+
+### Teknisk Specifikation (Logger v3.5)
+Format: `[Tidsstempel][Niveau][Linje][Funktion (15)][Filnavn (12)] - Besked`
+
+### Næste skridt
+1. **Fuldskala Test:** Køre en række komplekse internationale opslag igennem for at verificere sprogreglerne 100%.
+2. **Bulk Export:** Implementere den endelige "Gem Alle" funktionalitet.
+
+## Status: 23. Marts 2026 - Formalisering af "The MGN Method" 🧠🚀
+
+Dagen sluttes af med at løfte projektet til et nyt strategisk niveau ved at formalisere vores samarbejdsmodel.
+
+### Dagens sidste milepæl
+* **The MGN Method:** Formaliseret "Meta-Engineering & Best Practices" i `GEMINI.md`. Dette inkluderer strikse regler for dokumentations-drevet udvikling, fast kolonne-alignment i logs og robusthed over for AI-latens.
+* **Global Hukommelse:** Instruktionerne er nu gemt i Gemini's globale hukommelse, så principperne kan foreslås proaktivt i alle brugerens projekter.
+* **Test-Disciplin:** Indført tvungen kørsel af alle unit-tests før enhver commit/push.
+
+Dagen markerer overgangen fra et teknisk vellykket projekt til en skalerbar udviklingsmetodik. 🚀✨🎩
+
+## Status: 24. Marts 2026 - Docker-Centric Testing & Template Prep (v3.6.0) 🐳🧪
+
+I dag har vi færdiggjort overgangen til et rent Docker-baseret testmiljø, hvilket gør det muligt at køre hele systemets validering uden lokale Node.js afhængigheder.
+
+### Gennemførte forbedringer (v3.6.0)
+
+1. **Docker-baseret Test-workflow**
+   * Implementeret `./test_docker.sh` som den primære indgang til test.
+   * Test-guiden i `docs/test.md` er opdateret til at reflektere den nye "Docker-first" strategi.
+   * Verificeret at både backend (Jest) og frontend (Vitest) kører fejlfrit inde i hhv. `jaa-backend` og `jaa-frontend`.
+
+2. **Oprydning & Konsolidering**
+   * Fjernet overflødige test-scripts og sikret, at alle stier i Docker-containerne er korrekt mappet.
+   * Synkroniseret container-navne (`jaa-backend`, `jaa-frontend`, `jaa-redis`) på tværs af scripts og dokumentation.
+
+3. **Klargøring til Template-sync**
+   * Alle kerneforbedringer i logik og infrastruktur er nu valideret og klar til at blive flyttet til `Job-Application-Agent-Template`.
+   * Dette vil sikre, at alle fremtidige projekter følger den samme robuste "MGN Method" arkitektur.
+
+### Næste skridt
+1. **Template-Synkronisering:** Kopier de validerede ændringer fra MGN til Template repoet.
+2. **Global Udrulning:** Pushe Template opdateringerne, så de er tilgængelige for alle platforme (RPi5, Win11 etc.).
+
+Fyraften (eller i hvert fald klar til commit)! 🍻🚀🧪
+
+
