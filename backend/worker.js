@@ -18,7 +18,7 @@ const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
 const { io } = require('socket.io-client');
-const { mdToHtml, wrap, wrapAll, fetchCompanyContent, logger, printToPdf } = require('./utils');
+const { mdToHtml, wrap, wrapAll, fetchCompanyContent, logger, printToPdf, callLocalGemini, parseCandidateInfo, extractSection } = require('./utils');
 
 const execPromise = promisify(exec);
 const rootDir = '/app/shared';
@@ -37,50 +37,6 @@ const redisConnection = new IORedis({
 });
 
 const socket = io('http://localhost:3002');
-
-function parseCandidateInfo(bruttoCv) {
-    const info = { name: "", address: "", email: "", phone: "" };
-    if (!bruttoCv) return info;
-
-    logger.info("parseCandidateInfo", "Parser kandidat-info fra Brutto-CV");
-    const cleanValue = (val) => val ? val.replace(/^[\s\*\-#]+|[\s\*\-#]+$/g, '').trim() : "";
-
-    const getName = bruttoCv.match(/(?:\*\*|\*|#|-)?\s*(?:Navn|Name)[:\s]+(.*?)(?:\n|$)/i);
-    const getAddr = bruttoCv.match(/(?:\*\*|\*|#|-)?\s*(?:Adresse|Address)[:\s]+(.*?)(?:\n|$)/i);
-    const getEmail = bruttoCv.match(/(?:\*\*|\*|#|-)?\s*(?:Email|E-mail)[:\s]+(.*?)(?:\n|$)/i);
-    const getPhone = bruttoCv.match(/(?:\*\*|\*|#|-)?\s*(?:Telefon|Phone|Mobil|Mobile)[:\s]+(.*?)(?:\n|$)/i);
-
-    if (getName) info.name = cleanValue(getName[1]);
-    if (getAddr) info.address = cleanValue(getAddr[1]);
-    if (getEmail) info.email = cleanValue(getEmail[1]);
-    if (getPhone) info.phone = cleanValue(getPhone[1]);
-    
-    logger.info("parseCandidateInfo", "Kandidat-data udtrukket", info);
-    return info;
-}
-
-async function callLocalGemini(prompt, jobId = "default") {
-    const startTime = Date.now();
-    try {
-        const tempFile = path.join('/tmp', `prompt_${jobId}_${Date.now()}.txt`);
-        fs.writeFileSync(tempFile, prompt);
-        
-        logger.info("callLocalGemini", `Sender prompt til Gemini CLI (Job: ${jobId})`, { tegn: prompt.length });
-
-        const { stdout } = await execPromise(`gemini < "${tempFile}"`);
-        
-        if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile);
-        
-        const duration = ((Date.now() - startTime) / 1000).toFixed(1);
-        logger.info("callLocalGemini", `AI Respons modtaget på ${duration} sekunder`, { svarLængde: stdout.length });
-        
-        return stdout;
-    } catch (error) {
-        const duration = ((Date.now() - startTime) / 1000).toFixed(1);
-        logger.error("callLocalGemini", `Fejl ved kald efter ${duration} sekunder`, { error: error.message });
-        throw error;
-    }
-}
 
 const worker = new Worker('job_queue', async (job) => {
   let { jobId, jobText, companyUrl: initialUrl, hint, type: jobType, folder: existingFolder, markdown: existingMarkdown } = job.data;

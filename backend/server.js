@@ -21,7 +21,7 @@ const fs = require('fs');
 const dotenv = require('dotenv');
 const { exec } = require('child_process');
 const { promisify } = require('util');
-const { mdToHtml, wrap, logger, printToPdf } = require('./utils');
+const { mdToHtml, wrap, logger, printToPdf, callLocalGemini, parseCandidateInfo, extractSection } = require('./utils');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
 

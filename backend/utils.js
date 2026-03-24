@@ -89,19 +89,82 @@ const logger = {
     }
 };
 
-// --- ROBUST PDF GENERERING (v3.5.1) ---
+// --- FÆLLES HJÆLPEFUNKTIONER (DRY Refactoring v3.7.2) ---
+
+/**
+ * Kalder den lokale Gemini CLI med en prompt.
+ */
+async function callLocalGemini(prompt, jobId = "default") {
+    const startTime = Date.now();
+    try {
+        const tempFile = path.join('/tmp', `prompt_${jobId}_${Date.now()}.txt`);
+        fs.writeFileSync(tempFile, prompt);
+        
+        logger.info("callLocalGemini", `Sender prompt til Gemini CLI (Job: ${jobId})`, { tegn: prompt.length });
+
+        const { stdout } = await execPromise(`gemini < "${tempFile}"`);
+        
+        if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile);
+        
+        const duration = ((Date.now() - startTime) / 1000).toFixed(1);
+        logger.info("callLocalGemini", `AI Respons modtaget på ${duration} sekunder`, { svarLængde: stdout.length });
+        
+        return stdout;
+    } catch (error) {
+        const duration = ((Date.now() - startTime) / 1000).toFixed(1);
+        logger.error("callLocalGemini", `Fejl ved kald efter ${duration} sekunder`, { error: error.message });
+        throw error;
+    }
+}
+
+/**
+ * Parser kandidat-information fra Brutto-CV Markdown.
+ */
+function parseCandidateInfo(bruttoCv) {
+    const info = { name: "", address: "", email: "", phone: "" };
+    if (!bruttoCv) return info;
+
+    logger.info("parseCandidateInfo", "Parser kandidat-info fra Brutto-CV");
+    const cleanValue = (val) => val ? val.replace(/^[\s\*\-#]+|[\s\*\-#]+$/g, '').trim() : "";
+
+    const getName = bruttoCv.match(/(?:\*\*|\*|#|-)?\s*(?:Navn|Name)[:\s]+(.*?)(?:\n|$)/i);
+    const getAddr = bruttoCv.match(/(?:\*\*|\*|#|-)?\s*(?:Adresse|Address)[:\s]+(.*?)(?:\n|$)/i);
+    const getEmail = bruttoCv.match(/(?:\*\*|\*|#|-)?\s*(?:Email|E-mail)[:\s]+(.*?)(?:\n|$)/i);
+    const getPhone = bruttoCv.match(/(?:\*\*|\*|#|-)?\s*(?:Telefon|Phone|Mobil|Mobile)[:\s]+(.*?)(?:\n|$)/i);
+
+    if (getName) info.name = cleanValue(getName[1]);
+    if (getAddr) info.address = cleanValue(getAddr[1]);
+    if (getEmail) info.email = cleanValue(getEmail[1]);
+    if (getPhone) info.phone = cleanValue(getPhone[1]);
+    
+    logger.info("parseCandidateInfo", "Kandidat-data udtrukket", info);
+    return info;
+}
+
+/**
+ * Udtrækker en sektion fra AI'ens Markdown svar baseret på mærkater.
+ */
+const extractSection = (text, tag) => {
+    if (!text) return "";
+    const cleanTag = tag.replace(/^-+|-+$/g, '').toUpperCase();
+    const regex = new RegExp(`-+\\s*${cleanTag}\\s*-+[\\s\\S]*?\\n?([\\s\\S]*?)(?=\\n\\s*-+[A-ZÆØÅ_]+\\s*-+|$|\\n=)`, 'i');
+    const match = text.match(regex);
+    if (!match) {
+        const fallbackRegex = new RegExp(`(?:^|\\n)${cleanTag}:?\\s*\\n?([\\s\\S]*?)(?=\\n[A-ZÆØÅ_]+:|$)`, 'i');
+        const fallbackMatch = text.match(fallbackRegex);
+        return fallbackMatch ? fallbackMatch[1].trim() : "";
+    }
+    return match[1].trim();
+};
+
+// --- ROBUST PDF GENERERING ---
 async function printToPdf(htmlPath, pdfPath) {
     const tempSafeHtml = path.join(path.dirname(htmlPath), `print_tmp_${Date.now()}.html`);
     try {
-        // 1. Kopier til et sikkert filnavn uden specialtegn for at undgå shell/encoding fejl
         fs.copyFileSync(htmlPath, tempSafeHtml);
-        
-        // 2. Kør Chromium mod den sikre temp-fil
         const cmd = `chromium-browser --headless --disable-gpu --no-sandbox --no-pdf-header-footer --print-to-pdf="${pdfPath}" "file://${tempSafeHtml}"`;
         logger.info("printToPdf", "Genererer PDF", { cmd });
         await execPromise(cmd);
-        
-        // 3. Ryd op
         if (fs.existsSync(tempSafeHtml)) fs.unlinkSync(tempSafeHtml);
         return true;
     } catch (error) {
@@ -161,7 +224,7 @@ const wrap = (t, c, type = 'ansøgning', meta = {}, candidate = {}, lang = 'da',
             addressHtml = `<p>${street}</p><p>${cityInfo}</p>`;
         }
     } else {
-        const fullAddr = addrParts[0].trim();
+        const fullAddr = address.split(',')[0].trim();
         if (dateDisplay) {
             addressHtml = `<div class="address-date-line"><span>${fullAddr}</span><span style="margin-left: auto; text-align: right;">${dateDisplay}</span></div>`;
         } else {
@@ -219,4 +282,4 @@ async function fetchCompanyContent(url) {
     }
 }
 
-module.exports = { mdToHtml, wrap, wrapAll, fetchCompanyContent, logger, printToPdf };
+module.exports = { mdToHtml, wrap, wrapAll, fetchCompanyContent, logger, printToPdf, callLocalGemini, parseCandidateInfo, extractSection };
