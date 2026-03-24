@@ -33,6 +33,16 @@ graph TD
 
 *Bemærk: I den aktuelle Docker-implementering kører `Backend` og `Worker` i samme container (`jaa-backend`) for at forenkle ressource-deling og fil-adgang.*
 
+### Teknologistak & Sprog
+
+| Modul | Teknologi | Primært Sprog |
+| :--- | :--- | :--- |
+| **Frontend** | React / Vite | TypeScript / JavaScript |
+| **Backend** | Express.js | TypeScript / JavaScript |
+| **Worker** | Node.js | JavaScript |
+| **Kø (Redis)** | Redis | C (In-memory storage) |
+| **Jobkø Logik** | BullMQ | TypeScript / JavaScript |
+
 ## 🔍 Architecture Overview
 
 For en detaljeret beskrivelse af hvordan data og filer flyder gennem systemet (inkl. mappenavngivning og PDF-generering), se [Data & Fil-workflow](data_flow.md).
