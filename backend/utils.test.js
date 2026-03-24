@@ -34,11 +34,11 @@ describe('utils.js', () => {
         });
 
         test('bør håndtere adresse-opsplitning korrekt', () => {
-            const layoutMeta = { address: 'Vejnavn 1, 1234 By' };
-            const html = wrap('Titel', 'Indhold', 'ansøgning', {}, { name: 'Test' }, 'da', layoutMeta);
+            const candidate = { address: 'Vejnavn 1, 1234 By' };
+            const html = wrap('Titel', 'Indhold', 'ansøgning', {}, candidate, 'da', {});
             
             expect(html).toContain('<p>Vejnavn 1</p>');
-            expect(html).toContain('1234 By');
+            expect(html).toContain('<span>1234 By</span>');
             // Tjekker at datoen også er der (da det er en ansøgning)
             expect(html).toContain(new Date().getFullYear().toString());
         });
