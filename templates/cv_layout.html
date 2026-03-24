@@ -4,17 +4,17 @@
  * Designer: MGN (mgn@mgnielsen.dk)
  * Copyright (c) 2026 MGN. All rights reserved.
  * 
- * BEM�RK: Denne kode anvender AI til generering og behandling.
+ * BEMÆRK: Denne kode anvender AI til generering og behandling.
  * Brugeren skal selv verificere, at resultatet er som forventet.
  * Softwaren leveres "som den er", uden nogen form for garanti.
- * Brug af softwaren sker p� eget ansvar.
+ * Brug af softwaren sker på eget ansvar.
 -->
 
 <!DOCTYPE html>
 <html lang="da">
 <head>
     <meta charset="UTF-8">
-    <title>CV - {{NAME}}</title>
+    <title>CV - {{BRUGER_NAVN}}</title>
     <style>
         @page { size: A4; margin: 1.2cm; }
         @media print {
@@ -78,9 +78,9 @@
 <body>
     <header>
         <div class="contact-info">
-            <h1>{{NAME}}</h1>
-            {{ADDRESS_BLOCK}}
-            <p>{{PHONE}} | {{EMAIL}}</p>
+            <h1>{{BRUGER_NAVN}}</h1>
+            {{BRUGER_ADRESSE_BLOK}}
+            <p>{{BRUGER_TLF}} | {{BRUGER_EMAIL}}</p>
         </div>
     </header>
 
