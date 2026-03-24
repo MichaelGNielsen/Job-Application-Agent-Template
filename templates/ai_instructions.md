@@ -47,7 +47,7 @@ Sender-Email: (Din e-mail fra BRUTTO_CV)
 Folder-Name: (Kort navn til mappe)
 
 **VIGTIG REGL OM ADRESSER:**
-- `Sender-Address` og de andre `Sender-` felter skal forudfyldes med dine data fra BRUTTO_CV. Disse styrer brevhovedet.
+- `Sender-Address` og de andre `Sender-` felter SKAL altid inkluderes og forudfyldes med dine data fra BRUTTO_CV. Disse styrer brevhovedet i både Ansøgning og CV.
 - `Address` i metadata bruges KUN til modtagerfeltet i selve ansøgningsteksten (lige under brevhovedet).
 - Ved "Refine" (rettelser) skal du bevare brugerens manuelle ændringer i disse felter, medmindre han specifikt beder om at få dem rettet.
 
