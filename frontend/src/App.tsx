@@ -60,7 +60,9 @@ const App: React.FC = () => {
       
       const verRes = await fetch('/api/version').then(r => r.json());
       setVersion(verRes.version);
-      setInstanceName(verRes.instance?.replace('IDENTITY_', '') || 'MGN');
+      // Vask IDENTITY_ og eventuelle # eller whitespace væk
+      const cleanName = verRes.instance?.replace(/^#\s*/, '').replace(/IDENTITY_/i, '').trim() || 'MGN';
+      setInstanceName(cleanName);
     } catch (e) { console.error("Fejl ved hentning af konfig:", e); }
   };
 
