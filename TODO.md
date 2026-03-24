@@ -8,7 +8,7 @@ Denne liste indeholder planlagte forbedringer, teknisk gæld og nye features. Pu
   - [x] `callLocalGemini`
   - [x] `parseCandidateInfo`
   - [x] `extractSection`
-- [ ] **Udvidet Unit-test:** Opdater `utils.test.js` til at dække `printToPdf` ved brug af mocks til `exec`.
+- [x] **Udvidet Unit-test:** Opdater `utils.test.js` til at dække `printToPdf` ved brug af mocks til `exec`.
 - [ ] **Integrationstests:** Opret `test_api.sh` der tester backend-endpoints via `curl` direkte i Docker.
 
 ## 🟡 Medium Prioritet (Features)

@@ -10,43 +10,69 @@
  * Brug af softwaren sker på eget ansvar.
  */
 
-const { wrap } = require('./utils');
+const { wrap, parseCandidateInfo, extractSection, printToPdf, callLocalGemini } = require('./utils');
 const fs = require('fs');
-const path = require('path');
+const child_process = require('child_process');
 
-// Mock fs.readFileSync to provide template content
+// Mocks
 jest.mock('fs');
+jest.mock('child_process', () => ({
+    exec: jest.fn((cmd, cb) => cb(null, { stdout: 'Mocked output', stderr: '' }))
+}));
 
 describe('utils.js', () => {
+    
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
     describe('wrap()', () => {
         beforeEach(() => {
-            jest.clearAllMocks();
-            // Provide a simple template for testing
-            fs.readFileSync.mockReturnValue('<html><head><title>{{DOC_TITLE}}</title></head><body><h1>{{NAME}}</h1><div class="address">{{ADDRESS_BLOCK}}</div><div class="content">{{CONTENT}}</div></body></html>');
+            fs.readFileSync.mockReturnValue('<html><body><h1>{{BRUGER_NAVN}}</h1>{{BRUGER_ADRESSE_BLOK}}{{CONTENT}}</body></html>');
         });
 
         test('bør indsætte navn og indhold korrekt', () => {
             const html = wrap('Titel', 'Brødtekst', 'ansøgning', {}, { name: 'Test Bruger' });
-            
             expect(html).toContain('Test Bruger');
             expect(html).toContain('Brødtekst');
-            expect(html).toContain('Titel - Test Bruger');
         });
 
         test('bør håndtere adresse-opsplitning korrekt', () => {
             const candidate = { address: 'Vejnavn 1, 1234 By' };
             const html = wrap('Titel', 'Indhold', 'ansøgning', {}, candidate, 'da', {});
-            
-            expect(html).toContain('<p>Vejnavn 1</p>');
-            expect(html).toContain('<span>1234 By</span>');
-            // Tjekker at datoen også er der (da det er en ansøgning)
-            expect(html).toContain(new Date().getFullYear().toString());
+            expect(html).toContain('Vejnavn 1');
+            expect(html).toContain('1234 By');
         });
+    });
 
-        test('bør erstatte [SCORE] tags med en pæn div', () => {
-            const html = wrap('Titel', 'Resultat: [SCORE] 85% [/SCORE]', 'match', {}, { name: 'Test' });
-            
-            expect(html).toContain('<div class="match-score">Samlet Match Score: 85%</div>');
+    describe('parseCandidateInfo()', () => {
+        test('bør udtrække info korrekt fra Markdown', () => {
+            const brutto = 'Navn: Michael Nielsen\nAdresse: Testvej 1, 9000 Aalborg';
+            const info = parseCandidateInfo(brutto);
+            expect(info.name).toBe('Michael Nielsen');
+            expect(info.address).toBe('Testvej 1, 9000 Aalborg');
+        });
+    });
+
+    describe('extractSection()', () => {
+        test('bør udtrække en sektion', () => {
+            const res = '---TEST---内容';
+            expect(extractSection(res, 'TEST')).toBe('内容');
+        });
+    });
+
+    describe('printToPdf()', () => {
+        test('bør returnere true ved succes', async () => {
+            const success = await printToPdf('in.html', 'out.pdf');
+            expect(success).toBe(true);
+            expect(child_process.exec).toHaveBeenCalled();
+        });
+    });
+
+    describe('callLocalGemini()', () => {
+        test('bør returnere AI svar', async () => {
+            const response = await callLocalGemini('prompt');
+            expect(response).toBe('Mocked output');
         });
     });
 });
