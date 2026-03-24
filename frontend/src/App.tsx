@@ -19,7 +19,7 @@ const THEME_COLOR = "cyan";
 type ViewMode = 'html' | 'markdown' | 'meta';
 
 const App: React.FC = () => {
-  const [version, setVersion] = useState('v3.6.7');
+  const [version, setVersion] = useState('v3.6.8');
   const [instanceName, setInstanceName] = useState('');
   const [jobText, setJobText] = useState('');
   const [companyUrl, setCompanyUrl] = useState('');
@@ -146,31 +146,42 @@ const App: React.FC = () => {
     } catch (err: any) { setError(err.message); setIsLoading(false); }
   };
 
-  // --- HJÆLPERE TIL TREDELT EDITOR (v3.6.7) ---
+  // --- ROBUST SPLIT LOGIK (v3.6.8) ---
   const splitMarkdown = (fullMd: string) => {
-    const metaMatch = fullMd.match(/---LAYOUT_METADATA---([\s\S]*?)(?=---[A-ZÆØÅ_]+---|$)/i);
-    const bodyMatch = fullMd.match(/---[A-ZÆØÅ_]+---([\s\S]*)$/i);
-    return {
-      meta: metaMatch ? metaMatch[1].trim() : "",
-      body: bodyMatch ? bodyMatch[1].trim() : fullMd
-    };
+    const sections = fullMd.split(/---([A-ZÆØÅ0-9_+]+)---/);
+    let meta = "";
+    let body = fullMd;
+    let currentTag = "";
+
+    for (let i = 1; i < sections.length; i += 2) {
+        const tag = sections[i];
+        const content = sections[i+1] ? sections[i+1].trim() : "";
+        
+        if (tag === 'LAYOUT_METADATA') {
+            meta = content;
+        } else if (['ANSØGNING', 'CV', 'MATCH_ANALYSE', 'ICAN+_PITCH'].includes(tag.toUpperCase())) {
+            body = content;
+            currentTag = tag;
+            break; // Vi har fundet den primære sektion
+        }
+    }
+    
+    return { meta, body, tag: currentTag };
   };
 
   const updateMetadata = (id: string, newMeta: string) => {
     if (!results) return;
-    const { body } = splitMarkdown(results.markdown[id]);
-    const tagMatch = results.markdown[id].match(/(---[A-ZÆØÅ_]+---)/i);
-    const tag = tagMatch ? tagMatch[1] : `---${id.toUpperCase()}---`;
-    const newFullMd = `---LAYOUT_METADATA---\n${newMeta}\n\n${tag}\n${body}`;
+    const { body, tag } = splitMarkdown(results.markdown[id]);
+    const finalTag = tag || id.toUpperCase();
+    const newFullMd = `---LAYOUT_METADATA---\n${newMeta}\n\n---${finalTag}---\n${body}`;
     setResults({ ...results, markdown: { ...results.markdown, [id]: newFullMd } });
   };
 
   const updateBody = (id: string, newBody: string) => {
     if (!results) return;
-    const { meta } = splitMarkdown(results.markdown[id]);
-    const tagMatch = results.markdown[id].match(/(---[A-ZÆØÅ_]+---)/i);
-    const tag = tagMatch ? tagMatch[1] : `---${id.toUpperCase()}---`;
-    const newFullMd = `---LAYOUT_METADATA---\n${meta}\n\n${tag}\n${newBody}`;
+    const { meta, tag } = splitMarkdown(results.markdown[id]);
+    const finalTag = tag || id.toUpperCase();
+    const newFullMd = `---LAYOUT_METADATA---\n${meta}\n\n---${finalTag}---\n${newBody}`;
     setResults({ ...results, markdown: { ...results.markdown, [id]: newFullMd } });
   };
 
@@ -295,7 +306,7 @@ const App: React.FC = () => {
                           <div className="h-full flex flex-col space-y-4">
                             <div className="bg-cyan-900/10 border border-cyan-500/20 p-4 rounded-xl">
                               <p className="text-[10px] text-cyan-400 font-bold uppercase tracking-wider mb-1">Info</p>
-                              <p className="text-xs text-gray-400 italic">Her kan du rette dine kontaktdata og firmaets adresse. Disse data styre brevhovedet i din PDF.</p>
+                              <p className="text-xs text-gray-400 italic">Her kan du rette dine kontaktdata og firmaets adresse. Disse data styrer brevhovedet i din PDF.</p>
                             </div>
                             <textarea 
                               className="flex-1 bg-[#0a192f] text-yellow-200/80 font-mono text-sm p-8 rounded-xl outline-none focus:ring-2 ring-cyan-500/20 resize-none shadow-inner" 
