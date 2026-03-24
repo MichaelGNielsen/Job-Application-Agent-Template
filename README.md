@@ -83,6 +83,7 @@ Følg altid disse regler for Markdown-filer for at sikre optimal kompatibilitet 
 For mere dybdegående information, se venligst følgende dokumenter:
 - [Testvejledning](docs/test.md) - Hvordan du installerer og kører tests.
 - [Systemarkitektur](docs/architecture.md) - Overblik over systemets opbygning.
+- [TODO Liste](TODO.md) - Planlagte forbedringer og roadmap.
 - [Docker Opsætning](docs/docker_setup.md) - Detaljeret guide til installation.
 - [Logger Anvendelse](docs/logger_usage.md) - Detaljeret guide til lognings-systemet.
 - [Data Flow](docs/data_flow.md) - Hvordan data flyder gennem systemet.

@@ -1,0 +1,15 @@
+Jeg har vurderet mit match med stillingen som Senior Efterforsker hos INTERPOL, og jeg ser en exceptionelt stærk overensstemmelse mellem mine erfaringer og de krav, der stilles i opslaget.
+
+**Kvalifikationer og Erfaring:**
+Jeg opfylder og overgår kravet om minimum 10 års tung efterforskning med mine over 20 år i felten. Min parathed til global udstationering og erfaring med alle transportformer (inklusive raketter) matcher INTERPOLs behov for fleksibilitet.
+
+**Sprog og Kultur:**
+Med fransk som modersmål og flydende syldavisk/bordurisk besidder jeg de specifikke sproglige styrker, som opslaget efterspørger som en unik fordel for internationale operationer.
+
+**Ledelse og Teamwork:**
+INTERPOL efterspørger eksplicit en profil, der kan lede teams med forskellige arbejdsmetoder og fungere som analytisk overbygning for efterforskere som Dupont og Dupond. Min mangeårige erfaring med netop denne opgave gør mig til den ideelle kandidat til at sikre struktur og diplomati i marken.
+
+**Teknologisk Ekspertise:**
+Min specialisering i darkweb-efterforskning (TOR/Robin) og konsekvent anvendelse af VPN og sikkerhedsmetoder placerer mig i frontlinjen af kampen mod moderne teknologisk svindel, som er et prioriteret område for INTERPOL.
+
+[SCORE] 98% [/SCORE]
