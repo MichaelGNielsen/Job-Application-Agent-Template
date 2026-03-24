@@ -387,13 +387,33 @@ app.post('/api/refine', async (req, res) => {
     const bruttoCv = fs.existsSync(bruttoPath) ? fs.readFileSync(bruttoPath, 'utf8') : "";
     const candidate = parseCandidateInfo(bruttoCv);
 
+    // Metadata parsing (v3.6.5)
+    const extractSection = (text, tag) => {
+        const cleanTag = tag.replace(/^-+|-+$/g, '').toUpperCase();
+        const regex = new RegExp(`-+\\s*${cleanTag}\\s*-+[\\s\\S]*?\\n?([\\s\\S]*?)(?=\\n\\s*-+[A-ZÆØÅ_]+\\s*-+|$|\\n=)`, 'i');
+        const match = text.match(regex);
+        return match ? match[1].trim() : "";
+    };
+
+    const metadataRaw = extractSection(markdown, 'LAYOUT_METADATA');
+    const layoutMeta = {
+        signOff: metadataRaw.match(/^Sign-off:\s*(.*)$/im)?.[1]?.trim(),
+        location: metadataRaw.match(/^Location:\s*(.*)$/im)?.[1]?.trim(),
+        datePrefix: metadataRaw.match(/^Date-Prefix:\s*(.*)$/im)?.[1]?.trim(),
+        address: metadataRaw.match(/^Address:\s*(.*)$/im)?.[1]?.trim(),
+        senderName: metadataRaw.match(/^Sender-Name:\s*(.*)$/im)?.[1]?.trim(),
+        senderAddress: metadataRaw.match(/^Sender-Address:\s*(.*)$/im)?.[1]?.trim(),
+        senderPhone: metadataRaw.match(/^Sender-Phone:\s*(.*)$/im)?.[1]?.trim(),
+        senderEmail: metadataRaw.match(/^Sender-Email:\s*(.*)$/im)?.[1]?.trim()
+    };
+
     // Detekter sprog fra det indsendte markdown
     const lang = markdown.toLowerCase().includes('dear') || markdown.toLowerCase().includes('sincerely') ? 'en' : 'da';
 
     const htmlBody = await mdToHtml(markdown, mdPath, `${baseName}_body.html`);
     const companyName = folder.split('_')[2] || 'firma';
     const jobTitle = folder.split('_').slice(3).join(' ') || 'stilling';
-    const fullHtml = wrap(typeLabel.replace('_', ' '), htmlBody, type, { company: companyName, position: jobTitle }, candidate, lang);
+    const fullHtml = wrap(typeLabel.replace('_', ' '), htmlBody, type, { company: companyName, position: jobTitle }, candidate, lang, layoutMeta);
     
     fs.writeFileSync(htmlPath, fullHtml);
     
