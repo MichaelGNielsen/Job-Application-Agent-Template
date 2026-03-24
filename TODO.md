@@ -9,7 +9,7 @@ Denne liste indeholder planlagte forbedringer, teknisk gæld og nye features. Pu
   - [x] `parseCandidateInfo`
   - [x] `extractSection`
 - [x] **Udvidet Unit-test:** Opdater `utils.test.js` til at dække `printToPdf` ved brug af mocks til `exec`.
-- [ ] **Integrationstests:** Opret `test_api.sh` der tester backend-endpoints via `curl` direkte i Docker.
+- [x] **Integrationstests:** Opret `test_api.sh` der tester backend-endpoints via `curl` direkte i Docker.
 
 ## 🟡 Medium Prioritet (Features)
 
