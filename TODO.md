@@ -13,6 +13,9 @@ Denne liste indeholder planlagte forbedringer, teknisk gæld og nye features. Pu
 
 ## 🟡 Medium Prioritet (Features)
 
+- [ ] **Proaktiv Jobsøgning:** Agenten skal automatisk kunne finde 1 nyt relevant jobopslag hver dag, der matcher brugerens profil.
+  - [ ] Geografisk begrænsning: Radius på 20-30 km fra bopæl.
+  - [ ] Matching-logik: Brug AI til at screene opslag og kun præsentere de bedste matches.
 - [ ] **Bulk Export:** Implementer en "Download Alle PDF'er" knap i frontenden, der pakker dokumenterne (evt. som ZIP eller blot trigger multiple downloads).
 - [ ] **Sproglig Konsistens:** Verificer sprogregler (i18n) med komplekse internationale opslag (Tysk/Fransk/Spansk) for at sikre, at "Høfligheds-fejlen" er helt væk.
 - [ ] **Billed-håndtering:** Optimering af billed-stier i CV, så de virker både i backend-PDF og manuelt browser-print (Serving via Express).
