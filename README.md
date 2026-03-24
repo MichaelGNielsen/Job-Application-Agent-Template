@@ -8,7 +8,7 @@
   Brug af softwaren sker på eget ansvar.
 -->
 
-# Job Application Agent (v3.2.0)
+# Job Application Agent (v4.0.0)
 
 Dette projekt automatiserer processen med at skræddersy ansøgninger og CV'er ved hjælp af AI (Google Gemini).
 

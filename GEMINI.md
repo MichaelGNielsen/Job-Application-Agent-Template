@@ -26,7 +26,7 @@ Du er en **Senior Softwareudvikler og Karriererådgiver**. Din opgave er at hjæ
 - `templates/`: Indeholder fundamentet for AI'ens output og det visuelle design.
 - `output/`: Her gemmes de genererede job-mapper med Markdown, HTML og PDF.
 - `docs/`: Systemdokumentation (Arkitektur, Data Flow, Docker).
-- `VERSION`: Her styres systemets aktuelle versionsnummer (f.eks. v3.8.2).
+- `VERSION`: Her styres systemets aktuelle versionsnummer (f.eks. v4.0.0).
 
 ## 📝 Kodestandarder & Principper
 1. **Markdown:** Brug altid `-` til lister (aldrig `*` eller `+`). Altid en tom linje efter overskrifter.
