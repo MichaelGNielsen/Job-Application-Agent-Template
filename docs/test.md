@@ -41,3 +41,4 @@ docker exec jaa-frontend npm test
 
 ---
 *Sidst opdateret: 24. marts 2026 (v4.0.3)*
+
