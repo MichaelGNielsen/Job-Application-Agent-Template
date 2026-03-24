@@ -145,7 +145,9 @@ const wrap = (t, c, type = 'ansøgning', meta = {}, candidate = {}, lang = 'da',
         dateDisplay = prefix ? `${location}, ${prefix} ${formattedDate}` : `${location}, ${formattedDate}`;
     }
     let addressHtml = "";
-    const addrParts = (layoutMeta.address || candidate.address || process.env.MIN_ADRESSE || "").split(',');
+    // VIGTIGT: Brug KUN kandidatens adresse til afsender-blokken (brevhovedet).
+    // Firma-adressen (layoutMeta.address) må kun stå i selve ansøgningsteksten (modtagerfeltet).
+    const addrParts = (candidate.address || process.env.MIN_ADRESSE || "").split(',');
     if (addrParts.length >= 2) {
         const street = addrParts[0].trim();
         const cityInfo = addrParts[1].trim();

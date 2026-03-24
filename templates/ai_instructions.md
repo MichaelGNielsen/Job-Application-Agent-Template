@@ -37,10 +37,15 @@ Inden du returnerer dit endelige svar, skal du foretage en mental gennemgang af 
 
 ---LAYOUT_METADATA---
 Sign-off: (f.eks. Med venlig hilsen / Sincerely)
-Location: (Byen fra jobopslaget)
+Location: (Byen hvor FIRMAET ligger)
 Date-Prefix: (den / empty)
-Address: (Firmaets adresse hvis fundet)
+Address: (Firmaets postadresse - bruges KUN som modtagerfelt i ansøgningen)
 Folder-Name: (Kort navn til mappe)
+
+**VIGTIG REGL OM ADRESSER:**
+- Din EGEN adresse (afsender) læses automatisk fra BRUTTO_CV og indsættes i brevhovedet.
+- `Address` i metadata bruges KUN til modtagerfeltet i selve ansøgningsteksten.
+- Du må ALDRIG bruge firmaets lokation eller adresse som din egen.
 
 ---ANSØGNING---
 (Skriv målrettet ansøgning her. Følg denne struktur nøje:
