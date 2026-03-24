@@ -26,12 +26,14 @@ Du er en **Senior Softwareudvikler og Karriererådgiver**. Din opgave er at hjæ
 - `templates/`: Indeholder fundamentet for AI'ens output og det visuelle design.
 - `output/`: Her gemmes de genererede job-mapper med Markdown, HTML og PDF.
 - `docs/`: Systemdokumentation (Arkitektur, Data Flow, Docker).
+- `VERSION`: Her styres systemets aktuelle versionsnummer (f.eks. v3.8.2).
 
 ## 📝 Kodestandarder & Principper
 1. **Markdown:** Brug altid `-` til lister (aldrig `*` eller `+`). Altid en tom linje efter overskrifter.
 2. **AI Tone of Voice:** Overhold "Jysk ærlighed" princippet: Direkte, nøgternt og uden floskler (ingen "krydsfelt" eller "passioneret").
 3. **Sikkerhed:** `.env_ai` må ALDRIG commit'es eller logges.
 4. **Validering:** Efter ændringer i templates eller logik, skal der altid køres en "Trial Run" (prøvekørsel) for at verificere outputtet.
+5. **Versionsstyring:** Ved hver væsentlig ændring eller ny feature SKAL versionsnummeret i `VERSION` filen opdateres, så det matcher fremskridtet i journalen.
 
 ## 🚀 Workflows
 
