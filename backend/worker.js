@@ -381,13 +381,17 @@ ${jobText}
         const mdPath = path.join(folderPath, `${fileName}.md`);
         const htmlPath = path.join(folderPath, `${fileName}.html`);
         const pdfPath = path.join(folderPath, `${fileName}.pdf`);
-        fs.writeFileSync(mdPath, s.md);
+        
+        // Gem metadata øverst i Markdown-filen (v3.6.6)
+        const fullMarkdown = `---LAYOUT_METADATA---\n${metadataRaw}\n\n---${s.title.toUpperCase()}---\n${s.md}`;
+        fs.writeFileSync(mdPath, fullMarkdown);
+        
         const htmlBody = await mdToHtml(s.md, mdPath, `${fileName}_body.html`);
         const fullHtml = wrap(s.title.replace(/_/g, ' '), htmlBody, s.id, { company: companyName, position: jobTitleRaw }, candidate, lang, layoutMeta);
         fs.writeFileSync(htmlPath, fullHtml);
         updateStatus(`Genererer PDF for ${s.title.replace(/_/g, ' ')}...`);
         await printToPdf(htmlPath, pdfPath);
-        results.markdown[s.id] = s.md;
+        results.markdown[s.id] = fullMarkdown;
         results.html[s.id] = fullHtml;
         results.links[s.id] = {
             md: `/api/applications/${folderName}/${fileName}.md`,
