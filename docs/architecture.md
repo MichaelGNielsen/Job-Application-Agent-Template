@@ -31,6 +31,8 @@ graph TD
     Backend -- Status --> Frontend
 ```
 
+*Bemærk: I den aktuelle Docker-implementering kører `Backend` og `Worker` i samme container (`jaa-backend`) for at forenkle ressource-deling og fil-adgang.*
+
 ## 🔍 Architecture Overview
 
 For en detaljeret beskrivelse af hvordan data og filer flyder gennem systemet (inkl. mappenavngivning og PDF-generering), se [Data & Fil-workflow](data_flow.md).
