@@ -2,44 +2,42 @@
 
 Dette dokument beskriver, hvordan du verificerer, at systemet kører korrekt efter ændringer.
 
-## 🚀 Anbefalet metode: Test i Docker
-Siden v3.2.0 er den anbefalede metode at køre testene direkte inde i Docker-containerne. Dette sikrer, at testmiljøet er 100% identisk med selve applikationen, og du behøver ikke have Node.js installeret på din maskine.
+## 🚀 Den Ultimative Metode: System-test
+Siden v4.0.0 er den anbefalede metode at køre den fulde system-test, som verificerer både logik, API og frontend i ét hug.
 
 ### Kør alle tests
-I projektets rodmappe kan du køre det automatiske script:
 ```bash
-./test_docker.sh
+./test_all.sh
 ```
 
-### Manuel kørsel af specifikke tests
-Hvis du ønsker at køre dem manuelt, kan du bruge `docker exec`:
+Dette script udfører:
+1. **Backend Unit-tests:** Verificerer logik i `utils.js` (Markdown, PDF, AI-kald).
+2. **API Integration:** Verificerer at Docker-containerne svarer korrekt via `curl`.
+3. **Frontend Unit-tests:** Verificerer React-brugerfladen.
 
-**Backend Tests:**
+## 🧪 Manuelle Test-metoder
+
+Hvis du kun vil køre dele af test-suiten:
+
+### 1. Kun API Integration
+```bash
+./test_api.sh
+```
+
+### 2. Kun Backend Unit-tests
 ```bash
 docker exec jaa-backend npm test
 ```
 
-**Frontend Tests:**
+### 3. Kun Frontend Unit-tests
 ```bash
 docker exec jaa-frontend npm test
 ```
 
-## 💻 Alternativ metode: Lokal kørsel (Kræver Node.js)
-Hvis du har installeret Node.js lokalt og har kørt `npm install` i mapperne, kan du teste direkte:
-
-**Backend:**
-```bash
-cd backend && npm test
-```
-
-**Frontend:**
-```bash
-cd frontend && npm test
-```
-
 ## ✅ Hvad testes der?
-- **Backend:** Test af `utils.js` (Markdown parsing, HTML-wrapping og API-håndtering).
-- **Frontend:** Grundlæggende React rendering og UI-komponenter.
+- **Backend:** Test af `utils.js` (Markdown parsing, HTML-wrapping, PDF-generering og AI-integration).
+- **API:** Verificering af endpoints for CV, AI-regler og versionsstyring.
+- **Frontend:** Grundlæggende React rendering og UI-komponenter med det nye tredelte layout.
 
 ---
-*Sidst opdateret: 24. marts 2026 (v3.2.0)*
+*Sidst opdateret: 24. marts 2026 (v4.0.3)*
