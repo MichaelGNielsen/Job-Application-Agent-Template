@@ -15,6 +15,8 @@ Dette projekt automatiserer processen med at skræddersy ansøgninger og CV'er v
 ## 🚀 Hurtig opstart
 Hvis det er første gang du bruger agenten, så følg vores **[Setup Guide](docs/setup.md)** for at komme i gang på få minutter.
 
+> **⚠️ VIGTIGT (Multi-instans):** Da både `Job-Application-Agent-MGN` og `Job-Application-Agent-Template` nu benytter de samme containernavne (for nemmere synkronisering), kan de ikke køre samtidigt. Husk altid at køre `docker-compose down` i den aktive mappe, før du starter den anden.
+
 # Job Application Agent Template
 
 > **Bemærk:** Hele dette projekt – herunder kode, arkitektur, dokumentation og PUML-figurer – er genereret 100% af AI (Gemini CLI) udelukkende baseret på prompts (med striks styring fra min side 😊).

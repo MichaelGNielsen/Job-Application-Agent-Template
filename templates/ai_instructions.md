@@ -40,12 +40,16 @@ Sign-off: (f.eks. Med venlig hilsen / Sincerely)
 Location: (Byen hvor FIRMAET ligger)
 Date-Prefix: (den / empty)
 Address: (Firmaets postadresse - bruges KUN som modtagerfelt i ansøgningen)
+Sender-Name: (Dit navn fra BRUTTO_CV)
+Sender-Address: (Din adresse fra BRUTTO_CV)
+Sender-Phone: (Dit mobilnummer fra BRUTTO_CV)
+Sender-Email: (Din e-mail fra BRUTTO_CV)
 Folder-Name: (Kort navn til mappe)
 
 **VIGTIG REGL OM ADRESSER:**
-- Din EGEN adresse (afsender) læses automatisk fra BRUTTO_CV og indsættes i brevhovedet.
-- `Address` i metadata bruges KUN til modtagerfeltet i selve ansøgningsteksten.
-- Du må ALDRIG bruge firmaets lokation eller adresse som din egen.
+- `Sender-Address` og de andre `Sender-` felter skal forudfyldes med dine data fra BRUTTO_CV. Disse styrer brevhovedet.
+- `Address` i metadata bruges KUN til modtagerfeltet i selve ansøgningsteksten (lige under brevhovedet).
+- Ved "Refine" (rettelser) skal du bevare brugerens manuelle ændringer i disse felter, medmindre han specifikt beder om at få dem rettet.
 
 ---ANSØGNING---
 (Skriv målrettet ansøgning her. Følg denne struktur nøje:

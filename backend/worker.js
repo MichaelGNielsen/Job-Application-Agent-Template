@@ -288,12 +288,17 @@ ${cvLayout}
     const metadataRaw = extractSection(docsPart, 'LAYOUT_METADATA');
     
     const layoutMeta = {
-        signOff: metadataRaw.match(/^Sign-off:\s*(.*?)(?=\s*(?:Location:|Date-Prefix:|Address:|Folder-Name:)|$)/im)?.[1]?.trim() || (lang === 'en' ? "Sincerely," : "Med venlig hilsen,"),
-        location: metadataRaw.match(/^Location:\s*(.*?)(?=\s*(?:Sign-off:|Date-Prefix:|Address:|Folder-Name:)|$)/im)?.[1]?.trim() || "",
-        datePrefix: metadataRaw.match(/^Date-Prefix:\s*(.*?)(?=\s*(?:Sign-off:|Location:|Address:|Folder-Name:)|$)/im)?.[1]?.trim() || (lang === 'da' ? "den" : ""),
-        address: metadataRaw.match(/^Address:\s*(.*?)(?=\s*(?:Sign-off:|Location:|Date-Prefix:|Folder-Name:)|$)/im)?.[1]?.trim() || "",
-        folderName: metadataRaw.match(/^Folder-Name:\s*(.*?)(?=\s*(?:Sign-off:|Location:|Date-Prefix:|Address:)|$)/im)?.[1]?.trim() || ""
+        signOff: metadataRaw.match(/^Sign-off:\s*(.*?)(?=\s*(?:Location:|Date-Prefix:|Address:|Sender-Name:|Sender-Address:|Sender-Phone:|Sender-Email:|Folder-Name:)|$)/im)?.[1]?.trim() || (lang === 'en' ? "Sincerely," : "Med venlig hilsen,"),
+        location: metadataRaw.match(/^Location:\s*(.*?)(?=\s*(?:Sign-off:|Date-Prefix:|Address:|Sender-Name:|Sender-Address:|Sender-Phone:|Sender-Email:|Folder-Name:)|$)/im)?.[1]?.trim() || "",
+        datePrefix: metadataRaw.match(/^Date-Prefix:\s*(.*?)(?=\s*(?:Sign-off:|Location:|Address:|Sender-Name:|Sender-Address:|Sender-Phone:|Sender-Email:|Folder-Name:)|$)/im)?.[1]?.trim() || (lang === 'da' ? "den" : ""),
+        address: metadataRaw.match(/^Address:\s*(.*?)(?=\s*(?:Sign-off:|Location:|Date-Prefix:|Sender-Name:|Sender-Address:|Sender-Phone:|Sender-Email:|Folder-Name:)|$)/im)?.[1]?.trim() || "",
+        senderName: metadataRaw.match(/^Sender-Name:\s*(.*?)(?=\s*(?:Sign-off:|Location:|Date-Prefix:|Address:|Sender-Address:|Sender-Phone:|Sender-Email:|Folder-Name:)|$)/im)?.[1]?.trim() || "",
+        senderAddress: metadataRaw.match(/^Sender-Address:\s*(.*?)(?=\s*(?:Sign-off:|Location:|Date-Prefix:|Address:|Sender-Name:|Sender-Phone:|Sender-Email:|Folder-Name:)|$)/im)?.[1]?.trim() || "",
+        senderPhone: metadataRaw.match(/^Sender-Phone:\s*(.*?)(?=\s*(?:Sign-off:|Location:|Date-Prefix:|Address:|Sender-Name:|Sender-Address:|Sender-Email:|Folder-Name:)|$)/im)?.[1]?.trim() || "",
+        senderEmail: metadataRaw.match(/^Sender-Email:\s*(.*?)(?=\s*(?:Sign-off:|Location:|Date-Prefix:|Address:|Sender-Name:|Sender-Address:|Sender-Phone:|Folder-Name:)|$)/im)?.[1]?.trim() || "",
+        folderName: metadataRaw.match(/^Folder-Name:\s*(.*?)(?=\s*(?:Sign-off:|Location:|Date-Prefix:|Address:|Sender-Name:|Sender-Address:|Sender-Phone:|Sender-Email:)|$)/im)?.[1]?.trim() || ""
     };
+
 
     // Tilføj research-info til AI noter hvis det blev fundet (v3.1.2)
     if (companyUrl || foundCompanyAddress) {

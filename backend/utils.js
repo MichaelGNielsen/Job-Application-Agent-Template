@@ -134,20 +134,24 @@ const wrap = (t, c, type = 'ansøgning', meta = {}, candidate = {}, lang = 'da',
     let html = fs.readFileSync(templatePath, 'utf8');
     const company = meta.company || '';
     const position = meta.position || '';
-    const name = candidate.name || process.env.MIT_NAVN || "Bruger";
+    
+    // Prioriter Sender-data fra metadata (så brugeren kan rette dem i editoren)
+    const name = layoutMeta.senderName || candidate.name || process.env.MIT_NAVN || "Bruger";
+    const phone = layoutMeta.senderPhone || candidate.phone || process.env.MIN_TELEFON || "";
+    const email = layoutMeta.senderEmail || candidate.email || process.env.MIN_EMAIL || "";
+    const address = layoutMeta.senderAddress || candidate.address || process.env.MIN_ADRESSE || "";
+
     const docTitle = `${t} - ${name} - ${company} - ${position}`.replace(/\s+/g, ' ').trim();
     let dateDisplay = "";
     if (type === 'ansøgning') {
         const dateObj = new Date();
         const formattedDate = dateObj.toLocaleDateString(lang === 'en' ? 'en-GB' : 'da-DK', { day: 'numeric', month: 'long', year: 'numeric' });
-        const location = layoutMeta.location || (candidate.address ? candidate.address.split(',')[1]?.trim().replace(/^[0-9 ]+/, '') : "");
+        const location = layoutMeta.location || (address ? address.split(',')[1]?.trim().replace(/^[0-9 ]+/, '') : "");
         const prefix = layoutMeta.datePrefix !== undefined ? layoutMeta.datePrefix : (lang === 'da' ? "den" : "");
         dateDisplay = prefix ? `${location}, ${prefix} ${formattedDate}` : `${location}, ${formattedDate}`;
     }
     let addressHtml = "";
-    // VIGTIGT: Brug KUN kandidatens adresse til afsender-blokken (brevhovedet).
-    // Firma-adressen (layoutMeta.address) må kun stå i selve ansøgningsteksten (modtagerfeltet).
-    const addrParts = (candidate.address || process.env.MIN_ADRESSE || "").split(',');
+    const addrParts = address.split(',');
     if (addrParts.length >= 2) {
         const street = addrParts[0].trim();
         const cityInfo = addrParts[1].trim();
@@ -168,9 +172,9 @@ const wrap = (t, c, type = 'ansøgning', meta = {}, candidate = {}, lang = 'da',
         .replace(/{{DOC_TITLE}}/g, docTitle)
         .replace(/{{NAME}}/g, name)
         .replace(/{{ADDRESS_BLOCK}}/g, addressHtml)
-        .replace(/{{ADDRESS}}/g, (layoutMeta.address || candidate.address || ""))
-        .replace(/{{PHONE}}/g, candidate.phone || process.env.MIN_TELEFON || "")
-        .replace(/{{EMAIL}}/g, candidate.email || process.env.MIN_EMAIL || "")
+        .replace(/{{ADDRESS}}/g, (layoutMeta.address || "")) // Firma-adressen (modtager)
+        .replace(/{{PHONE}}/g, phone)
+        .replace(/{{EMAIL}}/g, email)
         .replace(/{{CONTENT}}/g, c.replace(/\[SCORE\]\s*(.*?)\s*\[\/SCORE\]/gi, '<div class="match-score">Samlet Match Score: $1</div>'))
         .replace(/{{SIGNATURE_SECTION}}/g, "");
     return resultHtml;
