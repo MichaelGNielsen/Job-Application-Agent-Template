@@ -4,10 +4,10 @@
  * Designer: MGN (mgn@mgnielsen.dk)
  * Copyright (c) 2026 MGN. All rights reserved.
  * 
- * BEM�RK: Denne kode anvender AI til generering og behandling.
+ * BEMÆRK: Denne kode anvender AI til generering og behandling.
  * Brugeren skal selv verificere, at resultatet er som forventet.
  * Softwaren leveres "som den er", uden nogen form for garanti.
- * Brug af softwaren sker p� eget ansvar.
+ * Brug af softwaren sker på eget ansvar.
  */
 
 import { render, screen } from '@testing-library/react';
@@ -25,7 +25,7 @@ vi.mock('socket.io-client', () => ({
 
 // Mock fetch for initial data loading
 global.fetch = vi.fn().mockImplementation((url) => {
-    if (url === '/api/version') return Promise.resolve({ json: () => Promise.resolve({ version: '3.1.2' }) });
+    if (url === '/api/version') return Promise.resolve({ json: () => Promise.resolve({ version: '3.7.0', instance: 'MGN' }) });
     if (url === '/api/brutto') return Promise.resolve({ json: () => Promise.resolve({ content: '' }) });
     if (url === '/api/config/instructions') return Promise.resolve({ json: () => Promise.resolve({ content: '' }) });
     if (url === '/api/config/layout') return Promise.resolve({ json: () => Promise.resolve({ content: '' }) });
@@ -34,8 +34,9 @@ global.fetch = vi.fn().mockImplementation((url) => {
 
 test('renders headline', async () => {
   render(<App />);
-  const headline = screen.getByText(/Job Application Agent/i);
-  expect(headline).toBeDefined();
+  // Bruger getAllByText da navnet nu findes både i header og footer
+  const headlines = screen.getAllByText(/Job Application Agent/i);
+  expect(headlines.length).toBeGreaterThan(0);
 });
 
 test('renders action button', async () => {
@@ -47,8 +48,9 @@ test('renders action button', async () => {
 test('renders config tabs', async () => {
   render(<App />);
   expect(screen.getByText(/Master CV/i)).toBeDefined();
-  expect(screen.getByText(/AI Regler/i)).toBeDefined();
-  // Bruger getAllByText da "Design" også findes i footeren
+  // Navnet er ændret til 🧠 AI Prompts
+  expect(screen.getByText(/AI Prompts/i)).toBeDefined();
+  // Bruger getAllByText da "Design" også findes i footeren eller i andre tags
   const designElements = screen.getAllByText(/Design/i);
   expect(designElements.length).toBeGreaterThan(0);
 });
