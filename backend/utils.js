@@ -168,6 +168,15 @@ const wrap = (t, c, type = 'ansøgning', meta = {}, candidate = {}, lang = 'da',
             addressHtml = `<p>${fullAddr}</p>`;
         }
     }
+
+    // --- JANITOR FASE (v3.6.7) ---
+    // Vi fjerner tekniske metadata og sektions-tags fra det indhold, der skal i PDF'en.
+    let cleanContent = c;
+    // Fjern alt mellem ---LAYOUT_METADATA--- og det næste sektions-tag eller slutningen af strengen
+    cleanContent = cleanContent.replace(/---LAYOUT_METADATA---[\s\S]*?(?=---[A-ZÆØÅ_]+---|$)/gi, '');
+    // Fjern alle sektions-tags (f.eks. ---ANSØGNING---)
+    cleanContent = cleanContent.replace(/---[A-ZÆØÅ_]+---/gi, '');
+    
     let resultHtml = html
         .replace(/{{DOC_TITLE}}/g, docTitle)
         .replace(/{{NAME}}/g, name)
@@ -175,7 +184,7 @@ const wrap = (t, c, type = 'ansøgning', meta = {}, candidate = {}, lang = 'da',
         .replace(/{{ADDRESS}}/g, (layoutMeta.address || "")) // Firma-adressen (modtager)
         .replace(/{{PHONE}}/g, phone)
         .replace(/{{EMAIL}}/g, email)
-        .replace(/{{CONTENT}}/g, c.replace(/\[SCORE\]\s*(.*?)\s*\[\/SCORE\]/gi, '<div class="match-score">Samlet Match Score: $1</div>'))
+        .replace(/{{CONTENT}}/g, cleanContent.replace(/\[SCORE\]\s*(.*?)\s*\[\/SCORE\]/gi, '<div class="match-score">Samlet Match Score: $1</div>'))
         .replace(/{{SIGNATURE_SECTION}}/g, "");
     return resultHtml;
 };

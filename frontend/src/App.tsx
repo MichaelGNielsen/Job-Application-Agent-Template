@@ -16,8 +16,10 @@ import { io } from 'socket.io-client';
 const socket = io();
 const THEME_COLOR = "cyan";
 
+type ViewMode = 'html' | 'markdown' | 'meta';
+
 const App: React.FC = () => {
-  const [version, setVersion] = useState('v3.2.0');
+  const [version, setVersion] = useState('v3.6.7');
   const [instanceName, setInstanceName] = useState('');
   const [jobText, setJobText] = useState('');
   const [companyUrl, setCompanyUrl] = useState('');
@@ -32,7 +34,7 @@ const App: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
-  const [viewModes, setViewModes] = useState<{ [key: string]: 'markdown' | 'html' }>({
+  const [viewModes, setViewModes] = useState<{ [key: string]: ViewMode }>({
     ansøgning: 'html', cv: 'html', match: 'html', ican: 'html'
   });
   const [results, setResults] = useState<{ 
@@ -55,7 +57,40 @@ const App: React.FC = () => {
       setBruttoCv(brutto.content);
       setAiInstructions(ai.content);
       setMasterLayout(layout.content);
+      
+      const verRes = await fetch('/api/version').then(r => r.json());
+      setVersion(verRes.version);
+      setInstanceName(verRes.instance?.replace('IDENTITY_', '') || 'MGN');
     } catch (e) { console.error("Fejl ved hentning af konfig:", e); }
+  };
+
+  useEffect(() => {
+    fetchData();
+    socket.on('job_status_update', (data) => {
+      setStatusMessage(data.status);
+      if (data.status === 'Færdig!') {
+        setResults(data);
+        setIsLoading(false);
+      }
+      if (data.status === 'Fejl') {
+        setError(data.error);
+        setIsLoading(false);
+      }
+    });
+    return () => { socket.off('job_status_update'); };
+  }, []);
+
+  const handleGenerate = async () => {
+    setIsLoading(true); setError(null); setStatusMessage('Starter...');
+    try {
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobText, companyUrl, hint }),
+      });
+      const { jobId } = await res.json();
+      socket.emit('join_job', jobId);
+    } catch (err: any) { setError(err.message); setIsLoading(false); }
   };
 
   const handleSaveConfig = async (type: typeof activeTab) => {
@@ -74,60 +109,7 @@ const App: React.FC = () => {
       });
       setIsLoading(false); setStatusMessage('Gemt!');
       setTimeout(() => setStatusMessage(''), 2000);
-      
-      // LIVE DESIGN SLØJFE: Hvis vi gemmer layout og har resultater, så opdater alle previews øjeblikkeligt!
-      if (type === 'layout' && results) {
-          setStatusMessage('Opdaterer layout live...');
-          
-          // Robust parsing af kandidat-info direkte fra editoren
-          const clean = (val: string | undefined) => val ? val.replace(/^[\s\*\-#]+|[\s\*\-#]+$/g, '').trim() : "";
-          const candidate = {
-              name: clean(bruttoCv.match(/(?:\*\*|\*|#|-)?\s*(?:Navn|Name)[:\s]+(.*?)(?:\n|$)/i)?.[1]) || "Bruger",
-              address: clean(bruttoCv.match(/(?:\*\*|\*|#|-)?\s*(?:Adresse|Address)[:\s]+(.*?)(?:\n|$)/i)?.[1]),
-              email: clean(bruttoCv.match(/(?:\*\*|\*|#|-)?\s*(?:Email|E-mail)[:\s]+(.*?)(?:\n|$)/i)?.[1]),
-              phone: clean(bruttoCv.match(/(?:\*\*|\*|#|-)?\s*(?:Telefon|Phone|Mobil|Mobile)[:\s]+(.*?)(?:\n|$)/i)?.[1])
-          };
-
-          const types = ['ansøgning', 'cv', 'match', 'ican'];
-          const updatedHtml: { [key: string]: string } = {};
-          
-          for (const t of types) {
-              if (results.markdown[t]) {
-                  const res = await fetch('/api/preview', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ 
-                          markdown: results.markdown[t],
-                          type: t === 'ansøgning' ? 'Ansøgning' : t === 'cv' ? 'CV' : t === 'match' ? 'Match Analyse' : 'ICAN+ Pitch',
-                          lang: results.lang || 'dk',
-                          candidate: candidate
-                      }),
-                  });
-                  const data = await res.json();
-                  updatedHtml[t] = data.html;
-              }
-          }
-          setResults({ ...results, html: { ...results.html, ...updatedHtml } });
-          setStatusMessage('Layout opdateret!');
-          setTimeout(() => setStatusMessage(''), 2000);
-      }
     } catch (err: any) { setError(err.message); setIsLoading(false); }
-  };
-
-  const toggleViewMode = (id: string) => {
-    const newMode = viewModes[id] === 'html' ? 'markdown' : 'html';
-    
-    // Hvis vi skifter FRA markdown TIL html (preview), så gem automatisk først
-    if (viewModes[id] === 'markdown' && newMode === 'html') {
-        handleRefine(id, false);
-    }
-    
-    setViewModes(prev => ({ ...prev, [id]: newMode }));
-  };
-
-  const getDocUrl = (path: string) => {
-    if (!path) return '#';
-    return path;
   };
 
   const handleRefine = async (type: string, useAi: boolean = false) => {
@@ -151,196 +133,183 @@ const App: React.FC = () => {
         socket.emit('join_job', jobId);
       } else {
         const data = await response.json();
-        setResults({ ...results, html: { ...results.html, [type]: data.html } });
-        setIsLoading(false); setStatusMessage('Opdateret!');
-        setTimeout(() => setStatusMessage(''), 2000);
+        if (data.success) {
+          setResults({
+            ...results,
+            html: { ...results.html, [type]: data.html }
+          });
+          setIsLoading(false);
+          setStatusMessage('Gemt!');
+          setTimeout(() => setStatusMessage(''), 2000);
+        }
       }
     } catch (err: any) { setError(err.message); setIsLoading(false); }
   };
 
-  useEffect(() => {
-    fetch('/api/version')
-      .then(res => res.json())
-      .then(data => {
-        setVersion(`v${data.version}`);
-        // Vask instans-navnet: Fjern 'IDENTITY_' eller 'TAG_' (case-insensitive) og erstat '_' med ' '
-        const rawName = data.instance || '';
-        const cleanedName = rawName.replace(/^IDENTITY_/i, '').replace(/^TAG_/i, '').replace(/_/g, ' ').trim();
-        setInstanceName(cleanedName);
-      })
-      .catch(e => console.error("Kunne ikke hente version fra API"));
+  // --- HJÆLPERE TIL TREDELT EDITOR (v3.6.7) ---
+  const splitMarkdown = (fullMd: string) => {
+    const metaMatch = fullMd.match(/---LAYOUT_METADATA---([\s\S]*?)(?=---[A-ZÆØÅ_]+---|$)/i);
+    const bodyMatch = fullMd.match(/---[A-ZÆØÅ_]+---([\s\S]*)$/i);
+    return {
+      meta: metaMatch ? metaMatch[1].trim() : "",
+      body: bodyMatch ? bodyMatch[1].trim() : fullMd
+    };
+  };
 
-    fetchData();
+  const updateMetadata = (id: string, newMeta: string) => {
+    if (!results) return;
+    const { body } = splitMarkdown(results.markdown[id]);
+    const tagMatch = results.markdown[id].match(/(---[A-ZÆØÅ_]+---)/i);
+    const tag = tagMatch ? tagMatch[1] : `---${id.toUpperCase()}---`;
+    const newFullMd = `---LAYOUT_METADATA---\n${newMeta}\n\n${tag}\n${body}`;
+    setResults({ ...results, markdown: { ...results.markdown, [id]: newFullMd } });
+  };
 
-    socket.on('job_status_update', (data) => {
-      setStatusMessage(data.status);
-      if (data.status === 'Færdig!') { setResults(data); setIsLoading(false); }
-      else if (data.status.includes('Fejl')) { setError(data.error || data.status); setIsLoading(false); }
-    });
-    return () => { socket.off('job_status_update'); };
-  }, []);
-
-  const handleGenerate = async () => {
-    if (!jobText.trim()) return;
-    setIsLoading(true); setError(null); setResults(null); setStatusMessage('Starter...');
-    try {
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jobText, companyUrl, hint }),
-      });
-      const { jobId } = await response.json();
-      socket.emit('join_job', jobId);
-    } catch (err: any) { setError(err.message); setIsLoading(false); }
+  const updateBody = (id: string, newBody: string) => {
+    if (!results) return;
+    const { meta } = splitMarkdown(results.markdown[id]);
+    const tagMatch = results.markdown[id].match(/(---[A-ZÆØÅ_]+---)/i);
+    const tag = tagMatch ? tagMatch[1] : `---${id.toUpperCase()}---`;
+    const newFullMd = `---LAYOUT_METADATA---\n${meta}\n\n${tag}\n${newBody}`;
+    setResults({ ...results, markdown: { ...results.markdown, [id]: newFullMd } });
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#0a192f] text-gray-100 p-8 font-sans scroll-smooth">
-      <div className="max-w-6xl mx-auto">
-        <header className="mb-12 text-center">
-          <h1 className="text-3xl font-light tracking-widest uppercase text-cyan-400 border-b border-cyan-500/30 pb-4 inline-block">
-            Job Application Agent {instanceName} | {version}
-          </h1>
+    <div className="min-h-screen bg-[#0a192f] text-gray-100 font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
+      <div className="max-w-6xl mx-auto px-4 py-12">
+        <header className="mb-16 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="space-y-2 text-center md:text-left">
+            <h1 className="text-4xl font-extrabold tracking-tighter text-white">
+              Job Application Agent <span className="text-cyan-500">{instanceName}</span>
+            </h1>
+            <p className="text-gray-400 font-mono text-sm tracking-widest">{version} | AUTOMATION ENGINE</p>
+          </div>
+          <div className="flex gap-4">
+            <button onClick={() => setShowConfig(!showConfig)} className={`px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all border ${showConfig ? 'bg-cyan-600 border-cyan-500 text-white shadow-lg shadow-cyan-500/20' : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'}`}>
+              ⚙️ System Kartotek
+            </button>
+          </div>
         </header>
 
-        <main className="space-y-8">
-          {/* KARTOTEK SEKTION */}
-          <section className="bg-[#112240] p-6 rounded-xl border border-white/5 shadow-xl">
-            <div className="flex justify-between items-center mb-6">
-              <div className="flex gap-4">
-                {[
-                  { id: 'brutto', label: '📇 Master CV' },
-                  { id: 'ai', label: '🤖 AI Regler' },
-                  { id: 'layout', label: '🎨 Design' }
-                ].map(tab => (
-                  <button 
-                    key={tab.id}
-                    onClick={() => { setActiveTab(tab.id as any); setShowConfig(true); }}
-                    className={`px-4 py-2 text-xs font-bold uppercase tracking-widest rounded-t-lg border-b-2 transition-all ${activeTab === tab.id && showConfig ? 'border-cyan-400 text-cyan-400 bg-white/5' : 'border-transparent text-gray-500 hover:text-gray-300'}`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-              <button onClick={() => setShowConfig(!showConfig)} className="text-gray-500 text-[10px] hover:text-white uppercase tracking-widest">
-                {showConfig ? 'Skjul Editor' : 'Vis Editor'}
-              </button>
+        <main className="space-y-12">
+          {/* KONFIGURATIONSPANEL */}
+          <section className={`transition-all duration-500 overflow-hidden ${showConfig ? 'max-h-[1000px] opacity-100 mb-12' : 'max-h-0 opacity-0'}`}>
+            <div className="flex gap-1 mb-4 bg-white/5 p-1 rounded-lg w-fit">
+              {(['brutto', 'ai', 'layout'] as const).map(tab => (
+                <button key={tab} onClick={() => setActiveTab(tab)} className={`px-6 py-2 rounded-md text-[10px] font-bold uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-[#112240] text-cyan-400 shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}>
+                  {tab === 'brutto' ? '📜 Master CV' : tab === 'ai' ? '🧠 AI Prompts' : '🎨 Design'}
+                </button>
+              ))}
             </div>
-            
-            {showConfig && (
-              <div className="space-y-4 animate-in slide-in-from-top duration-300">
-                <textarea 
-                  className="w-full h-80 bg-[#0a192f] border border-white/10 rounded p-4 font-mono text-sm text-gray-300 focus:border-cyan-500/50 outline-none transition-colors"
-                  value={
-                    activeTab === 'brutto' ? bruttoCv : 
-                    activeTab === 'ai' ? aiInstructions : 
-                    masterLayout
-                  }
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    if (activeTab === 'brutto') setBruttoCv(val);
-                    else if (activeTab === 'ai') setAiInstructions(val);
-                    else if (activeTab === 'layout') setMasterLayout(val);
-                  }}
-                />
-                <div className="flex gap-4">
-                  <button onClick={() => handleSaveConfig(activeTab)} className="flex-1 bg-green-600 hover:bg-green-500 text-white py-3 rounded text-xs font-bold uppercase tracking-widest transition-colors shadow-lg shadow-green-900/20">💾 Gem {activeTab.toUpperCase()}</button>
-                  {activeTab === 'brutto' && (
-                    <button onClick={async () => {
-                        setIsLoading(true); setStatusMessage('Oversætter...');
-                        const res = await fetch('/api/brutto/translate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: bruttoCv }) });
-                        const data = await res.json();
-                        setBruttoCv(data.translated);
-                        setIsLoading(false); setStatusMessage('Oversat!');
-                    }} className="bg-cyan-600 hover:bg-cyan-500 text-white px-8 rounded text-xs font-bold uppercase tracking-widest">🌐 Oversæt</button>
-                  )}
-                </div>
-              </div>
-            )}
-            {!showConfig && <p className="text-gray-500 text-sm italic text-center py-4">Vælg en fane herover for at tilpasse systemets fundament.</p>}
+            {activeTab === 'brutto' && <textarea className="w-full h-96 bg-[#112240] border border-white/10 rounded-xl p-6 font-mono text-sm text-cyan-50 focus:border-cyan-500/50 outline-none shadow-inner" value={bruttoCv} onChange={(e) => setBruttoCv(e.target.value)} />}
+            {activeTab === 'ai' && <textarea className="w-full h-96 bg-[#112240] border border-white/10 rounded-xl p-6 font-mono text-sm text-cyan-50 focus:border-cyan-500/50 outline-none shadow-inner" value={aiInstructions} onChange={(e) => setAiInstructions(e.target.value)} />}
+            {activeTab === 'layout' && <textarea className="w-full h-96 bg-[#112240] border border-white/10 rounded-xl p-6 font-mono text-sm text-cyan-50 focus:border-cyan-500/50 outline-none shadow-inner" value={masterLayout} onChange={(e) => setMasterLayout(e.target.value)} />}
+            <div className="mt-4 flex justify-between">
+              <button onClick={() => handleSaveConfig(activeTab)} className="bg-cyan-600 hover:bg-cyan-500 text-white px-8 py-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-all shadow-lg shadow-cyan-500/20">💾 Gem {activeTab} konfiguration</button>
+              {activeTab === 'brutto' && (
+                <button onClick={async () => {
+                    setIsLoading(true); setStatusMessage('Oversætter...');
+                    const res = await fetch('/api/brutto/translate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: bruttoCv }) });
+                    const data = await res.json();
+                    setBruttoCv(data.translated);
+                    setIsLoading(false); setStatusMessage('Oversat!');
+                }} className="bg-cyan-600 hover:bg-cyan-500 text-white px-8 py-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-all">🌐 Oversæt CV</button>
+              )}
+            </div>
           </section>
 
-          <section className="bg-[#112240] p-6 rounded-xl shadow-xl border border-white/5">
-            <div className="mb-4">
-              <label className="block text-sm font-bold text-gray-400 mb-2">Firma URL</label>
-              <input type="text" placeholder="https://firma.dk/job" className="w-full bg-[#0a192f] border border-white/10 rounded p-3 text-gray-300" value={companyUrl} onChange={(e) => setCompanyUrl(e.target.value)} />
+          {/* JOB INPUT */}
+          <section className="bg-[#112240] p-8 rounded-2xl shadow-2xl border border-white/5 relative">
+            <div className="grid md:grid-cols-2 gap-6 mb-6">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Firma URL (Valgfrit)</label>
+                <input type="text" placeholder="https://firma.dk/job" className="w-full bg-[#0a192f] border border-white/10 rounded-xl p-4 text-gray-300 focus:border-cyan-500/50 outline-none transition-all" value={companyUrl} onChange={(e) => setCompanyUrl(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Personligt Hint (Valgfrit)</label>
+                <input type="text" placeholder="F.eks. Læg vægt på min ledelseserfaring..." className="w-full bg-[#0a192f] border border-white/10 rounded-xl p-4 text-gray-300 focus:border-cyan-500/50 outline-none transition-all" value={hint} onChange={(e) => setHint(e.target.value)} />
+              </div>
             </div>
-            <div className="mb-4">
-              <label className="block text-sm font-bold text-gray-400 mb-2">Personligt Hint (Valgfrit)</label>
-              <textarea 
-                placeholder="F.eks. Læg vægt på min erfaring med backend-arkitektur eller min rolle som mentor for juniorudviklere..." 
-                className="w-full h-24 bg-[#0a192f] border border-white/10 rounded p-3 text-gray-300 resize-none overflow-y-auto focus:border-cyan-500/50 outline-none transition-colors" 
-                value={hint} 
-                onChange={(e) => setHint(e.target.value)} 
-              />
+            <div className="space-y-2 mb-8">
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Jobopslag (Indsæt tekst)</label>
+              <textarea className="w-full h-64 bg-[#0a192f] border border-white/10 rounded-2xl p-6 text-gray-300 focus:border-cyan-500/50 outline-none transition-all resize-none" value={jobText} onChange={(e) => setJobText(e.target.value)} />
             </div>
-
-            <div className="mb-6">
-              <label className="block text-sm font-bold text-gray-400 mb-2">Jobopslag (Indsæt tekst her)</label>
-              <textarea 
-                className="w-full h-48 bg-[#0a192f] border border-white/10 rounded p-3 text-gray-300"
-                value={jobText}
-                onChange={(e) => setJobText(e.target.value)}
-              />
-            </div>
-            <button 
-              onClick={results ? () => handleRefine('all', true) : handleGenerate}
-              disabled={isLoading}
-              className={`w-full py-4 rounded-lg font-bold uppercase tracking-widest transition-all ${isLoading ? 'bg-gray-700 cursor-not-allowed' : 'bg-cyan-600 hover:bg-cyan-500 shadow-lg shadow-cyan-500/20'}`}
-            >
+            <button onClick={results ? () => handleRefine('all', true) : handleGenerate} disabled={isLoading} className={`w-full py-5 rounded-2xl font-black uppercase tracking-[0.2em] transition-all text-sm ${isLoading ? 'bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-xl shadow-cyan-500/20'}`}>
               {isLoading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <span className="animate-spin">🌀</span> {statusMessage}
+                <span className="flex items-center justify-center gap-3">
+                  <span className="animate-spin text-xl">🌀</span> {statusMessage}
                 </span>
-              ) : (results ? '✨ Forfin alle dokumenter med AI (Brug hint)' : '🚀 Start Automatisering')}
+              ) : (results ? '✨ Forfin alt med AI' : '🚀 Start Automatisering')}
             </button>
           </section>
 
-          {error && (
-            <div className="bg-red-900/30 border border-red-500/50 p-4 rounded text-red-400 text-sm">
-              ⚠️ {error}
-            </div>
-          )}
-
+          {/* RESULTATER */}
           {results && (
-            <div className="space-y-8 animate-in fade-in duration-700">
-              <div className="bg-cyan-900/20 border border-cyan-500/30 p-6 rounded-xl">
-                <h3 className="text-cyan-400 font-bold mb-2 flex items-center gap-2">🧠 AI Ræsonnement (Redaktørens noter)</h3>
-                <p className="text-sm text-gray-300 leading-relaxed italic">{results.aiNotes ? `"${results.aiNotes}"` : "AI'en har optimeret dokumenterne baseret på din profil og jobopslaget."}</p>
+            <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+              {/* AI LOGBOG */}
+              <div className="bg-cyan-950/20 border border-cyan-500/20 p-8 rounded-2xl relative overflow-hidden group">
+                <div className="absolute top-0 left-0 w-1 h-full bg-cyan-500"></div>
+                <h3 className="text-cyan-400 font-black mb-4 flex items-center gap-3 uppercase tracking-tighter italic">
+                  <span className="text-2xl">🧠</span> AI Ræsonnement (Redaktørens noter)
+                </h3>
+                <p className="text-gray-300 leading-relaxed italic text-sm group-hover:text-gray-100 transition-colors">
+                  {results.aiNotes ? `"${results.aiNotes}"` : "AI'en har optimeret dokumenterne baseret på din profil og jobopslaget."}
+                </p>
               </div>
 
-              <div className="flex flex-col gap-8">
+              {/* DOKUMENTER */}
+              <div className="grid grid-cols-1 gap-12">
                 {['ansøgning', 'cv', 'match', 'ican'].map((id) => {
                   const title = id === 'ansøgning' ? 'Ansøgning' : id === 'cv' ? 'CV' : id === 'match' ? 'Match Analyse' : 'ICAN+ Pitch';
+                  const { meta, body } = splitMarkdown(results.markdown[id] || "");
+                  
                   return (
-                    <div key={id} className="bg-[#112240] rounded-xl border border-white/5 overflow-hidden flex flex-col">
-                      <div className="bg-white/5 px-4 py-3 flex justify-between items-center border-b border-white/5">
-                        <span className="text-xs font-bold text-gray-400 uppercase tracking-tighter">{title}</span>
-                        <div className="flex gap-2">
-                          <button onClick={() => toggleViewMode(id)} className="text-[10px] text-cyan-400 hover:underline">
-                            {viewModes[id] === 'html' ? 'VIS MARKDOWN' : 'VIS PREVIEW'}
-                          </button>
-                          <a href={getDocUrl(results.links[id]?.html)} target="_blank" rel="noreferrer" className="text-[10px] text-green-400 hover:underline">ÅBEN HTML</a>
-                          <a href={getDocUrl(results.links[id]?.pdf)} target="_blank" rel="noreferrer" className="text-[10px] text-red-400 hover:underline">ÅBEN PDF</a>
+                    <div key={id} className="bg-[#112240] rounded-2xl border border-white/5 shadow-2xl overflow-hidden flex flex-col h-[700px]">
+                      <div className="bg-white/5 px-6 py-4 flex justify-between items-center border-b border-white/5">
+                        <div className="flex flex-col">
+                          <span className="text-[10px] font-black text-cyan-500 uppercase tracking-widest mb-1">Dokument</span>
+                          <span className="text-sm font-bold text-white uppercase">{title}</span>
+                        </div>
+                        <div className="flex gap-1 bg-[#0a192f] p-1 rounded-xl">
+                          <button onClick={() => setViewModes(p => ({...p, [id]: 'html'}))} className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${viewModes[id] === 'html' ? 'bg-cyan-600 text-white' : 'text-gray-500 hover:text-gray-300'}`}>PREVIEW</button>
+                          <button onClick={() => setViewModes(p => ({...p, [id]: 'markdown'}))} className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${viewModes[id] === 'markdown' ? 'bg-cyan-600 text-white' : 'text-gray-500 hover:text-gray-300'}`}>RET INDHOLD</button>
+                          <button onClick={() => setViewModes(p => ({...p, [id]: 'meta'}))} className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${viewModes[id] === 'meta' ? 'bg-cyan-600 text-white' : 'text-gray-500 hover:text-gray-300'}`}>KONTAKT (META)</button>
+                        </div>
+                        <div className="flex gap-3 ml-4 border-l border-white/10 pl-4">
+                          <a href={results.links[id]?.pdf} target="_blank" rel="noreferrer" className="bg-red-600/20 hover:bg-red-600/40 text-red-400 text-[10px] font-bold px-4 py-2 rounded-lg transition-all border border-red-500/20">PDF</a>
                         </div>
                       </div>
-                      <div className="p-4 flex-1">
-                        {viewModes[id] === 'html' ? (
-                          <iframe 
-                            srcDoc={results.html[id]} 
-                            title={`Preview ${id}`}
-                            className="w-full h-[400px] border-none rounded bg-white shadow-inner"
-                          />
-                        ) : (
+
+                      <div className="flex-1 p-6 relative">
+                        {viewModes[id] === 'html' && (
+                          <iframe srcDoc={results.html[id]} title={`Preview ${id}`} className="w-full h-full border-none rounded-xl bg-white shadow-2xl" />
+                        )}
+                        {viewModes[id] === 'markdown' && (
                           <textarea 
-                            className="w-full h-[400px] bg-[#0a192f] text-cyan-50 font-mono text-xs p-4 rounded"
-                            value={results.markdown[id]}
-                            onChange={(e) => setResults({...results, markdown: {...results.markdown, [id]: e.target.value}})}
+                            className="w-full h-full bg-[#0a192f] text-cyan-50 font-mono text-sm p-8 rounded-xl outline-none focus:ring-2 ring-cyan-500/20 resize-none shadow-inner" 
+                            value={body} 
+                            onChange={(e) => updateBody(id, e.target.value)} 
                           />
                         )}
+                        {viewModes[id] === 'meta' && (
+                          <div className="h-full flex flex-col space-y-4">
+                            <div className="bg-cyan-900/10 border border-cyan-500/20 p-4 rounded-xl">
+                              <p className="text-[10px] text-cyan-400 font-bold uppercase tracking-wider mb-1">Info</p>
+                              <p className="text-xs text-gray-400 italic">Her kan du rette dine kontaktdata og firmaets adresse. Disse data styre brevhovedet i din PDF.</p>
+                            </div>
+                            <textarea 
+                              className="flex-1 bg-[#0a192f] text-yellow-200/80 font-mono text-sm p-8 rounded-xl outline-none focus:ring-2 ring-cyan-500/20 resize-none shadow-inner" 
+                              value={meta} 
+                              onChange={(e) => updateMetadata(id, e.target.value)} 
+                            />
+                          </div>
+                        )}
                       </div>
-                      <div className="p-4 pt-0">
-                        <button onClick={() => handleRefine(id, false)} className="w-full py-2 bg-white/5 hover:bg-white/10 text-[10px] font-bold uppercase tracking-widest rounded transition-colors border border-white/5">💾 Gem mine rettelser</button>
+
+                      <div className="p-6 pt-0">
+                        <button onClick={() => handleRefine(id, false)} className="w-full py-4 bg-white/5 hover:bg-cyan-600/20 text-white text-xs font-black uppercase tracking-[0.3em] rounded-xl transition-all border border-white/10 hover:border-cyan-500/50">
+                          💾 Gem alle rettelser i {title}
+                        </button>
                       </div>
                     </div>
                   );
@@ -350,18 +319,14 @@ const App: React.FC = () => {
           )}
         </main>
 
-        <footer className="mt-20 pb-12 border-t border-white/5 pt-8 text-center space-y-4">
-          <p className="text-[10px] text-gray-500 uppercase tracking-[0.2em]">
-            Designer: MGN (mgn@mgnielsen.dk) &copy; 2026 MGN. All rights reserved.
+        <footer className="mt-24 pb-16 border-t border-white/5 pt-12 text-center">
+          <p className="text-[10px] text-gray-500 uppercase tracking-[0.4em] font-bold mb-4">
+            Job Application Agent MGN &copy; 2026
           </p>
-          <div className="max-w-2xl mx-auto px-4">
-            <p className="text-[9px] text-gray-600 leading-relaxed italic">
-              BEMÆRK: Denne kode anvender AI til generering og behandling. 
-              Brugeren skal selv verificere, at resultatet er som forventet. 
-              Softwaren leveres "som den er", uden nogen form for garanti. 
-              Brug af softwaren sker på eget ansvar.
-            </p>
-          </div>
+          <p className="text-[9px] text-gray-600 italic max-w-lg mx-auto leading-loose">
+            Denne AI-drevne platform er skabt til at hjælpe dig med at lande dit drømmejob. 
+            Husk altid at læse dine dokumenter igennem før afsendelse. Held og lykke! 🚀
+          </p>
         </footer>
       </div>
     </div>
