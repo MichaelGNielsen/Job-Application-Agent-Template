@@ -116,25 +116,6 @@ const redisConnection = new IORedis({
 
 const jobQueue = new Queue('job_queue', { connection: redisConnection });
 
-function parseCandidateInfo(bruttoCv) {
-    const info = { name: "", address: "", email: "", phone: "" };
-    if (!bruttoCv) return info;
-
-    const cleanValue = (val) => val ? val.replace(/^[\s\*\-#]+|[\s\*\-#]+$/g, '').trim() : "";
-
-    const getName = bruttoCv.match(/(?:\*\*|\*|#|-)?\s*(?:Navn|Name)[:\s]+(.*?)(?:\n|$)/i);
-    const getAddr = bruttoCv.match(/(?:\*\*|\*|#|-)?\s*(?:Adresse|Address)[:\s]+(.*?)(?:\n|$)/i);
-    const getEmail = bruttoCv.match(/(?:\*\*|\*|#|-)?\s*(?:Email|E-mail)[:\s]+(.*?)(?:\n|$)/i);
-    const getPhone = bruttoCv.match(/(?:\*\*|\*|#|-)?\s*(?:Telefon|Phone|Mobil|Mobile)[:\s]+(.*?)(?:\n|$)/i);
-
-    if (getName) info.name = cleanValue(getName[1]);
-    if (getAddr) info.address = cleanValue(getAddr[1]);
-    if (getEmail) info.email = cleanValue(getEmail[1]);
-    if (getPhone) info.phone = cleanValue(getPhone[1]);
-    
-    return info;
-}
-
 app.use('/api/applications', (req, res, next) => {
     try {
         const originalUrl = req.url;
@@ -154,19 +135,6 @@ app.use('/api/applications', (req, res, next) => {
         }
     }
 }));
-
-async function callLocalGemini(prompt) {
-    try {
-        const tempFile = path.join('/tmp', `prompt_${Date.now()}.txt`);
-        fs.writeFileSync(tempFile, prompt);
-        const { stdout } = await execPromise(`gemini < "${tempFile}"`);
-        if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile);
-        return stdout;
-    } catch (error) {
-        logger.error("callLocalGemini", "Fejl ved kald til Gemini CLI", { error: error.message });
-        throw error;
-    }
-}
 
 /**
  * @openapi
@@ -386,14 +354,6 @@ app.post('/api/refine', async (req, res) => {
     const bruttoPath = path.join(rootDir, 'data', 'brutto_cv.md');
     const bruttoCv = fs.existsSync(bruttoPath) ? fs.readFileSync(bruttoPath, 'utf8') : "";
     const candidate = parseCandidateInfo(bruttoCv);
-
-    // Metadata parsing (v3.6.5)
-    const extractSection = (text, tag) => {
-        const cleanTag = tag.replace(/^-+|-+$/g, '').toUpperCase();
-        const regex = new RegExp(`-+\\s*${cleanTag}\\s*-+[\\s\\S]*?\\n?([\\s\\S]*?)(?=\\n\\s*-+[A-ZÆØÅ_]+\\s*-+|$|\\n=)`, 'i');
-        const match = text.match(regex);
-        return match ? match[1].trim() : "";
-    };
 
     const metadataRaw = extractSection(markdown, 'LAYOUT_METADATA');
     const layoutMeta = {

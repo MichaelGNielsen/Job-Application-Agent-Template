@@ -227,18 +227,6 @@ ${cvLayout}
     
     logger.info("Worker", "Rå AI-output modtaget", { length: docsPart.length });
     
-    const extractSection = (text, tag) => {
-        const cleanTag = tag.replace(/^-+|-+$/g, '').toUpperCase();
-        const regex = new RegExp(`-+\\s*${cleanTag}\\s*-+[\\s\\S]*?\\n?([\\s\\S]*?)(?=\\n\\s*-+[A-ZÆØÅ_]+\\s*-+|$|\\n=)`, 'i');
-        const match = text.match(regex);
-        if (!match) {
-            const fallbackRegex = new RegExp(`(?:^|\\n)${cleanTag}:?\\s*\\n?([\\s\\S]*?)(?=\\n[A-ZÆØÅ_]+:|$)`, 'i');
-            const fallbackMatch = text.match(fallbackRegex);
-            return fallbackMatch ? fallbackMatch[1].trim() : "";
-        }
-        return match[1].trim();
-    };
-
     let aiNotes = extractSection(docsPart, 'REDAKTØRENS_LOGBOG') || "AI'en har optimeret dokumenterne baseret på din profil og jobopslaget.";
 
     const metadataRaw = extractSection(docsPart, 'LAYOUT_METADATA');
@@ -292,7 +280,7 @@ ${jobText}
     }
 
     let ansMd = "", cvMd = "", icanMd = "", matchMd = "";
-    if (typeof extractSection === 'function' && docsPart) {
+    if (docsPart) {
         ansMd = extractSection(docsPart, '---ANSØGNING---');
         cvMd = extractSection(docsPart, '---CV---');
         icanMd = extractSection(docsPart, '---ICAN---');
