@@ -179,11 +179,11 @@ const wrap = (t, c, type = 'ansøgning', meta = {}, candidate = {}, lang = 'da',
     
     let resultHtml = html
         .replace(/{{DOC_TITLE}}/g, docTitle)
-        .replace(/{{NAME}}/g, name)
-        .replace(/{{ADDRESS_BLOCK}}/g, addressHtml)
-        .replace(/{{ADDRESS}}/g, (layoutMeta.address || "")) // Firma-adressen (modtager)
-        .replace(/{{PHONE}}/g, phone)
-        .replace(/{{EMAIL}}/g, email)
+        .replace(/{{BRUGER_NAVN}}|{{NAME}}/g, name)
+        .replace(/{{BRUGER_ADRESSE_BLOK}}|{{ADDRESS_BLOCK}}/g, addressHtml)
+        .replace(/{{BRUGER_TLF}}|{{PHONE}}/g, phone)
+        .replace(/{{BRUGER_EMAIL}}|{{EMAIL}}/g, email)
+        .replace(/{{FIRMA_ADRESSE}}|{{ADDRESS}}/g, (layoutMeta.address || ""))
         .replace(/{{CONTENT}}/g, cleanContent.replace(/\[SCORE\]\s*(.*?)\s*\[\/SCORE\]/gi, '<div class="match-score">Samlet Match Score: $1</div>'))
         .replace(/{{SIGNATURE_SECTION}}/g, "");
     return resultHtml;
