@@ -85,6 +85,4 @@ Prøv at tjekke om "Windows Subsystem for Linux" servicen kører, eller genstart
 ---
 
 ## 🚀 Version Info
-
-Nuværende stabil version: **v1.2.1**
-Tema: **Red Shift Edition** (For at indikere ny build)
+Systemets aktuelle version kan altid findes i filen `VERSION` i rodmappen eller i toppen af `README.md`.

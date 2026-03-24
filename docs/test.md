@@ -3,7 +3,7 @@
 Dette dokument beskriver, hvordan du verificerer, at systemet kører korrekt efter ændringer.
 
 ## 🚀 Den Ultimative Metode: System-test
-Siden v4.0.0 er den anbefalede metode at køre den fulde system-test, som verificerer både logik, API og frontend i ét hug.
+Det anbefales altid at køre den fulde system-test, som verificerer både logik, API og frontend i ét hug.
 
 ### Kør alle tests
 ```bash
@@ -40,5 +40,4 @@ docker exec jaa-frontend npm test
 - **Frontend:** Grundlæggende React rendering og UI-komponenter med det nye tredelte layout.
 
 ---
-*Sidst opdateret: 24. marts 2026 (v4.0.3)*
-
+*Se `VERSION` filen for aktuel versions-historik.*
