@@ -330,4 +330,26 @@ I dag har vi færdiggjort overgangen til et rent Docker-baseret testmiljø, hvil
 
 Fyraften (eller i hvert fald klar til commit)! 🍻🚀🧪
 
+## Status: 25. Marts 2026 - Branding & Feedback Update (v4.3.0) 📣🎯
+
+En vigtig opdatering, hvor systemet er blevet strømlinet til eksterne brugere med fokus på feedback og personlig branding.
+
+### Gennemførte forbedringer (v4.3.0)
+
+1. **Branding & Navngivning**
+   - Projektet er omdøbt til "Job Application Agent" (uden MGN/Template suffix) for at gøre det mere universelt.
+   - Alle referencer i README.md og templates er opdateret til det nye navn.
+2. **Feedback Loop**
+   - Oprettet `spørgeskema.md` (omdøbt fra `questions.md`) med nye spørgsmål fokuseret på tidsbesparelse og favorit-funktioner.
+   - Tilføjet feedback-sektion øverst i README.md med direkte link til spørgeskemaet.
+   - Etableret dedikeret feedback-mail: **jaa@mgnielsen.dk**.
+3. **Dokumentations-tjek**
+   - Verificeret at alle centrale vejledninger i `docs/` er på dansk og klar til brugere.
+4. **Versions-konsolidering**
+   - Systemet er nu på v4.3.0 i alle filer (VERSION, README.md, GEMINI.md).
+
+### Næste skridt
+- [ ] Implementering af bulk-export funktion til PDF'er.
+- [ ] Videreudvikling af match-analyse med mere specifikke KPI'er.
+
 

@@ -1,5 +1,5 @@
 <!--
-  Job Application Agent Template
+  Job Application Agent
   Designer: MGN (mgn@mgnielsen.dk)
   Copyright (c) 2026 MGN. All rights reserved.
   BEMÆRK: Denne kode anvender AI til generering og behandling.
@@ -8,20 +8,19 @@
   Brug af softwaren sker på eget ansvar.
 -->
 
-# Job Application Agent (v4.1.0)
+# Job Application Agent (v4.3.0)
+
+> **📣 Vi vil gerne høre fra dig!**
+> Har du brugt Agenten til din jobsøgning? Vi vil elske at høre om din oplevelse.
+> Udfyld venligst [spørgeskema.md](./spørgeskema.md) og send det til: **jaa@mgnielsen.dk**.
+> Din feedback hjælper os med at gøre værktøjet endnu skarpere!
 
 Dette projekt automatiserer processen med at skræddersy ansøgninger og CV'er ved hjælp af AI (Google Gemini).
 
 ## 🚀 Hurtig opstart
 Hvis det er første gang du bruger agenten, så følg vores **[Brugervejledning (How-to)](docs/usage_guide.md)** for at få overblik over alle funktioner.
 
-> **⚠️ VIGTIGT (Multi-instans):** Da både `Job-Application-Agent-MGN` og `Job-Application-Agent-Template` nu benytter de samme containernavne (for nemmere synkronisering), kan de ikke køre samtidigt. Husk altid at køre `docker-compose down` i den aktive mappe, før du starter den anden.
-
-# Job Application Agent MGN (v4.1.0)
-
-> **Bemærk:** Hele dette projekt – herunder kode, arkitektur, dokumentation og PUML-figurer – er genereret 100% af AI (Gemini CLI) udelukkende baseret på prompts (med striks styring fra min side 😊).
-
-Dette er den officielle version af Job Application Agent Template, optimeret til rigtige ansøgere. Systemet automatiserer processen med at skræddersy ansøgninger og CV'er ved hjælp af AI.
+> **⚠️ VIGTIGT (Multi-instans):** Da systemet er baseret på standardiserede containernavne, kan du ikke køre flere instanser af Agenten samtidigt. Husk altid at køre `docker-compose down` i den aktive mappe, før du starter en ny version.
 
 ### Sproghåndtering
 
@@ -76,7 +75,7 @@ Følg altid disse regler for Markdown-filer for at sikre optimal kompatibilitet 
 
 ---
 
-*Sidst opdateret: 21. marts 2026 (v3.1.2)*
+*Sidst opdateret: 25. marts 2026 (v4.1.0)*
 
 ## 📚 Dokumentation
 
