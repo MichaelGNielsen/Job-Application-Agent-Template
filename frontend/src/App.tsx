@@ -33,6 +33,7 @@ const App: React.FC = () => {
   const [showConfig, setShowConfig] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isMasterLoading, setIsMasterLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [viewModes, setViewModes] = useState<{ [key: string]: ViewMode }>({
     ansøgning: 'html', cv: 'html', match: 'html', ican: 'html'
@@ -115,20 +116,28 @@ const App: React.FC = () => {
   };
 
   const handleRefineMaster = async () => {
-    setIsLoading(true); setStatusMessage('AI optimerer Master CV...');
+    const userHint = window.prompt("Indtast dit specielle fokus for optimering (f.eks. 'Opdatér kun Kernekompetencer' eller 'Gør profiltekst mere formel'):", hint || "Stram op og fjern floskler");
+    if (userHint === null) return; // Brugeren afbrød
+
+    setIsMasterLoading(true); setStatusMessage('AI optimerer Master CV (tager ca. 30 sek)...');
     try {
       const res = await fetch('/api/brutto/refine', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: bruttoCv, hint }),
+        body: JSON.stringify({ content: bruttoCv, hint: userHint }),
       });
       const data = await res.json();
       setBruttoCv(data.refined);
-      setIsLoading(false); setStatusMessage('Optimeret!');
-      setTimeout(() => setStatusMessage(''), 2000);
-    } catch (err: any) { setError(err.message); setIsLoading(false); }
-  };
 
+      setIsMasterLoading(false); 
+      // Vis AI'ens log i en alert eller en specifik boks
+      if (data.log) {
+          window.alert("AI RÆSONNEMENT (MASTER CV):\n\n" + data.log);
+      }
+      setStatusMessage('Optimeret!');
+      setTimeout(() => setStatusMessage(''), 2000);
+    } catch (err: any) { setError(err.message); setIsMasterLoading(false); }
+  };
   const handleRenderMaster = async () => {
     setIsLoading(true); setStatusMessage('Genererer visning...');
     try {
@@ -256,7 +265,15 @@ const App: React.FC = () => {
                 <>
                   <button onClick={handleRenderMaster} className="bg-[#112240] hover:bg-[#1d355e] text-white px-6 py-3 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all border border-cyan-500/30">👁️ Vis HTML</button>
                   <a href="/api/brutto/pdf" target="_blank" rel="noreferrer" className="bg-[#112240] hover:bg-[#1d355e] text-white px-6 py-3 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all border border-cyan-500/30">📄 Åben PDF</a>
-                  <button onClick={handleRefineMaster} className="bg-cyan-900/40 hover:bg-cyan-600/40 text-cyan-400 px-6 py-3 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all border border-cyan-500/20">✨ Optimér med AI</button>
+                  <button onClick={handleRefineMaster} disabled={isMasterLoading} className="bg-cyan-900/40 hover:bg-cyan-600/40 text-cyan-400 px-6 py-3 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all border border-cyan-500/20 flex items-center gap-2">
+                    {isMasterLoading ? (
+                      <>
+                        <span className="inline-block [transform:scaleX(-1)]">
+                          <span className="inline-block animate-spin [animation-direction:reverse]">🌀</span>
+                        </span> Optimering i gang...
+                      </>
+                    ) : '✨ Optimér med AI'}
+                  </button>
                   <button onClick={async () => {
                       setIsLoading(true); setStatusMessage('Oversætter...');
                       const res = await fetch('/api/brutto/translate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: bruttoCv }) });
@@ -288,7 +305,9 @@ const App: React.FC = () => {
             <button onClick={results ? () => handleRefine('all', true) : handleGenerate} disabled={isLoading} className={`w-full py-5 rounded-2xl font-black uppercase tracking-[0.2em] transition-all text-sm ${isLoading ? 'bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-xl shadow-cyan-500/20'}`}>
               {isLoading ? (
                 <span className="flex items-center justify-center gap-3">
-                  <span className="animate-spin text-xl">🌀</span> {statusMessage}
+                  <span className="inline-block [transform:scaleX(-1)]">
+                    <span className="inline-block animate-spin [animation-direction:reverse] text-xl">🌀</span>
+                  </span> {statusMessage}
                 </span>
               ) : (results ? '✨ Forfin alt med AI' : '🚀 Start Automatisering')}
             </button>
