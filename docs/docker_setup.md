@@ -39,6 +39,8 @@ services:
 
   backend:
     build: ./backend
+    ports:
+      - "3002:3002"
     volumes:
       - .:/app/shared # Giver adgang til dine job-mapper
       - ~/.gemini:/root/.gemini # Mapper din lokale Gemini konfiguration ind
