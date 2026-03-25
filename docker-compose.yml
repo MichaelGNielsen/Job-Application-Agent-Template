@@ -10,7 +10,7 @@ services:
     build: ./backend
     container_name: jaa-backend
     ports:
-      - "9001:3002"
+      - "3002:3002"
     environment:
       - REDIS_HOST=redis
       - PORT=3002
