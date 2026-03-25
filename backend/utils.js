@@ -282,4 +282,45 @@ async function fetchCompanyContent(url) {
     }
 }
 
-module.exports = { mdToHtml, wrap, wrapAll, fetchCompanyContent, logger, printToPdf, callLocalGemini, parseCandidateInfo, extractSection };
+/**
+ * Genererer HTML og PDF for Master CV i data-mappen.
+ */
+async function generateMasterDocs(mdContent) {
+    const rootDir = '/app/shared';
+    const dataDir = path.join(rootDir, 'data');
+    const mdPath = path.join(dataDir, 'brutto_cv.md');
+    const htmlPath = path.join(dataDir, 'brutto_cv.html');
+    const pdfPath = path.join(dataDir, 'brutto_cv.pdf');
+
+    try {
+        logger.info("generateMasterDocs", "Starter generering af Master CV visning");
+        
+        // Gem MD hvis indholdet er medsendt (valgfrit)
+        if (mdContent) {
+            fs.writeFileSync(mdPath, mdContent);
+        } else {
+            mdContent = fs.readFileSync(mdPath, 'utf8');
+        }
+
+        const candidate = parseCandidateInfo(mdContent);
+        const htmlBody = await mdToHtml(mdContent, mdPath, "brutto_cv_body.html");
+        
+        // Brug 'cv' layout til master cv for bedste visuelle resultat
+        const fullHtml = wrap('Brutto-CV (Master)', htmlBody, 'cv', { company: 'MASTER', position: 'FULL_PROFILE' }, candidate, 'da', {});
+        
+        fs.writeFileSync(htmlPath, fullHtml);
+        logger.info("generateMasterDocs", "HTML genereret", { htmlPath });
+
+        const success = await printToPdf(htmlPath, pdfPath);
+        if (success) {
+            logger.info("generateMasterDocs", "PDF genereret succesfuldt", { pdfPath });
+        }
+
+        return { success, html: fullHtml };
+    } catch (error) {
+        logger.error("generateMasterDocs", "Fejl ved generering af Master CV", {}, error);
+        throw error;
+    }
+}
+
+module.exports = { mdToHtml, wrap, wrapAll, fetchCompanyContent, logger, printToPdf, callLocalGemini, parseCandidateInfo, extractSection, generateMasterDocs };

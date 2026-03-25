@@ -8,16 +8,16 @@
   Brug af softwaren sker på eget ansvar.
 -->
 
-# Job Application Agent (v4.0.0)
+# Job Application Agent (v4.1.0)
 
 Dette projekt automatiserer processen med at skræddersy ansøgninger og CV'er ved hjælp af AI (Google Gemini).
 
 ## 🚀 Hurtig opstart
-Hvis det er første gang du bruger agenten, så følg vores **[Setup Guide](docs/setup.md)** for at komme i gang på få minutter.
+Hvis det er første gang du bruger agenten, så følg vores **[Brugervejledning (How-to)](docs/usage_guide.md)** for at få overblik over alle funktioner.
 
 > **⚠️ VIGTIGT (Multi-instans):** Da både `Job-Application-Agent-MGN` og `Job-Application-Agent-Template` nu benytter de samme containernavne (for nemmere synkronisering), kan de ikke køre samtidigt. Husk altid at køre `docker-compose down` i den aktive mappe, før du starter den anden.
 
-# Job Application Agent Template
+# Job Application Agent MGN (v4.1.0)
 
 > **Bemærk:** Hele dette projekt – herunder kode, arkitektur, dokumentation og PUML-figurer – er genereret 100% af AI (Gemini CLI) udelukkende baseret på prompts (med striks styring fra min side 😊).
 
@@ -81,6 +81,7 @@ Følg altid disse regler for Markdown-filer for at sikre optimal kompatibilitet 
 ## 📚 Dokumentation
 
 For mere dybdegående information, se venligst følgende dokumenter:
+- [Brugervejledning (How-to)](docs/usage_guide.md) - Komplet guide til alle agentens funktioner.
 - [Testvejledning](docs/test.md) - Hvordan du installerer og kører tests.
 - [Systemarkitektur](docs/architecture.md) - Overblik over systemets opbygning.
 - [TODO Liste](TODO.md) - Planlagte forbedringer og roadmap.

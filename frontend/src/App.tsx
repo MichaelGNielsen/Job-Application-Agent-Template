@@ -114,6 +114,38 @@ const App: React.FC = () => {
     } catch (err: any) { setError(err.message); setIsLoading(false); }
   };
 
+  const handleRefineMaster = async () => {
+    setIsLoading(true); setStatusMessage('AI optimerer Master CV...');
+    try {
+      const res = await fetch('/api/brutto/refine', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: bruttoCv, hint }),
+      });
+      const data = await res.json();
+      setBruttoCv(data.refined);
+      setIsLoading(false); setStatusMessage('Optimeret!');
+      setTimeout(() => setStatusMessage(''), 2000);
+    } catch (err: any) { setError(err.message); setIsLoading(false); }
+  };
+
+  const handleRenderMaster = async () => {
+    setIsLoading(true); setStatusMessage('Genererer visning...');
+    try {
+      const res = await fetch('/api/brutto/render');
+      const data = await res.json();
+      if (data.success) {
+        const win = window.open('', '_blank');
+        if (win) {
+          win.document.write(data.html);
+          win.document.close();
+        }
+      }
+      setIsLoading(false); setStatusMessage('Visning klar!');
+      setTimeout(() => setStatusMessage(''), 2000);
+    } catch (err: any) { setError(err.message); setIsLoading(false); }
+  };
+
   const handleRefine = async (type: string, useAi: boolean = false) => {
     if (!results) return;
     setIsLoading(true); setStatusMessage(useAi ? 'AI forfiner dokumenterne...' : `Opdaterer ${type}...`);
@@ -217,16 +249,22 @@ const App: React.FC = () => {
             {activeTab === 'brutto' && <textarea className="w-full h-96 bg-[#112240] border border-white/10 rounded-xl p-6 font-mono text-sm text-cyan-50 focus:border-cyan-500/50 outline-none shadow-inner" value={bruttoCv} onChange={(e) => setBruttoCv(e.target.value)} />}
             {activeTab === 'ai' && <textarea className="w-full h-96 bg-[#112240] border border-white/10 rounded-xl p-6 font-mono text-sm text-cyan-50 focus:border-cyan-500/50 outline-none shadow-inner" value={aiInstructions} onChange={(e) => setAiInstructions(e.target.value)} />}
             {activeTab === 'layout' && <textarea className="w-full h-96 bg-[#112240] border border-white/10 rounded-xl p-6 font-mono text-sm text-cyan-50 focus:border-cyan-500/50 outline-none shadow-inner" value={masterLayout} onChange={(e) => setMasterLayout(e.target.value)} />}
-            <div className="mt-4 flex justify-between">
-              <button onClick={() => handleSaveConfig(activeTab)} className="bg-cyan-600 hover:bg-cyan-500 text-white px-8 py-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-all shadow-lg shadow-cyan-500/20">💾 Gem {activeTab} konfiguration</button>
+            <div className="mt-4 flex flex-wrap gap-4 items-center">
+              <button onClick={() => handleSaveConfig(activeTab)} className="bg-cyan-600 hover:bg-cyan-500 text-white px-8 py-3 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all shadow-lg shadow-cyan-500/20">💾 Gem {activeTab} konfiguration</button>
+              
               {activeTab === 'brutto' && (
-                <button onClick={async () => {
-                    setIsLoading(true); setStatusMessage('Oversætter...');
-                    const res = await fetch('/api/brutto/translate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: bruttoCv }) });
-                    const data = await res.json();
-                    setBruttoCv(data.translated);
-                    setIsLoading(false); setStatusMessage('Oversat!');
-                }} className="bg-cyan-600 hover:bg-cyan-500 text-white px-8 py-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-all">🌐 Oversæt CV</button>
+                <>
+                  <button onClick={handleRenderMaster} className="bg-[#112240] hover:bg-[#1d355e] text-white px-6 py-3 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all border border-cyan-500/30">👁️ Vis HTML</button>
+                  <a href="/api/brutto/pdf" target="_blank" rel="noreferrer" className="bg-[#112240] hover:bg-[#1d355e] text-white px-6 py-3 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all border border-cyan-500/30">📄 Åben PDF</a>
+                  <button onClick={handleRefineMaster} className="bg-cyan-900/40 hover:bg-cyan-600/40 text-cyan-400 px-6 py-3 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all border border-cyan-500/20">✨ Optimér med AI</button>
+                  <button onClick={async () => {
+                      setIsLoading(true); setStatusMessage('Oversætter...');
+                      const res = await fetch('/api/brutto/translate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: bruttoCv }) });
+                      const data = await res.json();
+                      setBruttoCv(data.translated);
+                      setIsLoading(false); setStatusMessage('Oversat!');
+                  }} className="bg-cyan-600/20 hover:bg-cyan-600/40 text-cyan-400 px-6 py-3 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all border border-cyan-500/20 ml-auto">🌐 Oversæt CV</button>
+                </>
               )}
             </div>
           </section>

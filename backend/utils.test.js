@@ -10,7 +10,7 @@
  * Brug af softwaren sker på eget ansvar.
  */
 
-const { wrap, parseCandidateInfo, extractSection, printToPdf, callLocalGemini } = require('./utils');
+const { wrap, parseCandidateInfo, extractSection, printToPdf, callLocalGemini, generateMasterDocs } = require('./utils');
 const fs = require('fs');
 const child_process = require('child_process');
 
@@ -73,6 +73,20 @@ describe('utils.js', () => {
         test('bør returnere AI svar', async () => {
             const response = await callLocalGemini('prompt');
             expect(response).toBe('Mocked output');
+        });
+    });
+
+    describe('generateMasterDocs()', () => {
+        beforeEach(() => {
+            fs.readFileSync.mockReturnValue('<html><body>{{CONTENT}}</body></html>');
+            fs.existsSync.mockReturnValue(true);
+        });
+
+        test('bør køre hele flowet og returnere succes', async () => {
+            const result = await generateMasterDocs('## Mit Master CV');
+            expect(result.success).toBe(true);
+            expect(fs.writeFileSync).toHaveBeenCalled();
+            expect(child_process.exec).toHaveBeenCalled();
         });
     });
 });

@@ -21,7 +21,7 @@ const fs = require('fs');
 const dotenv = require('dotenv');
 const { exec } = require('child_process');
 const { promisify } = require('util');
-const { mdToHtml, wrap, logger, printToPdf, callLocalGemini, parseCandidateInfo, extractSection } = require('./utils');
+const { mdToHtml, wrap, logger, printToPdf, callLocalGemini, parseCandidateInfo, extractSection, generateMasterDocs } = require('./utils');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
 
@@ -167,13 +167,108 @@ app.get('/api/brutto', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+/**
+ * @openapi
+ * /api/brutto/render:
+ *   get:
+ *     summary: Generer HTML og PDF visning af Brutto-CV
+ *     responses:
+ *       200:
+ *         description: Returnerer den genererede HTML.
+ */
+app.get('/api/brutto/render', async (req, res) => {
+    try {
+        const result = await generateMasterDocs();
+        res.json({ success: true, html: result.html });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * @openapi
+ * /api/brutto/pdf:
+ *   get:
+ *     summary: Hent den genererede Brutto-CV PDF
+ *     responses:
+ *       200:
+ *         description: Returnerer PDF-filen.
+ */
+app.get('/api/brutto/pdf', (req, res) => {
+    try {
+        const pdfPath = path.join(rootDir, 'data', 'brutto_cv.pdf');
+        if (fs.existsSync(pdfPath)) {
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', 'inline; filename="brutto_cv.pdf"');
+            fs.createReadStream(pdfPath).pipe(res);
+        } else {
+            res.status(404).json({ error: "PDF ikke fundet. Prøv at gemme eller render først." });
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 app.post('/api/brutto', async (req, res) => {
   try {
     const { content } = req.body;
     const bruttoPath = path.join(rootDir, 'data', 'brutto_cv.md');
     fs.writeFileSync(bruttoPath, content);
+    
+    // Automatisk generering af visning ved hver gem
+    try {
+        await generateMasterDocs(content);
+        logger.info("Server", "Master CV dokumenter opdateret efter gem");
+    } catch (renderErr) {
+        logger.warn("Server", "Kunne ikke opdatere dokumentvisning efter gem", { error: renderErr.message });
+    }
+    
     res.json({ success: true });
   } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+/**
+ * @openapi
+ * /api/brutto/refine:
+ *   post:
+ *     summary: Optimér Brutto-CV med AI (stram op, fjern fyldord)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               content:
+ *                 type: string
+ *               hint:
+ *                 type: string
+ */
+app.post('/api/brutto/refine', async (req, res) => {
+    try {
+        const { content, hint } = req.body;
+        
+        const refinePrompt = `Du er en Senior Karriererådgiver og Redaktør. Din opgave er at optimere brugerens MASTER CV (Brutto-CV) for at gøre det mere professionelt, skarpt og slagkraftigt.
+
+DIN TONE: "Jysk ærlighed" (Direct, no fluff, factual).
+
+REGLER FOR OPTIMERING:
+1. **Fjern fyldord og floskler:** Slet ord som "passioneret", "krydsfelt", "synergi", "innovationskraft" og lignende buzzwords.
+2. **Stram punktopstillinger op:** Gør resultater og kompetencer mere præcise. Brug aktive verber (f.eks. "Implementeret...", "Designet...", "Optimeret...").
+3. **Bevar FAKTA 100%:** Du må ALDRIG ændre på årstal, firmanavne, titler eller de faktiske tekniske kompetencer.
+4. **Bevar Markdown-struktur:** Sørg for at bibeholde den overordnede struktur med overskrifter og lister. Husk en tom linje efter hver overskrift.
+5. **Brugerens fokus:** Brugeren har givet dette hint til optimeringen: "${hint || "Stram op og fjern floskler"}"
+
+Her er det nuværende MASTER CV:
+"""${content}"""
+
+Returner det OPTIMEREDE MASTER CV i fuld Markdown format.`;
+
+        const refinedContent = await callLocalGemini(refinePrompt, "master_refine");
+        res.json({ refined: refinedContent });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // NYE ENDPOINTS TIL KARTOTEK-SYSTEMET (v3.0)
