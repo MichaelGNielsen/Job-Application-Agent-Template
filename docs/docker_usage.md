@@ -14,7 +14,7 @@ Dette dokument beskriver, hvordan du håndterer Docker-miljøet og hvad du gør,
 
 ## 🐳 Docker Kommandoer
 
-> **⚠️ Navne-konflikter:** Da `MGN` og `Template` versionerne nu deler containernavne (`jaa-backend`, `jaa-frontend`, `jaa-redis`), skal du altid stoppe den ene før du starter den anden med `docker-compose down`.
+> **⚠️ Navne-konflikter:** Da `MGN` og `Template` versionerne nu deler containernavne (`jaa-backend`, `jaa-frontend`, `jaa-redis`), skal du altid stoppe den ene før du starter den anden med `docker compose down`.
 
 Når du har lavet ændringer i koden eller Dockerfile, skal containerne genopbygges:
 

@@ -352,4 +352,34 @@ En vigtig opdatering, hvor systemet er blevet strømlinet til eksterne brugere m
 - [ ] Implementering af bulk-export funktion til PDF'er.
 - [ ] Videreudvikling af match-analyse med mere specifikke KPI'er.
 
+## Status: 26. Marts 2026 - Modernisering & AI Robusthed (v4.3.1) 🐳🤖
+
+En dag dedikeret til teknisk gældsafvikling, modernisering af Docker-workflows og markant forbedret AI-stabilitet.
+
+### Gennemførte forbedringer (v4.3.1)
+
+1. **Docker Compose Modernisering**
+   - Global migrering fra `docker-compose` til den moderne `docker compose` (V2) syntaks i al dokumentation (`README`, `GEMINI`, `docs/`).
+   - Alle hjælpe-scripts (`test_api.sh`, `test_backend.sh`) er nu fuldt synkroniseret med standard-portene (3000/3002).
+
+2. **AI Robusthed & Rate Limiting**
+   - **Retry-logik:** `callLocalGemini` i `utils.js` har fået indbygget intelligent retry med eksponentielt backoff (op til 3 forsøg). Dette eliminerer 429-fejl ("Too Many Requests") ved generering af store pakker.
+   - **Model-optimering:** Systemet bruger nu `gemini-1.5-flash` som standard, hvilket sikrer højere hastighed og færre begrænsninger på gratis-planen.
+   - **Direkte Integrationstest:** Oprettet `gemini_direct.test.js`, der verificerer den faktiske AI-forbindelse uden mocks. Denne er nu en fast del af `test_all.sh`.
+
+3. **Dokumentation & Test-værktøjer**
+   - **`docs/gemini_usage.md`:** Ny guide med direkte test-kommandoer (både CLI og CURL) til lynhurtig fejlfinding af API-nøgler.
+   - **`test_all.sh`:** Gennemgribende opdatering af master-test scriptet, så det nu dækker hele stacken (BE Unit, BE Integration, API Endpoint, FE Unit).
+   - **Tintin Update:** Opdateret `brutto_cv.md` med AI-kompetencer for at demonstrere systemets evne til at flette moderne teknologier ind i en klassisk profil.
+
+4. **Fejlretning**
+   - Fikset en `ModelNotFoundError` i `gemini-cli` ved at lade værktøjet selv styre model-navngivningen automatisk.
+   - Verificeret at port-konflikter undgås ved striks overholdelse af `docker compose down` workflowet.
+
+### Version `v4.3.1-robust-ai`
+
+Dette punkt markerer at systemet nu er selvhjulpet over for midlertidige API-udfald og følger de nyeste Docker-standarder.
+
+Fyraften - systemet er nu klar til udrulning på UE12! 🚀🏁🐳
+
 

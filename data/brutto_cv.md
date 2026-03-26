@@ -45,6 +45,7 @@ Jeg er en uforfærdet og dedikeret reporter og undersøgende journalist med over
 - Sprog: Flydende i adskillige europæiske, asiatiske og afrikanske sprog.
 - Overlevelsesteknikker og kampsport.
 - Ekspert i navigation og logistik i komplekse miljøer.
+- AI-drevet journalistik: Brug af Gemini til hurtig faktatjek og analyse af komplekse sager.
 
 ## Udvalgte Projekter
 - **Operation Måne tur retur:** Planlægning og gennemførelse af den første bemandede månelanding ombord på Syldavisk raket-teknologi.

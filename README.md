@@ -20,7 +20,7 @@ Dette projekt automatiserer processen med at skræddersy ansøgninger og CV'er v
 ## 🚀 Hurtig opstart
 Hvis det er første gang du bruger agenten, så følg vores **[Brugervejledning (How-to)](docs/usage_guide.md)** for at få overblik over alle funktioner.
 
-> **⚠️ VIGTIGT (Multi-instans):** Da systemet er baseret på standardiserede containernavne, kan du ikke køre flere instanser af Agenten samtidigt. Husk altid at køre `docker-compose down` i den aktive mappe, før du starter en ny version.
+> **⚠️ VIGTIGT (Multi-instans):** Da systemet er baseret på standardiserede containernavne, kan du ikke køre flere instanser af Agenten samtidigt. Husk altid at køre `docker compose down` i den aktive mappe, før du starter en ny version.
 
 ### Sproghåndtering
 
@@ -36,7 +36,7 @@ Systemet er designet til at håndtere internationale jobopslag automatisk:
    - **Vigtigt:** Brug de præcise labels `Navn:`, `Adresse:`, `Mobil:` og `E-mail:` for at sikre, at dine PDF-headere bliver udfyldt korrekt.
 4. **Start systemet:**
    ```bash
-   docker-compose up -d --build
+   docker compose up -d --build
    ```
 5. **Adgang:** Åbn `http://localhost:3000` i din browser.
 6. **Generering:** Indsæt teksten fra et jobopslag og tryk på **🚀 Start Automatisering**.
@@ -75,7 +75,7 @@ Følg altid disse regler for Markdown-filer for at sikre optimal kompatibilitet 
 
 ---
 
-*Sidst opdateret: 25. marts 2026 (v4.1.0)*
+*Sidst opdateret: 26. marts 2026 (v4.3.1)*
 
 ## 📚 Dokumentation
 
@@ -87,5 +87,6 @@ For mere dybdegående information, se venligst følgende dokumenter:
 - [Docker Opsætning](docs/docker_setup.md) - Detaljeret guide til installation.
 - [Logger Anvendelse](docs/logger_usage.md) - Detaljeret guide til lognings-systemet.
 - [Data Flow](docs/data_flow.md) - Hvordan data flyder gennem systemet.
+- [Gemini CLI & API Test](docs/gemini_usage.md) - Hvordan du tester og bruger AI-motoren.
 - [Journal & Roadmap](docs/journal.md) - Projektets historik og fremtidige planer.
 - [GEMINI.md](GEMINI.md) - Instruktioner til AI-udviklere (Gemini CLI).

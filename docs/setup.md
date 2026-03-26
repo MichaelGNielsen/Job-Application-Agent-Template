@@ -22,7 +22,7 @@ Agenten har brug for at kende din baggrund for at kunne skrive dine ansøgninger
 Når du har rettet de to filer, er du klar:
 
 1.  Åbn din terminal i projektets rodmappe.
-2.  Kør kommandoen: `docker-compose up -d --build`
+2.  Kør kommandoen: `docker compose up -d --build`
 3.  **Adgang til systemet:**
     -   **Frontend (Brugerflade):** `http://localhost:3000`
     -   **Backend (API & Docs):** `http://localhost:3002/api-docs`

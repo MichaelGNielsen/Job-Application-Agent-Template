@@ -2,7 +2,7 @@
 # Integrationstest til Job Application Agent API
 # Dette script tester om backend endpoints svarer korrekt.
 
-API_URL="http://localhost:9001/api"
+API_URL="http://localhost:3002/api"
 
 echo "--- STARTER API INTEGRATIONSTEST ---"
 

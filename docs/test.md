@@ -19,17 +19,29 @@ Dette script udfører:
 
 Hvis du kun vil køre dele af test-suiten:
 
-### 1. Kun API Integration
+### 1. Backend Integrationstest
+Dette script tester API'et på port 3002 (v4.3.0 standard) og verificerer alle endpoints.
+```bash
+./test_backend.sh
+```
+
+### 2. Direkte Gemini API Test (Integration)
+Denne test verificerer den faktiske forbindelse til Google Gemini API uden mocks.
+```bash
+docker exec jaa-backend npx jest gemini_direct.test.js
+```
+
+### 3. API Integration (Kompakt)
 ```bash
 ./test_api.sh
 ```
 
-### 2. Kun Backend Unit-tests
+### 4. Backend Unit-tests (Mocks)
 ```bash
 docker exec jaa-backend npm test
 ```
 
-### 3. Kun Frontend Unit-tests
+### 5. Frontend Unit-tests
 ```bash
 docker exec jaa-frontend npm test
 ```

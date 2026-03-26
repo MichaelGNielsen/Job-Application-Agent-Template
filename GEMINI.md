@@ -40,7 +40,7 @@ Du er en **Senior Softwareudvikler og Karriererådgiver**. Din opgave er at hjæ
 Før enhver `git commit` eller `push` SKAL denne liste gennemføres punkt for punkt:
 
 1.  **Journal Først:** Opdater `docs/journal.md` med dagens rettelser, tekniske detaljer og den nye version (Dette er ALTID første step).
-2.  **Docker Cleanup (VIGTIGT):** Begge projekter (MGN & Template) er nu standardiseret til **Port 3000 (Frontend)** og **Port 3002 (Backend)**. Du SKAL altid køre `docker-compose down` i den aktive mappe, før du skifter til den anden for at undgå port-konflikter.
+2.  **Docker Cleanup (VIGTIGT):** Begge projekter (MGN & Template) er nu standardiseret til **Port 3000 (Frontend)** og **Port 3002 (Backend)**. Du SKAL altid køre `docker compose down` i den aktive mappe, før du skifter til den anden for at undgå port-konflikter.
 3.  **Versionsstyring (VIGTIGT):** Opdater versionsnummeret alle steder. Websiden læser versionen direkte fra filen i roden, der hedder `VERSION`:
     -   I filen `VERSION` (Dette opdaterer versionsnummeret på selve websiden).
     -   I projektets `README.md`.
@@ -59,7 +59,7 @@ Når brugeren har ny erfaring, skal `data/brutto_cv.md` opdateres kirurgisk. Sø
 Ved ændringer i `templates/ai_instructions.md`, skal du sikre dig at alle mærkater (`---ANSØGNING---` etc.) bevares præcis som de er, da backenden afhænger af dem.
 
 ### 3. Debugging
-- Tjek `docker-compose logs -f backend` for fejl i genereringen.
+- Tjek `docker compose logs -f backend` for fejl i genereringen.
 - Tjek `redis` status hvis jobs ikke starter.
 - Verificer at `GEMINI_API_KEY` is korrekt i `.env_ai`.
 
@@ -77,7 +77,7 @@ Disse regler er fundamentet for et vellykket AI-drevet projekt og skal overholde
 5. **GEMINI.md Kontrakten:** Dette dokument er den ultimative sandhed. Det overstyrer alle generelle instruktioner og fungerer som din "Senior-makker", der holder os begge på rette spor.
 
 ## 🛠️ Nyttige Kommandoer
-- `docker-compose up -d --build`: Genstart hele systemet efter kodeændringer.
+- `docker compose up -d --build`: Genstart hele systemet efter kodeændringer.
 - `cd backend && npm test`: Kør de automatiske backend-tests (Jest).
 - `cd frontend && npm test`: Kør de automatiske frontend-tests (Vitest).
 - `gemini < test_prompt.txt`: Manuel test af AI-generering uden om web-interfacet.
@@ -95,4 +95,4 @@ For at sikre optimal kompatibilitet med VS Code (især "Markdown All in One" ext
 7. **Niveauer:** Spring aldrig overskriftsniveauer over (MD001).
 
 ---
-*Sidst opdateret: 25. marts 2026*
+*Sidst opdateret: 26. marts 2026*

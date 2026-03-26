@@ -93,27 +93,46 @@ const logger = {
 
 /**
  * Kalder den lokale Gemini CLI med en prompt.
+ * Nu med retry-logik og tvungen model-valg for at undgå rate limits.
  */
-async function callLocalGemini(prompt, jobId = "default") {
+async function callLocalGemini(prompt, jobId = "default", retries = 3) {
     const startTime = Date.now();
-    try {
-        const tempFile = path.join('/tmp', `prompt_${jobId}_${Date.now()}.txt`);
-        fs.writeFileSync(tempFile, prompt);
-        
-        logger.info("callLocalGemini", `Sender prompt til Gemini CLI (Job: ${jobId})`, { tegn: prompt.length });
+    const model = process.env.GEMINI_MODEL || "gemini-1.5-flash";
+    
+    for (let i = 0; i < retries; i++) {
+        const tempFile = path.join('/tmp', `prompt_${jobId}_${Date.now()}_${i}.txt`);
+        try {
+            fs.writeFileSync(tempFile, prompt);
+            
+            logger.info("callLocalGemini", `Sender prompt til Gemini CLI (Job: ${jobId}, Forsøg: ${i+1}/${retries})`, { 
+                tegn: prompt.length
+            });
 
-        const { stdout } = await execPromise(`gemini < "${tempFile}"`);
-        
-        if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile);
-        
-        const duration = ((Date.now() - startTime) / 1000).toFixed(1);
-        logger.info("callLocalGemini", `AI Respons modtaget på ${duration} sekunder`, { svarLængde: stdout.length });
-        
-        return stdout;
-    } catch (error) {
-        const duration = ((Date.now() - startTime) / 1000).toFixed(1);
-        logger.error("callLocalGemini", `Fejl ved kald efter ${duration} sekunder`, { error: error.message });
-        throw error;
+            // Vi fjerner -m da den giver ModelNotFoundError i visse versioner af CLI'et
+            const { stdout } = await execPromise(`gemini < "${tempFile}"`);
+            
+            if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile);
+            
+            const duration = ((Date.now() - startTime) / 1000).toFixed(1);
+            logger.info("callLocalGemini", `AI Respons modtaget på ${duration} sekunder`, { svarLængde: stdout.length });
+            
+            return stdout;
+        } catch (error) {
+            if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile);
+            
+            const isRateLimit = error.message.includes('429') || error.message.includes('quota');
+            const duration = ((Date.now() - startTime) / 1000).toFixed(1);
+            
+            if (isRateLimit && i < retries - 1) {
+                const waitTime = (i + 1) * 5000; // Vent 5, 10 sekunder...
+                logger.warn("callLocalGemini", `Rate limit ramt (429). Prøver igen om ${waitTime/1000}s...`, { error: error.message });
+                await new Promise(resolve => setTimeout(resolve, waitTime));
+                continue;
+            }
+
+            logger.error("callLocalGemini", `Fejl ved kald efter ${duration} sekunder`, { error: error.message });
+            throw error;
+        }
     }
 }
 
