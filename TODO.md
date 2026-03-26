@@ -4,6 +4,7 @@ Denne liste indeholder planlagte forbedringer, teknisk gæld og nye features. Pu
 
 ## 🔴 Høj Prioritet (Arkitektur & Stabilitet)
 
+- [ ] **UI Fejlhåndtering:** Implementer en visuel fejlbesked (f.eks. en rød toast eller banner) i frontenden, der viser "Rate Limit (429)" med besked om, at systemet nu automatisk prøver igen.
 - [x] **Refactoring til utils.js (DRY):** Flyt fælles funktioner fra `server.js` og `worker.js` til `utils.js`.
   - [x] `callLocalGemini`
   - [x] `parseCandidateInfo`
