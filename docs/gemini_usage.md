@@ -2,6 +2,13 @@
 
 Dette dokument beskriver, hvordan du bruger og tester Gemini CLI direkte i Docker-containeren.
 
+## 🤖 Aktuel Model & Version (Session Marts 2026)
+For at sikre konsistens på tværs af sessions, her er de aktuelle versioner anvendt i dette projekt:
+- **Model:** `gemini-2.0-flash` (Anvendes via `gemini-cli`).
+- **Gemini CLI:** `v0.35.2` (Installeret globalt i Docker-containeren).
+- **Node.js:** `v20.x` (LTS version i Docker).
+- **Let Gemini CLI decide the best model for the task:** gemini-3.1-pro, gemini-3-flash  
+
 ## 🧪 Test af API-nøgle
 Hvis du oplever fejl ved generering af dokumenter (f.eks. "Rate Limit" eller "Invalid API Key"), kan du køre denne test-kommando i din terminal. Den udtager din nøgle fra `.env_ai` og sender en simpel test-prompt til Gemini.
 

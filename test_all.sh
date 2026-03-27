@@ -24,5 +24,5 @@ docker exec jaa-frontend npm test -- --run
 if [ $? -ne 0 ]; then echo "❌ FRONTEND TESTS FEJLEDE"; exit 1; fi
 
 echo -e "\n===================================================="
-echo "✅ SAMTLIGE TESTS BESTÅET - SYSTEMET ER STABILT"
+echo "✅ ALLE TESTS BESTÅET - SYSTEMET ER STABILT"
 echo "===================================================="
