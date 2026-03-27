@@ -2,6 +2,23 @@
 
 Dette dokument fungerer som projektets tekniske hukommelse og strategiske roadmap. Det opdateres før hver væsentlig ændring eller commit.
 
+## 🏁 Status 27. Marts 2026 - Master CV Update Test & Synkronisering (v4.2.5) 🧪🚀✨
+
+En dag med fokus på at styrke test-suiten og sikre fuld synkronisering mellem MGN og Template.
+
+### 🛠️ Tekniske Milepæle (v4.2.4 -> v4.2.5)
+- **Master CV Update Test (v4.2.5):** Tilføjet en dedikeret integrationstest i `gemini_direct.test.js` der verificerer AI'ens evne til at opdatere Tintins Brutto-CV med nye erfaringer. Dette sikrer at kerne-funktionaliteten for CV-vedligeholdelse er stabil.
+- **Docker Test Fixes:** Løst en Haste module naming collision i `backend/package.json` ved at ignorere `/shared/` mappen under test-discovery. Dette sikrer at tests kan køre problemfrit inde i Docker-containerne.
+- **Test-Suite Aktivering:** Genaktiveret integrationstests i `test_all.sh` for begge repositories.
+- **Fuld Synkronisering:** Gennemført synkronisering af alle generiske rettelser (tests, konfiguration og versionering) fra MGN til Template.
+
+### ✅ Validering
+- Alle backend unit-tests bestået inde i Docker (`jaa-backend`).
+- Tintin CV Update test implementeret og klar til brug (afventer API-kvote).
+- Versionsnummer opdateret til v4.2.5 i begge repositories.
+
+---
+
 ## 🏁 Status 27. Marts 2026 - Trafiklys Model & Stabilitets-fix (v4.2.4) 🚦🚀✨
 
 En dag med fokus på UX-sikkerhed og systemstabilitet efter migrering og miljø-oprydning.

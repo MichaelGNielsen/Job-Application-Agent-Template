@@ -16,7 +16,11 @@
     ],
     "testPathIgnorePatterns": [
       "/node_modules/",
-      "/shared/frontend/"
+      "/shared/frontend/",
+      "/shared/"
+    ],
+    "modulePathIgnorePatterns": [
+      "/shared/"
     ]
   },
   "keywords": [],
