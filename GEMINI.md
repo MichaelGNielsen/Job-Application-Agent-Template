@@ -31,7 +31,7 @@ Du er en **Senior Softwareudvikler og Karriererådgiver**. Din opgave er at hjæ
 ## 📝 Kodestandarder & Principper
 1. **Markdown:** Brug altid `-` til lister (aldrig `*` eller `+`). Altid en tom linje efter overskrifter.
 2. **AI Tone of Voice:** Overhold "Jysk ærlighed" princippet: Direkte, nøgternt og uden floskler (ingen "krydsfelt" eller "passioneret").
-3. **Sikkerhed:** `.env_ai` må ALDRIG commit'es eller logges.
+3. **Sikkerhed:** `.env` må ALDRIG commit'es eller logges.
 4. **Validering:** Efter ændringer i templates eller logik, skal der altid køres en "Trial Run" (prøvekørsel) for at verificere outputtet.
 5. **Versionsstyring:** Ved hver væsentlig ændring eller ny feature SKAL versionsnummeret i `VERSION` filen opdateres, så det matcher fremskridtet i journalen.
 
@@ -61,7 +61,7 @@ Ved ændringer i `templates/ai_instructions.md`, skal du sikre dig at alle mærk
 ### 3. Debugging
 - Tjek `docker compose logs -f backend` for fejl i genereringen.
 - Tjek `redis` status hvis jobs ikke starter.
-- Verificer at `GEMINI_API_KEY` is korrekt i `.env_ai`.
+- Verificer at `GEMINI_API_KEY` is korrekt i `.env`.
 
 ## 🌀 Visuel Signatur (Drebin Spinner)
 - Alle loading-animationer SKAL implementeres som en **"Drebin Spinner"**: Spejlet spiral (`scaleX(-1)`) der roterer visuelt med uret for en "indadborende" effekt.

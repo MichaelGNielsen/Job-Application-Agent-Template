@@ -2,5 +2,5 @@ node_modules
 dist
 .env
 .env.local
-.env_ai_keys
+.env_keys
 *.log

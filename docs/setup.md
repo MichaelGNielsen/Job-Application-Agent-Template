@@ -3,10 +3,10 @@
 Denne guide hjælper dig med at sætte din personlige Job Application Agent op på få minutter.
 
 ## 1. Identitet & Hemmeligheder
-Alt hvad der gør agenten til "din", bor i filen `.env_ai`. 
+Alt hvad der gør agenten til "din", bor i filen `.env`. 
 
-1.  Kopiér filen `.env_ai_template` til en ny fil med navnet `.env_ai`.
-2.  Åbn `.env_ai` og ret den allerøverste linje:
+1.  Kopiér filen `.env_template` til en ny fil med navnet `.env`.
+2.  Åbn `.env` og ret den allerøverste linje:
     -   `# IDENTITY_DINE_INITIALER` -> f.eks. `# IDENTITY_KHL`
 3.  Indsæt din Google Gemini API nøgle ved `GEMINI_API_KEY=`.
 
@@ -28,7 +28,7 @@ Når du har rettet de to filer, er du klar:
     -   **Backend (API & Docs):** `http://localhost:3002/api-docs`
 
 ## 4. Sådan virker det i browseren
-Når du åbner web-siden, vil du se dine initialer (fra din Identity øverst i `.env_ai`) i toppen af siden. Nu skal du blot:
+Når du åbner web-siden, vil du se dine initialer (fra din Identity øverst i `.env`) i toppen af siden. Nu skal du blot:
 1.  Indsætte et jobopslag.
 2.  Trykke på "Generér".
 3.  Agenten klarer resten og præsenterer dig for en komplet pakke (Ansøgning, CV, Match-analyse og ICAN+ Pitch).

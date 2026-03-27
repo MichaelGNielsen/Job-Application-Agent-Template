@@ -21,7 +21,7 @@ Agenten er designet til at transformere din personlige erfaringsbase (Master CV)
 Glem manuelle mapper og scripts. Alt styres nu fra browseren:
 
 1. **Konfiguration**
-  * Kopier `.env_ai_template` til `.env_ai` og indsæt din Gemini API-nøgle.
+  * Kopier `.env_template` til `.env` og indsæt din Gemini API-nøgle.
 2. **Master CV**
   * Rediger `data/brutto_cv.md` direkte i browseren. Husk at inkludere dine personlige stamdata øverst.
 3. **Generering**

@@ -111,7 +111,7 @@ Systemet er afhængigt af følgende CLI-værktøjer installeret i miljøet:
 
 1. **`gemini`**
   * Bruges til AI-generering og oversættelse.
-  * *Opsætning:* Kræver en `GEMINI_API_KEY`, som enten skal defineres i `.env_ai` (husk: kopiér fra `.env_ai_template`) eller eksporteres som en global miljøvariabel i din `.bashrc`.
+  * *Opsætning:* Kræver en `GEMINI_API_KEY`, som enten skal defineres i `.env` (husk: kopiér fra `.env_template`) eller eksporteres som en global miljøvariabel i din `.bashrc`.
 2. **`pandoc`**
   * Konverterer Markdown til ren HTML.
 3. **`chromium-browser`**

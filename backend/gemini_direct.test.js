@@ -8,12 +8,12 @@ const dotenv = require('dotenv');
 const path = require('path');
 const fs = require('fs');
 
-// Indlæs miljøvariabler fra .env_ai (ligger i delt mappe i Docker)
-dotenv.config({ path: path.join(__dirname, 'shared/.env_ai') });
+// Indlæs miljøvariabler fra .env (ligger i delt mappe i Docker)
+dotenv.config({ path: path.join(__dirname, 'shared/.env') });
 
 // Hvis den ikke findes der, så tjek rodmappen (lokal kørsel)
 if (!process.env.GEMINI_API_KEY) {
-    dotenv.config({ path: path.join(__dirname, '../.env_ai') });
+    dotenv.config({ path: path.join(__dirname, '../.env') });
 }
 
 describe('Gemini Direct Integration Test', () => {

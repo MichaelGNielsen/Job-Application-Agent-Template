@@ -29,8 +29,8 @@ const execPromise = promisify(exec);
 
 // Konfigurer stier
 const rootDir = '/app/shared';
-// Indlæs .env_ai filen
-dotenv.config({ path: path.join(rootDir, '.env_ai') });
+// Indlæs .env filen
+dotenv.config({ path: path.join(rootDir, '.env') });
 
 // Tving API nøgle til at være tilgængelig for gemini-cli
 if (process.env.GEMINI_API_KEY) {
@@ -76,8 +76,8 @@ app.get('/api/version', (req, res) => {
     try {
         let instanceName = "";
         
-        // 1. Prioritet: Læs Master Identity direkte fra toppen af .env_ai
-        const envPath = path.join(rootDir, '.env_ai');
+        // 1. Prioritet: Læs Master Identity direkte fra toppen af .env
+        const envPath = path.join(rootDir, '.env');
         if (fs.existsSync(envPath)) {
             const envContent = fs.readFileSync(envPath, 'utf8');
             const lines = envContent.split('\n');

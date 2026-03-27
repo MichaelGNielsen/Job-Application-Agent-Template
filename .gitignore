@@ -1,7 +1,7 @@
 node_modules/
 dist/
 .env
-.env_ai
+.env
 output/new/
 # data/* is removed to allow tracking of the data folder
 frontend/node_modules/

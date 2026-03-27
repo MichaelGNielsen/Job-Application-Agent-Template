@@ -2,6 +2,22 @@
 
 Dette dokument fungerer som projektets tekniske hukommelse og strategiske roadmap. Det opdateres før hver væsentlig ændring eller commit.
 
+## 🏁 Status 27. Marts 2026 - Miljø-fil Standardisering (.env) (v4.2.6) 🛠️🚀✨
+
+En dag med fokus på at forenkle og standardisere systemets konfiguration.
+
+### 🛠️ Tekniske Milepæle (v4.2.5 -> v4.2.6)
+- **Standardisering af Miljø-filer (v4.2.6):** Omdøbt `.env_ai` til `.env` og `.env_ai_template` til `.env_template` for at følge gængse industristandarder. Dette gør det nemmere for nye brugere at forstå konfigurations-flowet.
+- **Global Kode-Opdatering:** Alle referencer i `docker-compose.yml`, `server.js`, `worker.js`, `gemini_direct.test.js` og hele dokumentationen (`docs/`, `README.md`, `GEMINI.md`) er opdateret til at pege på de nye filnavne.
+- **Konsolidering af Konfiguration:** Bekræftet at alle miljøvariabler nu bor centralt i `.env` og at backend-containeren mapper denne korrekt ind i `/app/.env` via Docker volumes.
+
+### ✅ Validering
+- Alle backend unit-tests bestået (konfigurations-mæssigt).
+- Versionsnummer opdateret til v4.2.6 i begge repositories.
+- Synkronisering mellem MGN og Template gennemført.
+
+---
+
 ## 🏁 Status 27. Marts 2026 - Master CV Update Test & Synkronisering (v4.2.5) 🧪🚀✨
 
 En dag med fokus på at styrke test-suiten og sikre fuld synkronisering mellem MGN og Template.
@@ -29,7 +45,7 @@ En dag med fokus på UX-sikkerhed og systemstabilitet efter migrering og miljø-
     - **Grøn:** `✅ Alt er synkroniseret` (Vises når der ikke er ændringer).
     - **Gul/Cyan:** `💾 Gem konfiguration` (Vises ved manuelle tekst-rettelser).
     - **Orange/Puls:** `✨ GEM AI-OPDATERING (IKKE GEMT!)` (Vises efter en AI-optimering).
-- **Miljø-Validering:** Bekræftet at `.env_ai` læses korrekt fra roden via Docker-volumen `/app/shared`. Elimineret "Rate Limit" skygge-fejl ved at fjerne overflødige `.env_ai` filer i backend-undermapper.
+- **Miljø-Validering:** Bekræftet at `.env` læses korrekt fra roden via Docker-volumen `/app/shared`. Elimineret "Rate Limit" skygge-fejl ved at fjerne overflødige `.env` filer i backend-undermapper.
 - **AI-Stabilitet:** Bekræftet Gemini 2.0 Flash integration via 16 succesfulde unit-tests inde i Docker (`jaa-backend`).
 - **Journal & Versionsstyring:** Opdateret `VERSION` filen og journalen som foreskrevet i MGN-kontrakten.
 

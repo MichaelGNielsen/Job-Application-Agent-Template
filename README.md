@@ -30,7 +30,7 @@ Systemet er designet til at håndtere internationale jobopslag automatisk:
 
 ## 🚀 Kom i gang
 
-1. **Konfiguration:** Kopier `.env_ai_template` til `.env_ai` i rodmappen og indsæt din Gemini API-nøgle.
+1. **Konfiguration:** Kopier `.env_template` til `.env` i rodmappen og indsæt din Gemini API-nøgle.
 2. **Eksempel:** Se mappen `output/2026-03-21-15-27-08_senior_efterforsker_interpol/` for at se hvordan et færdigt resultat ser ud.
 3. **Master CV:** Opdater `data/brutto_cv.md` med din personlige erhvervserfaring og kontaktdata.
    - **Vigtigt:** Brug de præcise labels `Navn:`, `Adresse:`, `Mobil:` og `E-mail:` for at sikre, at dine PDF-headere bliver udfyldt korrekt.

@@ -22,8 +22,8 @@ const { mdToHtml, wrap, wrapAll, fetchCompanyContent, logger, printToPdf, callLo
 
 const execPromise = promisify(exec);
 const rootDir = '/app/shared';
-// Indlæs .env_ai filen
-dotenv.config({ path: path.join(rootDir, '.env_ai') });
+// Indlæs .env filen
+dotenv.config({ path: path.join(rootDir, '.env') });
 
 // Tving API nøgle til at være tilgængelig for gemini-cli
 if (process.env.GEMINI_API_KEY) {
