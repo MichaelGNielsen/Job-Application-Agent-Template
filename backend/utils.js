@@ -108,8 +108,8 @@ async function callLocalGemini(prompt, jobId = "default", retries = 3) {
                 tegn: prompt.length
             });
 
-            // Vi fjerner -m da den giver ModelNotFoundError i visse versioner af CLI'et
-            const { stdout } = await execPromise(`gemini < "${tempFile}"`);
+            // Vi bruger -y (YOLO mode) for at fjerne sikkerheds-bremser og få hurtige svar
+            const { stdout } = await execPromise(`gemini -y < "${tempFile}"`);
             
             if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile);
             

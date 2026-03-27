@@ -28,8 +28,12 @@ const App: React.FC = () => {
   // Kartotek States
   const [activeTab, setActiveTab] = useState<'brutto' | 'ai' | 'layout'>('brutto');
   const [bruttoCv, setBruttoCv] = useState('');
+  const [originalBruttoCv, setOriginalBruttoCv] = useState('');
   const [aiInstructions, setAiInstructions] = useState('');
+  const [originalAiInstructions, setOriginalAiInstructions] = useState('');
   const [masterLayout, setMasterLayout] = useState('');
+  const [originalMasterLayout, setOriginalMasterLayout] = useState('');
+  const [isAiRefined, setIsAiRefined] = useState(false);
   const [showConfig, setShowConfig] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -56,8 +60,12 @@ const App: React.FC = () => {
         fetch('/api/config/layout').then(r => r.json())
       ]);
       setBruttoCv(brutto.content);
+      setOriginalBruttoCv(brutto.content);
       setAiInstructions(ai.content);
+      setOriginalAiInstructions(ai.content);
       setMasterLayout(layout.content);
+      setOriginalMasterLayout(layout.content);
+      setIsAiRefined(false);
       
       const verRes = await fetch('/api/version').then(r => r.json());
       setVersion(verRes.version);
@@ -110,6 +118,12 @@ const App: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
+      
+      // Opdater originalerne efter gem
+      if (type === 'brutto') { setOriginalBruttoCv(bruttoCv); setIsAiRefined(false); }
+      else if (type === 'ai') setOriginalAiInstructions(aiInstructions);
+      else if (type === 'layout') setOriginalMasterLayout(masterLayout);
+
       setIsLoading(false); setStatusMessage('Gemt!');
       setTimeout(() => setStatusMessage(''), 2000);
     } catch (err: any) { setError(err.message); setIsLoading(false); }
@@ -128,6 +142,7 @@ const App: React.FC = () => {
       });
       const data = await res.json();
       setBruttoCv(data.refined);
+      setIsAiRefined(true); // Marker at AI har lavet ændringer
 
       setIsMasterLoading(false); 
       // Vis AI'ens log i en alert eller en specifik boks
@@ -259,7 +274,41 @@ const App: React.FC = () => {
             {activeTab === 'ai' && <textarea className="w-full h-96 bg-[#112240] border border-white/10 rounded-xl p-6 font-mono text-sm text-cyan-50 focus:border-cyan-500/50 outline-none shadow-inner" value={aiInstructions} onChange={(e) => setAiInstructions(e.target.value)} />}
             {activeTab === 'layout' && <textarea className="w-full h-96 bg-[#112240] border border-white/10 rounded-xl p-6 font-mono text-sm text-cyan-50 focus:border-cyan-500/50 outline-none shadow-inner" value={masterLayout} onChange={(e) => setMasterLayout(e.target.value)} />}
             <div className="mt-4 flex flex-wrap gap-4 items-center">
-              <button onClick={() => handleSaveConfig(activeTab)} className="bg-cyan-600 hover:bg-cyan-500 text-white px-8 py-3 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all shadow-lg shadow-cyan-500/20">💾 Gem {activeTab} konfiguration</button>
+              {/* TRAFIKLYS MODEL FOR GEM-KNAP */}
+              {(() => {
+                const isBruttoDirty = bruttoCv !== originalBruttoCv;
+                const isAiDirty = aiInstructions !== originalAiInstructions;
+                const isLayoutDirty = masterLayout !== originalMasterLayout;
+                
+                let isDirty = false;
+                if (activeTab === 'brutto') isDirty = isBruttoDirty || isAiRefined;
+                else if (activeTab === 'ai') isDirty = isAiDirty;
+                else if (activeTab === 'layout') isDirty = isLayoutDirty;
+
+                if (!isDirty) {
+                  return <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest px-8 py-3 bg-white/5 rounded-lg border border-green-500/20">✅ Alt er synkroniseret</span>;
+                }
+
+                if (activeTab === 'brutto' && isAiRefined) {
+                  return (
+                    <button 
+                      onClick={() => handleSaveConfig('brutto')} 
+                      className="bg-orange-600 hover:bg-orange-500 text-white px-8 py-3 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all shadow-lg shadow-orange-500/40 animate-pulse border-2 border-orange-400"
+                    >
+                      ✨ GEM AI-OPDATERING (IKKE GEMT!)
+                    </button>
+                  );
+                }
+
+                return (
+                  <button 
+                    onClick={() => handleSaveConfig(activeTab)} 
+                    className="bg-cyan-600 hover:bg-cyan-500 text-white px-8 py-3 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all shadow-lg shadow-cyan-500/20"
+                  >
+                    💾 Gem {activeTab} konfiguration
+                  </button>
+                );
+              })()}
               
               {activeTab === 'brutto' && (
                 <>

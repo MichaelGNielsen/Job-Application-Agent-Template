@@ -7,9 +7,9 @@ echo "🚀 STARTER FULD SYSTEM-TEST (v4.3.0)"
 echo "===================================================="
 
 # 1. Backend Integration & Unit Tests
-# Bemærk: Dette inkluderer nu gemini_direct.test.js (rigtigt API-kald)
+# Bemærk: gemini_direct.test.js (rigtigt API-kald) er nu deaktiveret for at spare tokens.
 echo -e "\n[1/3] KØRER BACKEND TESTS (Unit + API Integration)..."
-docker exec jaa-backend npx jest --detectOpenHandles
+docker exec jaa-backend npx jest . --testPathIgnorePatterns="gemini_direct.test.js" --detectOpenHandles
 if [ $? -ne 0 ]; then echo "❌ BACKEND TESTS FEJLEDE"; exit 1; fi
 
 # 2. API Endpoint Tests (Port 3002)

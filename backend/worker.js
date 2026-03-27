@@ -136,7 +136,23 @@ const worker = new Worker('job_queue', async (job) => {
         const infoPrompt = `Udtræk firmanavn, jobtitel og arbejdssted (by) fra dette opslag: """${jobText.substring(0, 1500)}"""
         Svar KUN med JSON: {"company": "Navn", "title": "Job", "location": "By"}`;
         const infoRaw = await callLocalGemini(infoPrompt, jobId);
-        const info = infoRaw.match(/\{[\s\S]*\}/) ? JSON.parse(infoRaw.match(/\{[\s\S]*\}/)[0]) : { company: "firma", title: "stilling", location: "" };
+        
+        // Robust JSON parsing (v4.2.4)
+        const safeParseJson = (raw, fallback) => {
+            try {
+                const start = raw.indexOf('{');
+                const end = raw.lastIndexOf('}');
+                if (start !== -1 && end !== -1 && end >= start) {
+                    const clean = raw.substring(start, end + 1).trim();
+                    return JSON.parse(clean);
+                }
+            } catch (e) {
+                logger.warn("Worker", "Kunne ikke parse JSON fra AI", { error: e.message, raw: raw.substring(0, 200) });
+            }
+            return fallback;
+        };
+
+        const info = safeParseJson(infoRaw, { company: "firma", title: "stilling", location: "" });
         companyName = info.company;
         jobTitleRaw = info.title;
         const jobLocation = info.location;
@@ -150,7 +166,7 @@ const worker = new Worker('job_queue', async (job) => {
             Svar KUN med JSON: {"url": "https://...", "address": "Vejnavn Nummer, Postnr By"}`;
             
             const researchRaw = await callLocalGemini(researchPrompt, jobId);
-            const research = researchRaw.match(/\{[\s\S]*\}/) ? JSON.parse(researchRaw.match(/\{[\s\S]*\}/)[0]) : { url: "", address: "" };
+            const research = safeParseJson(researchRaw, { url: "", address: "" });
             if (research.url && research.url.startsWith('http')) companyUrl = research.url;
             if (research.address) {
                 foundCompanyAddress = research.address;

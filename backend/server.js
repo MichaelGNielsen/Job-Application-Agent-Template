@@ -259,13 +259,21 @@ REGLER FOR OPTIMERING:
 4. **Bevar Markdown-struktur:** Sørg for at bibeholde den overordnede struktur med overskrifter og lister. Husk en tom linje efter hver overskrift.
 5. **Brugerens fokus:** Brugeren har givet dette hint til optimeringen: "${hint || "Stram op og fjern floskler"}"
 
+VIGTIGT: Du skal returnere dit svar i dette format:
+---REDAKTØRENS_LOGBOG---
+(Kort liste over hvad du har ændret/optimeret på DANSK)
+
+---OPTIMERET_CV---
+(Det fulde optimerede Master CV i Markdown)
+
 Her er det nuværende MASTER CV:
-"""${content}"""
+"""${content}"""`;
 
-Returner det OPTIMEREDE MASTER CV i fuld Markdown format.`;
-
-        const refinedContent = await callLocalGemini(refinePrompt, "master_refine");
-        res.json({ refined: refinedContent });
+        const response = await callLocalGemini(refinePrompt, "master_refine");
+        const log = extractSection(response, 'REDAKTØRENS_LOGBOG');
+        const refined = extractSection(response, 'OPTIMERET_CV');
+        
+        res.json({ refined: refined || response, log: log || "Optimering gennemført." });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

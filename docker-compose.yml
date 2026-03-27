@@ -20,8 +20,8 @@ services:
     volumes:
       - ./backend:/app
       - /app/node_modules
+      - .env_ai:/app/.env_ai
       - .:/app/shared # Adgang til alle job mapperne
-      - /home/mgn/.gemini:/root/.gemini
     depends_on:
       - redis
     restart: unless-stopped

@@ -1,34 +1,27 @@
-# TODO - Job Application Agent
+# TODO LIST - JOB APPLICATION AGENT
 
-Denne liste indeholder planlagte forbedringer, teknisk gæld og nye features. Punkterne er prioriteret efter vigtighed for systemets stabilitet og brugervenlighed.
+Dette er den aktive roadmap for videreudvikling af agenten. Opgaverne er prioriteret efter deres værdi for ansøgerens workflow.
 
-## 🔴 Høj Prioritet (Arkitektur & Stabilitet)
+## ✅ Færdiggjort (v4.2.1)
+- [x] **Master CV Visualizer (v4.1.0):** Automatisk HTML/PDF generering direkte fra Brutto-CV editor.
+- [x] **AI Refine (Master) (v4.2.0):** Interaktiv optimering af Brutto-CV med AI-logbog.
+- [x] **Drebin Spinner (v4.2.1):** Spejlet, indadborende loading-animation for visuel konsistens i hele UI.
+- [x] **Brugervejledning:** Oprettet `docs/usage_guide.md` og opdateret README.
+- [x] **Internationalisering (CV):** Bedre håndtering af job-specifikke oversættelser af historik.
 
-- [ ] **UI Fejlhåndtering:** Implementer en visuel fejlbesked (f.eks. en rød toast eller banner) i frontenden, der viser "Rate Limit (429)" med besked om, at systemet nu automatisk prøver igen.
-- [x] **Refactoring til utils.js (DRY):** Flyt fælles funktioner fra `server.js` og `worker.js` til `utils.js`.
-  - [x] `callLocalGemini`
-  - [x] `parseCandidateInfo`
-  - [x] `extractSection`
-- [x] **Udvidet Unit-test:** Opdater `utils.test.js` til at dække `printToPdf` ved brug af mocks til `exec`.
-- [x] **Integrationstests:** Opret `test_api.sh` der tester backend-endpoints via `curl` direkte i Docker.
+## 🚀 Roadmap / Kommende Features (v5.0+)
+- [ ] **Job-Radar (Proaktiv Search):** 🎯
+  - **Geofencing:** Radius-baseret søgning (f.eks. 30 km fra adresse i Brutto-CV).
+  - **Auto-Matcher:** Løbende søgning på portaler (Jobindex/LinkedIn) baseret på Brutto-CV kompetencer.
+  - **"Nye Muligheder" fane:** Dashboard med AI-scorede jobopslag og direkte import-knap.
+- [ ] **E-mail Integration:** Mulighed for at sende færdige PDF-pakker direkte fra UI'et.
+- [ ] **LinkedIn Parser:** Import af erhvervserfaring direkte fra profil-URL.
+- [ ] **Firma Research v2:** Dybere analyse af virksomhedens værdier og teknologiske stack (GitHub/Medium parsing).
 
-## 🟡 Medium Prioritet (Features)
-
-- [ ] **Proaktiv Jobsøgning:** Agenten skal automatisk kunne finde 1 nyt relevant jobopslag hver dag, der matcher brugerens profil.
-  - [ ] Geografisk begrænsning: Radius på 20-30 km fra bopæl.
-  - [ ] Matching-logik: Brug AI til at screene opslag og kun præsentere de bedste matches.
-- [ ] **Intelligent Brutto-CV Import:** Funktion til at transformere ustruktureret tekst (f.eks. LinkedIn-eksport eller rå tekst) til det korrekte `brutto_cv.md` format.
-  - [ ] Automatiske overskrifter og listemarkører.
-  - [ ] Udtrækning af stamdata (Navn, Adresse, etc.).
-- [ ] **Bulk Export:** Implementer en "Download Alle PDF'er" knap i frontenden, der pakker dokumenterne (evt. som ZIP eller blot trigger multiple downloads).
-- [ ] **Sproglig Konsistens:** Verificer sprogregler (i18n) med komplekse internationale opslag (Tysk/Fransk/Spansk) for at sikre, at "Høfligheds-fejlen" er helt væk.
-- [ ] **Billed-håndtering:** Optimering af billed-stier i CV, så de virker både i backend-PDF og manuelt browser-print (Serving via Express).
-
-## 🟢 Lav Prioritet (UX & Polering)
-
-- [ ] **Editor Auto-resize:** Gør textarea i editoren selv-justerende i højden baseret på indhold.
-- [ ] **Mørkt Tema Polering:** Finpuds Tailwind-farverne for endnu bedre læsbarhed i "Technical Editor" mode.
-- [ ] **Status Historik:** Vis en liste over de seneste 5 genererede jobs direkte i frontenden for hurtig adgang.
+## 🛠️ Tekniske Forbedringer
+- [ ] **Redis Monitoring:** Bedre visualisering af kø-status i frontenden.
+- [ ] **GDPR Anonymisering:** Automatisk fjernelse af følsomme data ved eksport af logs.
+- [ ] **Vite v6 Opgradering:** Modernisering af frontend build-tooling.
 
 ---
-*Sidst opdateret: 24. marts 2026*
+*Sidst opdateret: 25. marts 2026*

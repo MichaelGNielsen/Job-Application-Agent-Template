@@ -14,15 +14,16 @@ E-mail: reporter@moulin-le-chateau.be
 ### Senior reporter og eterforsker med fokus på AI-integration
 Jeg er en uforfærdet og dedikeret reporter og undersøgende journalist med over 20 års erfaring i at afdække internationale komplotter, bekæmpe organiseret kriminalitet og udforske ukendte egne af verden – herunder månen. Jeg er kendt for min skarpe analytiske sans, min evne til at bevare overblikket under ekstremt pres og min urokkelige integritet. Jeg rejser sjældent uden min trofaste ledsager, Terry, og jeg har et omfattende netværk af kontakter globalt (og interstellart).
 
-### Kompetencer & Tilgang
+### Kernekompetencer
+- Efterforskning: Grundig research, bevisindsamling, netværksanalyse
+- Journalistik: Undersøgende journalistik, interviews, dokumentation, fotojournalistik
+- Sprog: Fransk, engelsk, dansk, tysk, spansk, russisk, mandarin
+- International erfaring: Global tilstedeværelse i 50+ lande
+- Krisehåndtering: Ro under pres, hurtig problemløsning
+- Teknologi: Erfaring med AI, TOR og Robin til darkweb-efterforskning (bruger altid VPN)
+- AI-drevet journalistik: Brug af Gemini til hurtig faktatjek og analyse af komplekse sager.
 
----
-
-## Kernekompetencer
----
-
-## Udvalgte AI- & Automationsprojekter (2024 – 2026)
----
+ 
 
 ## Erhvervserfaring
 
@@ -39,13 +40,6 @@ Jeg er en uforfærdet og dedikeret reporter og undersøgende journalist med over
 ## Uddannelse
 - Autodidakt ekspert i journalistik, kryptografi, fægtning og rumfart.
 - Flycertifikat til adskillige flytyper (inkl. jagerfly og rumraketter).
-
-## Kompetencer
-- Journalistisk research og kildekritik under ekstreme forhold.
-- Sprog: Flydende i adskillige europæiske, asiatiske og afrikanske sprog.
-- Overlevelsesteknikker og kampsport.
-- Ekspert i navigation og logistik i komplekse miljøer.
-- AI-drevet journalistik: Brug af Gemini til hurtig faktatjek og analyse af komplekse sager.
 
 ## Udvalgte Projekter
 - **Operation Måne tur retur:** Planlægning og gennemførelse af den første bemandede månelanding ombord på Syldavisk raket-teknologi.
