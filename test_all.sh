@@ -18,9 +18,15 @@ chmod +x ./test_backend.sh
 if [ $? -ne 0 ]; then echo "❌ API ENDPOINT-TJEK FEJLEDE"; exit 1; fi
 
 # 3. Frontend Unit Tests (Port 3000)
-echo -e "\n[3/3] KØRER FRONTEND UNIT-TESTS..."
+echo -e "\n[3/4] KØRER FRONTEND UNIT-TESTS..."
 docker exec jaa-frontend npm test -- --run
 if [ $? -ne 0 ]; then echo "❌ FRONTEND TESTS FEJLEDE"; exit 1; fi
+
+# 4. AI CV Refine Test (v4.3.0)
+echo -e "\n[4/4] KØRER AI CV REFINE TEST..."
+chmod +x ./test_cv_refine.sh
+./test_cv_refine.sh
+if [ $? -ne 0 ]; then echo "❌ AI CV REFINE TEST FEJLEDE"; exit 1; fi
 
 echo -e "\n===================================================="
 echo "✅ ALLE TESTS BESTÅET - SYSTEMET ER STABILT"

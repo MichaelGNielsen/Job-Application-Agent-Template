@@ -2,7 +2,11 @@
 
 Dette er den aktive roadmap for videreudvikling af agenten. Opgaverne er prioriteret efter deres værdi for ansøgerens workflow.
 
-## ✅ Færdiggjort (v4.2.1)
+## ✅ Færdiggjort (v4.3.0)
+- [x] **Robusthed (v4.3.0):** Hævet `maxBuffer` til 50MB for at håndtere tunge AI-kald og logs.
+- [x] **Log-Triggers (v4.3.0):** Nye test-scripts (`test_generate.sh`, `test_cv_refine.sh`) til API-verificering.
+- [x] **Docker Autentificering (v4.3.0):** Mapper `.gemini` folder ind i containeren for fuld profil-understøttelse.
+- [x] **Miljø-fil Standardisering (.env) (v4.2.6):** Omdøbt `.env_ai` til `.env` og samlet konfiguration centralt.
 - [x] **Master CV Visualizer (v4.1.0):** Automatisk HTML/PDF generering direkte fra Brutto-CV editor.
 - [x] **AI Refine (Master) (v4.2.0):** Interaktiv optimering af Brutto-CV med AI-logbog.
 - [x] **Drebin Spinner (v4.2.1):** Spejlet, indadborende loading-animation for visuel konsistens i hele UI.
@@ -24,4 +28,4 @@ Dette er den aktive roadmap for videreudvikling af agenten. Opgaverne er priorit
 - [ ] **Vite v6 Opgradering:** Modernisering af frontend build-tooling.
 
 ---
-*Sidst opdateret: 25. marts 2026*
+*Sidst opdateret: 28. marts 2026*

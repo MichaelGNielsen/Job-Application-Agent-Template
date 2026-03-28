@@ -36,7 +36,19 @@ docker exec jaa-backend npx jest gemini_direct.test.js
 ./test_api.sh
 ```
 
-### 4. Backend Unit-tests (Mocks)
+### 4. AI CV Refine Test (Log-trig)
+Dette script tester AI'ens evne til at optimere et CV og genererer `[INFO2]` logs i backenden.
+```bash
+./test_cv_refine.sh
+```
+
+### 5. Fuld Genererings Test (Heavy Log)
+Dette script starter en komplet job-generering (Ansøgning, CV, Match, Pitch) og skaber maksimal log-aktivitet.
+```bash
+./test_generate.sh
+```
+
+### 6. Backend Unit-tests (Mocks)
 ```bash
 docker exec jaa-backend npm test
 ```

@@ -22,6 +22,7 @@ services:
       - /app/node_modules
       - .env:/app/.env
       - .:/app/shared # Adgang til alle job mapperne
+      - /home/mgn/.gemini:/root/.gemini
     depends_on:
       - redis
     restart: unless-stopped

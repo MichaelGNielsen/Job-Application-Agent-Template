@@ -17,7 +17,10 @@ const child_process = require('child_process');
 // Mocks
 jest.mock('fs');
 jest.mock('child_process', () => ({
-    exec: jest.fn((cmd, cb) => cb(null, { stdout: 'Mocked output', stderr: '' }))
+    exec: jest.fn((cmd, options, cb) => {
+        const callback = typeof options === 'function' ? options : cb;
+        callback(null, { stdout: 'Mocked output', stderr: '' });
+    })
 }));
 
 describe('utils.js', () => {

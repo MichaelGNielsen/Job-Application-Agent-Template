@@ -5,7 +5,10 @@ const path = require('path');
 const axios = require('axios');
 const cheerio = require('cheerio');
 
-const execPromise = promisify(exec);
+const execPromise = (cmd, options = {}) => {
+    const defaultOptions = { maxBuffer: 1024 * 1024 * 50 }; // 50MB
+    return promisify(exec)(cmd, { ...defaultOptions, ...options });
+};
 
 // --- AVANCERET LOGGER (v3.5.1) ---
 const chalk = {

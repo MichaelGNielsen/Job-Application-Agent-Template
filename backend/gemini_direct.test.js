@@ -42,7 +42,7 @@ describe('Gemini Direct Integration Test', () => {
             console.error('Test fejlede:', error.message);
             throw error;
         }
-    }, 300000); // 5 minutters timeout for AI kald
+    }, 600000); // 10 minutters timeout for AI kald
 
     test('skal kunne opdatere Brutto-CV for Tintin (Update Master CV Test)', async () => {
         if (!process.env.GOOGLE_API_KEY) {
@@ -98,5 +98,5 @@ REGLER:
             console.error('Tintin CV Update test fejlede:', error.message);
             throw error;
         }
-    }, 300000); // 5 minutters timeout for AI kald
+    }, 600000); // 10 minutters timeout for AI kald
 });
