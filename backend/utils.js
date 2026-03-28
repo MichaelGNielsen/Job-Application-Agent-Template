@@ -325,7 +325,17 @@ async function generateMasterDocs(mdContent) {
         }
 
         const candidate = parseCandidateInfo(mdContent);
-        const htmlBody = await mdToHtml(mdContent, mdPath, "brutto_cv_body.html");
+        
+        // --- SMART SPLIT (v4.3.4) ---
+        // Vi splitter ved den første '---' for at undgå dobbelt-info.
+        // Alt FØR stregen bruges til metadata (header).
+        // Alt EFTER stregen er selve CV-indholdet.
+        let displayMd = mdContent;
+        if (mdContent.includes('---')) {
+            displayMd = mdContent.split('---').slice(1).join('---').trim();
+        }
+
+        const htmlBody = await mdToHtml(displayMd, mdPath, "brutto_cv_body.html");
         
         // Brug 'cv' layout til master cv for bedste visuelle resultat
         const fullHtml = wrap('Brutto-CV (Master)', htmlBody, 'cv', { company: 'MASTER', position: 'FULL_PROFILE' }, candidate, 'da', {});
