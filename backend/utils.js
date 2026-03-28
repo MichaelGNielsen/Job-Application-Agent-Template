@@ -326,16 +326,17 @@ async function generateMasterDocs(mdContent) {
 
         const candidate = parseCandidateInfo(mdContent);
         
-        // --- SMART SPLIT (v4.3.4) ---
+        // --- SMART SPLIT (v4.3.5) ---
         // Vi splitter ved den første '---' for at undgå dobbelt-info.
-        // Alt FØR stregen bruges til metadata (header).
-        // Alt EFTER stregen er selve CV-indholdet.
         let displayMd = mdContent;
         if (mdContent.includes('---')) {
             displayMd = mdContent.split('---').slice(1).join('---').trim();
         }
 
-        const htmlBody = await mdToHtml(displayMd, mdPath, "brutto_cv_body.html");
+        // VIGTIGT: Brug en separat temp-fil til body konvertering for at undgå at overskrive kilden!
+        const bodyMdPath = path.join(dataDir, "brutto_cv_body_tmp.md");
+        const htmlBody = await mdToHtml(displayMd, bodyMdPath, "brutto_cv_body.html");
+        if (fs.existsSync(bodyMdPath)) fs.unlinkSync(bodyMdPath);
         
         // Brug 'cv' layout til master cv for bedste visuelle resultat
         const fullHtml = wrap('Brutto-CV (Master)', htmlBody, 'cv', { company: 'MASTER', position: 'FULL_PROFILE' }, candidate, 'da', {});
