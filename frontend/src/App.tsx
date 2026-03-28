@@ -29,10 +29,14 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'brutto' | 'ai' | 'layout'>('brutto');
   const [bruttoCv, setBruttoCv] = useState('');
   const [originalBruttoCv, setOriginalBruttoCv] = useState('');
-  const [aiInstructions, setAiInstructions] = useState('');
-  const [originalAiInstructions, setOriginalAiInstructions] = useState('');
-  const [masterLayout, setMasterLayout] = useState('');
-  const [originalMasterLayout, setOriginalMasterLayout] = useState('');
+  
+  const [templates, setTemplates] = useState<{[key: string]: string}>({});
+  const [originalTemplates, setOriginalTemplates] = useState<{[key: string]: string}>({});
+  const [selectedLayout, setSelectedLayout] = useState('master_layout.html');
+  const [selectedAi, setSelectedAi] = useState('ai_instructions.md');
+  const [designViewMode, setDesignViewMode] = useState<'code' | 'preview'>('code');
+  const [aiViewMode, setAiViewMode] = useState<'code' | 'read'>('code');
+
   const [isAiRefined, setIsAiRefined] = useState(false);
   const [showConfig, setShowConfig] = useState(false);
 
@@ -54,17 +58,28 @@ const App: React.FC = () => {
 
   const fetchData = async () => {
     try {
-      const [brutto, ai, layout] = await Promise.all([
+      const [brutto, ai, layout, cvHtml, cvMd, masterMd] = await Promise.all([
         fetch('/api/brutto').then(r => r.json()),
-        fetch('/api/config/instructions').then(r => r.json()),
-        fetch('/api/config/layout').then(r => r.json())
+        fetch('/api/config/templates/ai_instructions.md').then(r => r.json()),
+        fetch('/api/config/templates/master_layout.html').then(r => r.json()),
+        fetch('/api/config/templates/cv_layout.html').then(r => r.json()),
+        fetch('/api/config/templates/cv_layout.md').then(r => r.json()),
+        fetch('/api/config/templates/master_layout.md').then(r => r.json())
       ]);
+
       setBruttoCv(brutto.content);
       setOriginalBruttoCv(brutto.content);
-      setAiInstructions(ai.content);
-      setOriginalAiInstructions(ai.content);
-      setMasterLayout(layout.content);
-      setOriginalMasterLayout(layout.content);
+
+      const allTemplates = {
+        'ai_instructions.md': ai.content,
+        'master_layout.html': layout.content,
+        'cv_layout.html': cvHtml.content,
+        'cv_layout.md': cvMd.content,
+        'master_layout.md': masterMd.content
+      };
+      setTemplates(allTemplates);
+      setOriginalTemplates({ ...allTemplates });
+      
       setIsAiRefined(false);
       
       const verRes = await fetch('/api/version').then(r => r.json());
@@ -105,12 +120,23 @@ const App: React.FC = () => {
   };
 
   const handleSaveConfig = async (type: typeof activeTab) => {
-    setIsLoading(true); setStatusMessage(`Gemmer ${type}...`);
+    setIsLoading(true); 
     let url = '/api/brutto';
     let body = { content: bruttoCv };
+    let fileName = "";
 
-    if (type === 'ai') { url = '/api/config/instructions'; body = { content: aiInstructions }; }
-    else if (type === 'layout') { url = '/api/config/layout'; body = { content: masterLayout }; }
+    if (type === 'ai') { 
+        fileName = selectedAi;
+        url = `/api/config/templates/${fileName}`; 
+        body = { content: templates[fileName] }; 
+    }
+    else if (type === 'layout') { 
+        fileName = selectedLayout;
+        url = `/api/config/templates/${fileName}`; 
+        body = { content: templates[fileName] }; 
+    }
+
+    setStatusMessage(`Gemmer ${fileName || type}...`);
 
     try {
       await fetch(url, {
@@ -120,9 +146,12 @@ const App: React.FC = () => {
       });
       
       // Opdater originalerne efter gem
-      if (type === 'brutto') { setOriginalBruttoCv(bruttoCv); setIsAiRefined(false); }
-      else if (type === 'ai') setOriginalAiInstructions(aiInstructions);
-      else if (type === 'layout') setOriginalMasterLayout(masterLayout);
+      if (type === 'brutto') { 
+          setOriginalBruttoCv(bruttoCv); 
+          setIsAiRefined(false); 
+      } else {
+          setOriginalTemplates(prev => ({ ...prev, [fileName]: templates[fileName] }));
+      }
 
       setIsLoading(false); setStatusMessage('Gemt!');
       setTimeout(() => setStatusMessage(''), 2000);
@@ -239,8 +268,21 @@ const App: React.FC = () => {
     if (!results) return;
     const { meta, tag } = splitMarkdown(results.markdown[id]);
     const finalTag = tag || id.toUpperCase();
-    const newFullMd = `---LAYOUT_METADATA---\n${meta}\n\n---${finalTag}---\n${newBody}`;
+    const newFullMd = `---LAYOUT_METADATA---\n${newMeta}\n\n---${finalTag}---\n${newBody}`;
     setResults({ ...results, markdown: { ...results.markdown, [id]: newFullMd } });
+  };
+
+  const getLayoutPreview = (html: string) => {
+    if (!html) return "";
+    return html
+        .replace(/{{DOC_TITLE}}/g, "PREVIEW - Dokument")
+        .replace(/{{BRUGER_NAVN}}|{{NAME}}/g, "Michael Guldbæk Nielsen")
+        .replace(/{{BRUGER_ADRESSE_BLOK}}|{{ADDRESS_BLOCK}}/g, "<p>Niels Lykkes Gade 30</p><p>9400 Nørresundby</p>")
+        .replace(/{{BRUGER_TLF}}|{{PHONE}}/g, "+45 20771641")
+        .replace(/{{BRUGER_EMAIL}}|{{EMAIL}}/g, "mgn@mgnielsen.dk")
+        .replace(/{{FIRMA_ADRESSE}}|{{ADDRESS}}/g, "Virksomhedsvej 123, 8000 Aarhus C")
+        .replace(/{{CONTENT}}/g, "<h2>Dette er en Preview Overskrift</h2><p>Her vil AI'ens genererede tekst blive indsat. Dette er blot fyldtekst for at teste dit design-layout og CSS styling.</p><ul><li>Relevante erfaringer</li><li>Tekniske kompetencer</li><li>Personlige egenskaber</li></ul><p>Med venlig hilsen,<br/>Michael</p>")
+        .replace(/{{SIGNATURE_SECTION}}/g, "");
   };
 
   return (
@@ -263,22 +305,80 @@ const App: React.FC = () => {
         <main className="space-y-12">
           {/* KONFIGURATIONSPANEL */}
           <section className={`transition-all duration-500 overflow-hidden ${showConfig ? 'max-h-[1000px] opacity-100 mb-12' : 'max-h-0 opacity-0'}`}>
-            <div className="flex gap-1 mb-4 bg-white/5 p-1 rounded-lg w-fit">
-              {(['brutto', 'ai', 'layout'] as const).map(tab => (
-                <button key={tab} onClick={() => setActiveTab(tab)} className={`px-6 py-2 rounded-md text-[10px] font-bold uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-[#112240] text-cyan-400 shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}>
-                  {tab === 'brutto' ? '📜 Master CV' : tab === 'ai' ? '🧠 AI Prompts' : '🎨 Design'}
-                </button>
-              ))}
+            <div className="flex justify-between items-end mb-4">
+                <div className="flex gap-1 bg-white/5 p-1 rounded-lg w-fit">
+                {(['brutto', 'ai', 'layout'] as const).map(tab => (
+                    <button key={tab} onClick={() => setActiveTab(tab)} className={`px-6 py-2 rounded-md text-[10px] font-bold uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-[#112240] text-cyan-400 shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}>
+                    {tab === 'brutto' ? '📜 Master CV' : tab === 'ai' ? '🧠 AI Prompts' : '🎨 Design'}
+                    </button>
+                ))}
+                </div>
+
+                {activeTab === 'ai' && (
+                    <div className="flex gap-4 items-center">
+                        <div className="flex gap-1 bg-[#0a192f] p-1 rounded-lg border border-white/5">
+                            <button onClick={() => setAiViewMode('code')} className={`px-3 py-1 rounded text-[9px] font-bold uppercase transition-all ${aiViewMode === 'code' ? 'bg-cyan-600 text-white' : 'text-gray-500 hover:text-gray-300'}`}>KODE</button>
+                            <button onClick={() => setAiViewMode('read')} className={`px-3 py-1 rounded text-[9px] font-bold uppercase transition-all ${aiViewMode === 'read' ? 'bg-cyan-600 text-white' : 'text-gray-500 hover:text-gray-300'}`}>LÆS</button>
+                        </div>
+                        <div className="flex gap-2 bg-[#0a192f] p-1 rounded-lg border border-white/5">
+                            {['ai_instructions.md', 'cv_layout.md', 'master_layout.md'].map(file => (
+                                <button key={file} onClick={() => setSelectedAi(file)} className={`px-3 py-1.5 rounded text-[9px] font-bold uppercase tracking-tighter transition-all ${selectedAi === file ? 'bg-cyan-600/20 text-cyan-400 border border-cyan-500/30' : 'text-gray-500 hover:text-gray-400 border border-transparent'}`}>
+                                    {file.replace('.md', '').replace('_', ' ')}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {activeTab === 'layout' && (
+                    <div className="flex gap-4 items-center">
+                        <div className="flex gap-1 bg-[#0a192f] p-1 rounded-lg border border-white/5">
+                            <button onClick={() => setDesignViewMode('code')} className={`px-3 py-1 rounded text-[9px] font-bold uppercase transition-all ${designViewMode === 'code' ? 'bg-cyan-600 text-white' : 'text-gray-500 hover:text-gray-300'}`}>KODE</button>
+                            <button onClick={() => setDesignViewMode('preview')} className={`px-3 py-1 rounded text-[9px] font-bold uppercase transition-all ${designViewMode === 'preview' ? 'bg-cyan-600 text-white' : 'text-gray-500 hover:text-gray-300'}`}>PREVIEW</button>
+                        </div>
+                        <div className="flex gap-2 bg-[#0a192f] p-1 rounded-lg border border-white/5">
+                            {['master_layout.html', 'cv_layout.html'].map(file => (
+                                <button key={file} onClick={() => setSelectedLayout(file)} className={`px-3 py-1.5 rounded text-[9px] font-bold uppercase tracking-tighter transition-all ${selectedLayout === file ? 'bg-cyan-600/20 text-cyan-400 border border-cyan-500/30' : 'text-gray-500 hover:text-gray-400 border border-transparent'}`}>
+                                    {file.replace('_layout.html', '')}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
+
             {activeTab === 'brutto' && <textarea className="w-full h-96 bg-[#112240] border border-white/10 rounded-xl p-6 font-mono text-sm text-cyan-50 focus:border-cyan-500/50 outline-none shadow-inner" value={bruttoCv} onChange={(e) => setBruttoCv(e.target.value)} />}
-            {activeTab === 'ai' && <textarea className="w-full h-96 bg-[#112240] border border-white/10 rounded-xl p-6 font-mono text-sm text-cyan-50 focus:border-cyan-500/50 outline-none shadow-inner" value={aiInstructions} onChange={(e) => setAiInstructions(e.target.value)} />}
-            {activeTab === 'layout' && <textarea className="w-full h-96 bg-[#112240] border border-white/10 rounded-xl p-6 font-mono text-sm text-cyan-50 focus:border-cyan-500/50 outline-none shadow-inner" value={masterLayout} onChange={(e) => setMasterLayout(e.target.value)} />}
+            
+            {activeTab === 'ai' && (
+                <div className="h-96">
+                    {aiViewMode === 'code' ? (
+                        <textarea className="w-full h-full bg-[#112240] border border-white/10 rounded-xl p-6 font-mono text-sm text-cyan-50 focus:border-cyan-500/50 outline-none shadow-inner" value={templates[selectedAi] || ""} onChange={(e) => setTemplates(prev => ({ ...prev, [selectedAi]: e.target.value }))} />
+                    ) : (
+                        <div className="w-full h-full bg-[#112240] border border-white/10 rounded-xl p-8 overflow-y-auto prose prose-invert prose-cyan max-w-none shadow-inner">
+                            <pre className="whitespace-pre-wrap font-sans text-gray-300 text-sm">{templates[selectedAi]}</pre>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {activeTab === 'layout' && (
+                <div className="h-[600px]">
+                    {designViewMode === 'code' ? (
+                        <textarea className="w-full h-full bg-[#112240] border border-white/10 rounded-xl p-6 font-mono text-sm text-cyan-50 focus:border-cyan-500/50 outline-none shadow-inner" value={templates[selectedLayout] || ""} onChange={(e) => setTemplates(prev => ({ ...prev, [selectedLayout]: e.target.value }))} />
+                    ) : (
+                        <div className="w-full h-full bg-white rounded-xl overflow-hidden shadow-2xl">
+                            <iframe srcDoc={getLayoutPreview(templates[selectedLayout])} title="Layout Preview" className="w-full h-full border-none" />
+                        </div>
+                    )}
+                </div>
+            )}
+            
             <div className="mt-4 flex flex-wrap gap-4 items-center">
               {/* TRAFIKLYS MODEL FOR GEM-KNAP */}
               {(() => {
                 const isBruttoDirty = bruttoCv !== originalBruttoCv;
-                const isAiDirty = aiInstructions !== originalAiInstructions;
-                const isLayoutDirty = masterLayout !== originalMasterLayout;
+                const isAiDirty = templates[selectedAi] !== originalTemplates[selectedAi];
+                const isLayoutDirty = templates[selectedLayout] !== originalTemplates[selectedLayout];
                 
                 let isDirty = false;
                 if (activeTab === 'brutto') isDirty = isBruttoDirty || isAiRefined;
@@ -301,12 +401,26 @@ const App: React.FC = () => {
                 }
 
                 return (
-                  <button 
-                    onClick={() => handleSaveConfig(activeTab)} 
-                    className="bg-cyan-600 hover:bg-cyan-500 text-white px-8 py-3 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all shadow-lg shadow-cyan-500/20"
-                  >
-                    💾 Gem {activeTab} konfiguration
-                  </button>
+                  <div className="flex gap-2">
+                    <button 
+                        onClick={() => handleSaveConfig(activeTab)} 
+                        className="bg-cyan-600 hover:bg-cyan-500 text-white px-8 py-3 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all shadow-lg shadow-cyan-500/20"
+                    >
+                        💾 Gem {activeTab === 'brutto' ? 'brutto' : activeTab === 'ai' ? selectedAi : selectedLayout} konfiguration
+                    </button>
+                    <button 
+                        onClick={() => {
+                            if (window.confirm('Er du sikker på, at du vil gendanne standard-indholdet? Alle dine ulagrede ændringer går tabt.')) {
+                                if (activeTab === 'brutto') setBruttoCv(originalBruttoCv);
+                                else if (activeTab === 'ai') setTemplates(prev => ({ ...prev, [selectedAi]: originalTemplates[selectedAi] }));
+                                else if (activeTab === 'layout') setTemplates(prev => ({ ...prev, [selectedLayout]: originalTemplates[selectedLayout] }));
+                            }
+                        }}
+                        className="bg-white/5 hover:bg-white/10 text-gray-400 px-6 py-3 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all border border-white/10"
+                    >
+                        🔄 Gendan
+                    </button>
+                  </div>
                 );
               })()}
               

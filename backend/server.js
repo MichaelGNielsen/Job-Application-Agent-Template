@@ -283,6 +283,48 @@ Her er det nuværende MASTER CV:
 
 /**
  * @openapi
+ * /api/config/templates/{name}:
+ *   get:
+ *     summary: Hent en specifik skabelon-fil
+ *     parameters:
+ *       - in: path
+ *         name: name
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Filindhold returneret.
+ *   post:
+ *     summary: Gem en specifik skabelon-fil
+ */
+app.get('/api/config/templates/:name', (req, res) => {
+    try {
+        const { name } = req.params;
+        const allowed = ['ai_instructions.md', 'master_layout.html', 'cv_layout.html', 'cv_layout.md', 'master_layout.md'];
+        if (!allowed.includes(name)) return res.status(403).json({ error: "Adgang nægtet" });
+        
+        const p = path.join(rootDir, 'templates', name);
+        if (!fs.existsSync(p)) return res.status(404).json({ error: "Fil ikke fundet" });
+        
+        res.json({ content: fs.readFileSync(p, 'utf8') });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/config/templates/:name', (req, res) => {
+    try {
+        const { name } = req.params;
+        const allowed = ['ai_instructions.md', 'master_layout.html', 'cv_layout.html', 'cv_layout.md', 'master_layout.md'];
+        if (!allowed.includes(name)) return res.status(403).json({ error: "Adgang nægtet" });
+        
+        const p = path.join(rootDir, 'templates', name);
+        fs.writeFileSync(p, req.body.content);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+/**
+ * @openapi
  * /api/config/instructions:
  *   get:
  *     summary: Hent AI-instruktioner
