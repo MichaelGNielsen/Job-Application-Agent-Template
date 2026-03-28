@@ -36,4 +36,12 @@ Agenten detekterer automatisk sproget i jobopslaget.
 - Redaktørens Logbog, Match og ICAN+ skrives altid på **Dansk**, så du let kan læse AI'ens overvejelser.
 
 ---
+
+## 5. Avanceret: API Dokumentation (Swagger)
+For tekniske brugere og udviklere findes der en komplet interaktiv API-dokumentation. Her kan du udforske alle systemets funktioner og teste dem direkte.
+
+- **Krav:** Docker skal køre (`docker compose up -d`).
+- **URL:** `http://localhost:3002/api-docs`
+
+---
 *Tip: Husk altid at tjekke "AI Ræsonnement" (den blå boks) for at se hvilken strategi agenten har valgt for det specifikke job. Gennemlæs altid dine dokumenter manuelt før afsendelse, og brug eventuelt "Forfin alt med AI" til et ekstra tjek for stavefejl, floskler og professionel tone.*

@@ -64,6 +64,13 @@ Systemet genererer 4 centrale dokumenter for hvert jobopslag:
 * **AI:** Google Gemini via Gemini CLI.
 * **Layout:** HTML/CSS konverteret til PDF via Chromium Headless.
 
+### 📚 Interaktiv API Dokumentation (Swagger)
+
+Når systemet kører i Docker, kan du tilgå den fulde interaktive API-dokumentation og teste alle endpoints direkte fra din browser på:
+**`http://localhost:3002/api-docs`**
+
+*Bemærk: Docker skal være startet (`docker compose up -d`) for at Swagger UI er tilgængelig.*
+
 ## 📝 Markdown Formatering
 
 Følg altid disse regler for Markdown-filer for at sikre optimal kompatibilitet med VS Code (især "Markdown All in One" extensionen):

@@ -12,6 +12,7 @@ En dag med fokus på at gøre systemet mere robust over for store datamængder o
     - `test_cv_refine.sh`: Tester AI-optimering af et CV.
     - `test_generate.sh`: Trigger en komplet job-generering (Ansøgning, CV, Match, Pitch) for at teste hele flowet.
 - **Master Test-Suite Opdatering:** `test_all.sh` er nu opgraderet til en 4-trins proces, der inkluderer den nye `test_cv_refine.sh` for at sikre, at AI'en altid svarer korrekt før en commit.
+- **API Dokumentation (v4.3.0):** Tilføjet komplet Swagger/OpenAPI dokumentation for alle endpoints og opdateret alle README og vejledninger med link til `http://localhost:3002/api-docs`.
 - **Centraliseret Debug-konfiguration:** Flyttet `DEBUG=true` og `VERBOSE=-vv` fra `docker-compose.yml` til den centrale `.env` fil for at holde orkestrerings-filen ren og overskuelig.
 - **Docker Autentificering:** Tilføjet volume-mount af `/home/mgn/.gemini:/root/.gemini` i både MGN og Template repositories. Dette sikrer, at Gemini CLI'ens login-session (betalt profil) følger med ind i containeren. Dokumentationen i `docs/docker_setup.md` er opdateret med en forklaring på dette.
 
