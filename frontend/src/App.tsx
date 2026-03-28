@@ -304,148 +304,148 @@ const App: React.FC = () => {
 
         <main className="space-y-12">
           {/* KONFIGURATIONSPANEL */}
-          <section className={`transition-all duration-500 overflow-hidden ${showConfig ? 'max-h-[1000px] opacity-100 mb-12' : 'max-h-0 opacity-0'}`}>
-            <div className="flex justify-between items-end mb-4">
-                <div className="flex gap-1 bg-white/5 p-1 rounded-lg w-fit">
-                {(['brutto', 'ai', 'layout'] as const).map(tab => (
-                    <button key={tab} onClick={() => setActiveTab(tab)} className={`px-6 py-2 rounded-md text-[10px] font-bold uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-[#112240] text-cyan-400 shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}>
-                    {tab === 'brutto' ? '📜 Master CV' : tab === 'ai' ? '🧠 AI Prompts' : '🎨 Design'}
-                    </button>
-                ))}
+          <section className={`transition-all duration-500 overflow-hidden ${showConfig ? 'max-h-[1200px] opacity-100 mb-12' : 'max-h-0 opacity-0'}`}>
+            <div className="flex gap-1 mb-6 bg-white/5 p-1 rounded-lg w-fit">
+              {(['brutto', 'ai', 'layout'] as const).map(tab => (
+                <button key={tab} onClick={() => setActiveTab(tab)} className={`px-6 py-2 rounded-md text-[10px] font-bold uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-[#112240] text-cyan-400 shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}>
+                  {tab === 'brutto' ? '📜 Master CV' : tab === 'ai' ? '🧠 AI Prompts' : '🎨 Design'}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6 bg-white/5 p-4 rounded-xl border border-white/5">
+                {/* LEFT SIDE: Navigation & Modes */}
+                <div className="flex flex-wrap gap-4 items-center">
+                    {activeTab === 'ai' && (
+                        <div className="flex gap-4 items-center">
+                            <div className="flex gap-1 bg-[#0a192f] p-1 rounded-lg border border-white/5 shadow-inner">
+                                <button onClick={() => setAiViewMode('code')} className={`px-3 py-1.5 rounded text-[9px] font-bold uppercase transition-all ${aiViewMode === 'code' ? 'bg-cyan-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}>KODE</button>
+                                <button onClick={() => setAiViewMode('read')} className={`px-3 py-1.5 rounded text-[9px] font-bold uppercase transition-all ${aiViewMode === 'read' ? 'bg-cyan-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}>LÆS</button>
+                            </div>
+                            <div className="flex gap-2 bg-[#0a192f] p-1 rounded-lg border border-white/5 shadow-inner">
+                                {['ai_instructions.md', 'cv_layout.md', 'master_layout.md'].map(file => (
+                                    <button key={file} onClick={() => setSelectedAi(file)} className={`px-3 py-1.5 rounded text-[9px] font-bold uppercase tracking-tighter transition-all ${selectedAi === file ? 'bg-cyan-600/20 text-cyan-400 border border-cyan-500/30 shadow-inner' : 'text-gray-500 hover:text-gray-400 border border-transparent'}`}>
+                                        {file.replace('.md', '').replace('_', ' ')}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'layout' && (
+                        <div className="flex gap-4 items-center">
+                            <div className="flex gap-1 bg-[#0a192f] p-1 rounded-lg border border-white/5 shadow-inner">
+                                <button onClick={() => setDesignViewMode('code')} className={`px-3 py-1.5 rounded text-[9px] font-bold uppercase transition-all ${designViewMode === 'code' ? 'bg-cyan-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}>KODE</button>
+                                <button onClick={() => setDesignViewMode('preview')} className={`px-3 py-1.5 rounded text-[9px] font-bold uppercase transition-all ${designViewMode === 'preview' ? 'bg-cyan-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}>PREVIEW</button>
+                            </div>
+                            <div className="flex gap-2 bg-[#0a192f] p-1 rounded-lg border border-white/5 shadow-inner">
+                                {['master_layout.html', 'cv_layout.html'].map(file => (
+                                    <button key={file} onClick={() => setSelectedLayout(file)} className={`px-3 py-1.5 rounded text-[9px] font-bold uppercase tracking-tighter transition-all ${selectedLayout === file ? 'bg-cyan-600/20 text-cyan-400 border border-cyan-500/30 shadow-inner' : 'text-gray-500 hover:text-gray-400 border border-transparent'}`}>
+                                        {file.replace('_layout.html', '')}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'brutto' && (
+                        <span className="text-[10px] font-black text-cyan-500 uppercase tracking-widest ml-2">Master CV Management</span>
+                    )}
                 </div>
 
-                {activeTab === 'ai' && (
-                    <div className="flex gap-4 items-center">
-                        <div className="flex gap-1 bg-[#0a192f] p-1 rounded-lg border border-white/5">
-                            <button onClick={() => setAiViewMode('code')} className={`px-3 py-1 rounded text-[9px] font-bold uppercase transition-all ${aiViewMode === 'code' ? 'bg-cyan-600 text-white' : 'text-gray-500 hover:text-gray-300'}`}>KODE</button>
-                            <button onClick={() => setAiViewMode('read')} className={`px-3 py-1 rounded text-[9px] font-bold uppercase transition-all ${aiViewMode === 'read' ? 'bg-cyan-600 text-white' : 'text-gray-500 hover:text-gray-300'}`}>LÆS</button>
-                        </div>
-                        <div className="flex gap-2 bg-[#0a192f] p-1 rounded-lg border border-white/5">
-                            {['ai_instructions.md', 'cv_layout.md', 'master_layout.md'].map(file => (
-                                <button key={file} onClick={() => setSelectedAi(file)} className={`px-3 py-1.5 rounded text-[9px] font-bold uppercase tracking-tighter transition-all ${selectedAi === file ? 'bg-cyan-600/20 text-cyan-400 border border-cyan-500/30' : 'text-gray-500 hover:text-gray-400 border border-transparent'}`}>
-                                    {file.replace('.md', '').replace('_', ' ')}
+                {/* RIGHT SIDE: Actions & Tools */}
+                <div className="flex flex-wrap gap-2 items-center lg:ml-auto">
+                    {activeTab === 'brutto' && (
+                        <>
+                            <button onClick={handleRenderMaster} className="bg-[#112240] hover:bg-[#1d355e] text-white px-4 py-2 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all border border-cyan-500/30 shadow-sm">👁️ Vis HTML</button>
+                            <a href="/api/brutto/pdf" target="_blank" rel="noreferrer" className="bg-[#112240] hover:bg-[#1d355e] text-white px-4 py-2 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all border border-cyan-500/30 shadow-sm">📄 PDF</a>
+                            <button onClick={handleRefineMaster} disabled={isMasterLoading} className="bg-cyan-900/40 hover:bg-cyan-600/40 text-cyan-400 px-4 py-2 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all border border-cyan-500/20 flex items-center gap-2 shadow-sm">
+                                {isMasterLoading ? '🌀...' : '✨ Optimér'}
+                            </button>
+                            <button onClick={async () => {
+                                setIsLoading(true); setStatusMessage('Oversætter...');
+                                const res = await fetch('/api/brutto/translate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: bruttoCv }) });
+                                const data = await res.json();
+                                setBruttoCv(data.translated);
+                                setIsLoading(false); setStatusMessage('Oversat!');
+                            }} className="bg-cyan-600/10 hover:bg-cyan-600/20 text-cyan-400 px-4 py-2 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all border border-cyan-500/20 shadow-sm mr-2">🌐 Oversæt</button>
+                        </>
+                    )}
+
+                    {/* TRAFIKLYS & GENDAN */}
+                    <div className="flex items-center gap-2 pl-4 border-l border-white/10">
+                        {(() => {
+                            const isBruttoDirty = bruttoCv !== originalBruttoCv;
+                            const isAiDirty = templates[selectedAi] !== originalTemplates[selectedAi];
+                            const isLayoutDirty = templates[selectedLayout] !== originalTemplates[selectedLayout];
+                            
+                            let isDirty = false;
+                            if (activeTab === 'brutto') isDirty = isBruttoDirty || isAiRefined;
+                            else if (activeTab === 'ai') isDirty = isAiDirty;
+                            else if (activeTab === 'layout') isDirty = isLayoutDirty;
+
+                            if (!isDirty) {
+                                return <span className="text-[9px] font-bold text-green-500/70 uppercase tracking-widest px-4 py-2 bg-green-500/5 rounded-lg border border-green-500/20">✅ Sync</span>;
+                            }
+
+                            if (activeTab === 'brutto' && isAiRefined) {
+                                return (
+                                    <button onClick={() => handleSaveConfig('brutto')} className="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all shadow-lg animate-pulse border border-orange-400">
+                                        ✨ GEM AI-SVAR
+                                    </button>
+                                );
+                            }
+
+                            return (
+                                <button onClick={() => handleSaveConfig(activeTab)} className="bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all shadow-lg shadow-cyan-500/20 border border-cyan-400">
+                                    💾 Gem ændringer
                                 </button>
-                            ))}
-                        </div>
+                            );
+                        })()}
+
+                        <button 
+                            onClick={() => {
+                                if (window.confirm('Gendan standard-indholdet? Ulagede ændringer går tabt.')) {
+                                    if (activeTab === 'brutto') setBruttoCv(originalBruttoCv);
+                                    else if (activeTab === 'ai') setTemplates(prev => ({ ...prev, [selectedAi]: originalTemplates[selectedAi] }));
+                                    else if (activeTab === 'layout') setTemplates(prev => ({ ...prev, [selectedLayout]: originalTemplates[selectedLayout] }));
+                                }
+                            }}
+                            className="bg-white/5 hover:bg-white/10 text-gray-500 px-3 py-2 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all border border-white/10"
+                            title="Gendan original"
+                        >
+                            🔄
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div className="relative group">
+                {activeTab === 'brutto' && <textarea className="w-full h-96 bg-[#112240] border border-white/10 rounded-xl p-6 font-mono text-sm text-cyan-50 focus:border-cyan-500/50 outline-none shadow-inner group-hover:border-white/20 transition-all" value={bruttoCv} onChange={(e) => setBruttoCv(e.target.value)} />}
+                
+                {activeTab === 'ai' && (
+                    <div className="h-96">
+                        {aiViewMode === 'code' ? (
+                            <textarea className="w-full h-full bg-[#112240] border border-white/10 rounded-xl p-6 font-mono text-sm text-cyan-50 focus:border-cyan-500/50 outline-none shadow-inner group-hover:border-white/20 transition-all" value={templates[selectedAi] || ""} onChange={(e) => setTemplates(prev => ({ ...prev, [selectedAi]: e.target.value }))} />
+                        ) : (
+                            <div className="w-full h-full bg-[#112240] border border-white/10 rounded-xl p-8 overflow-y-auto prose prose-invert prose-cyan max-w-none shadow-inner group-hover:border-white/20 transition-all">
+                                <pre className="whitespace-pre-wrap font-sans text-gray-300 text-sm">{templates[selectedAi]}</pre>
+                            </div>
+                        )}
                     </div>
                 )}
 
                 {activeTab === 'layout' && (
-                    <div className="flex gap-4 items-center">
-                        <div className="flex gap-1 bg-[#0a192f] p-1 rounded-lg border border-white/5">
-                            <button onClick={() => setDesignViewMode('code')} className={`px-3 py-1 rounded text-[9px] font-bold uppercase transition-all ${designViewMode === 'code' ? 'bg-cyan-600 text-white' : 'text-gray-500 hover:text-gray-300'}`}>KODE</button>
-                            <button onClick={() => setDesignViewMode('preview')} className={`px-3 py-1 rounded text-[9px] font-bold uppercase transition-all ${designViewMode === 'preview' ? 'bg-cyan-600 text-white' : 'text-gray-500 hover:text-gray-300'}`}>PREVIEW</button>
-                        </div>
-                        <div className="flex gap-2 bg-[#0a192f] p-1 rounded-lg border border-white/5">
-                            {['master_layout.html', 'cv_layout.html'].map(file => (
-                                <button key={file} onClick={() => setSelectedLayout(file)} className={`px-3 py-1.5 rounded text-[9px] font-bold uppercase tracking-tighter transition-all ${selectedLayout === file ? 'bg-cyan-600/20 text-cyan-400 border border-cyan-500/30' : 'text-gray-500 hover:text-gray-400 border border-transparent'}`}>
-                                    {file.replace('_layout.html', '')}
-                                </button>
-                            ))}
-                        </div>
+                    <div className="h-[600px]">
+                        {designViewMode === 'code' ? (
+                            <textarea className="w-full h-full bg-[#112240] border border-white/10 rounded-xl p-6 font-mono text-sm text-cyan-50 focus:border-cyan-500/50 outline-none shadow-inner group-hover:border-white/20 transition-all" value={templates[selectedLayout] || ""} onChange={(e) => setTemplates(prev => ({ ...prev, [selectedLayout]: e.target.value }))} />
+                        ) : (
+                            <div className="w-full h-full bg-white rounded-xl overflow-hidden shadow-2xl">
+                                <iframe srcDoc={getLayoutPreview(templates[selectedLayout])} title="Layout Preview" className="w-full h-full border-none" />
+                            </div>
+                        )}
                     </div>
                 )}
-            </div>
-
-            {activeTab === 'brutto' && <textarea className="w-full h-96 bg-[#112240] border border-white/10 rounded-xl p-6 font-mono text-sm text-cyan-50 focus:border-cyan-500/50 outline-none shadow-inner" value={bruttoCv} onChange={(e) => setBruttoCv(e.target.value)} />}
-            
-            {activeTab === 'ai' && (
-                <div className="h-96">
-                    {aiViewMode === 'code' ? (
-                        <textarea className="w-full h-full bg-[#112240] border border-white/10 rounded-xl p-6 font-mono text-sm text-cyan-50 focus:border-cyan-500/50 outline-none shadow-inner" value={templates[selectedAi] || ""} onChange={(e) => setTemplates(prev => ({ ...prev, [selectedAi]: e.target.value }))} />
-                    ) : (
-                        <div className="w-full h-full bg-[#112240] border border-white/10 rounded-xl p-8 overflow-y-auto prose prose-invert prose-cyan max-w-none shadow-inner">
-                            <pre className="whitespace-pre-wrap font-sans text-gray-300 text-sm">{templates[selectedAi]}</pre>
-                        </div>
-                    )}
-                </div>
-            )}
-
-            {activeTab === 'layout' && (
-                <div className="h-[600px]">
-                    {designViewMode === 'code' ? (
-                        <textarea className="w-full h-full bg-[#112240] border border-white/10 rounded-xl p-6 font-mono text-sm text-cyan-50 focus:border-cyan-500/50 outline-none shadow-inner" value={templates[selectedLayout] || ""} onChange={(e) => setTemplates(prev => ({ ...prev, [selectedLayout]: e.target.value }))} />
-                    ) : (
-                        <div className="w-full h-full bg-white rounded-xl overflow-hidden shadow-2xl">
-                            <iframe srcDoc={getLayoutPreview(templates[selectedLayout])} title="Layout Preview" className="w-full h-full border-none" />
-                        </div>
-                    )}
-                </div>
-            )}
-            
-            <div className="mt-4 flex flex-wrap gap-4 items-center">
-              {/* TRAFIKLYS MODEL FOR GEM-KNAP */}
-              {(() => {
-                const isBruttoDirty = bruttoCv !== originalBruttoCv;
-                const isAiDirty = templates[selectedAi] !== originalTemplates[selectedAi];
-                const isLayoutDirty = templates[selectedLayout] !== originalTemplates[selectedLayout];
-                
-                let isDirty = false;
-                if (activeTab === 'brutto') isDirty = isBruttoDirty || isAiRefined;
-                else if (activeTab === 'ai') isDirty = isAiDirty;
-                else if (activeTab === 'layout') isDirty = isLayoutDirty;
-
-                if (!isDirty) {
-                  return <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest px-8 py-3 bg-white/5 rounded-lg border border-green-500/20">✅ Alt er synkroniseret</span>;
-                }
-
-                if (activeTab === 'brutto' && isAiRefined) {
-                  return (
-                    <button 
-                      onClick={() => handleSaveConfig('brutto')} 
-                      className="bg-orange-600 hover:bg-orange-500 text-white px-8 py-3 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all shadow-lg shadow-orange-500/40 animate-pulse border-2 border-orange-400"
-                    >
-                      ✨ GEM AI-OPDATERING (IKKE GEMT!)
-                    </button>
-                  );
-                }
-
-                return (
-                  <div className="flex gap-2">
-                    <button 
-                        onClick={() => handleSaveConfig(activeTab)} 
-                        className="bg-cyan-600 hover:bg-cyan-500 text-white px-8 py-3 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all shadow-lg shadow-cyan-500/20"
-                    >
-                        💾 Gem {activeTab === 'brutto' ? 'brutto' : activeTab === 'ai' ? selectedAi : selectedLayout} konfiguration
-                    </button>
-                    <button 
-                        onClick={() => {
-                            if (window.confirm('Er du sikker på, at du vil gendanne standard-indholdet? Alle dine ulagrede ændringer går tabt.')) {
-                                if (activeTab === 'brutto') setBruttoCv(originalBruttoCv);
-                                else if (activeTab === 'ai') setTemplates(prev => ({ ...prev, [selectedAi]: originalTemplates[selectedAi] }));
-                                else if (activeTab === 'layout') setTemplates(prev => ({ ...prev, [selectedLayout]: originalTemplates[selectedLayout] }));
-                            }
-                        }}
-                        className="bg-white/5 hover:bg-white/10 text-gray-400 px-6 py-3 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all border border-white/10"
-                    >
-                        🔄 Gendan
-                    </button>
-                  </div>
-                );
-              })()}
-              
-              {activeTab === 'brutto' && (
-                <>
-                  <button onClick={handleRenderMaster} className="bg-[#112240] hover:bg-[#1d355e] text-white px-6 py-3 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all border border-cyan-500/30">👁️ Vis HTML</button>
-                  <a href="/api/brutto/pdf" target="_blank" rel="noreferrer" className="bg-[#112240] hover:bg-[#1d355e] text-white px-6 py-3 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all border border-cyan-500/30">📄 Åben PDF</a>
-                  <button onClick={handleRefineMaster} disabled={isMasterLoading} className="bg-cyan-900/40 hover:bg-cyan-600/40 text-cyan-400 px-6 py-3 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all border border-cyan-500/20 flex items-center gap-2">
-                    {isMasterLoading ? (
-                      <>
-                        <span className="inline-block [transform:scaleX(-1)]">
-                          <span className="inline-block animate-spin [animation-direction:reverse]">🌀</span>
-                        </span> Optimering i gang...
-                      </>
-                    ) : '✨ Optimér med AI'}
-                  </button>
-                  <button onClick={async () => {
-                      setIsLoading(true); setStatusMessage('Oversætter...');
-                      const res = await fetch('/api/brutto/translate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: bruttoCv }) });
-                      const data = await res.json();
-                      setBruttoCv(data.translated);
-                      setIsLoading(false); setStatusMessage('Oversat!');
-                  }} className="bg-cyan-600/20 hover:bg-cyan-600/40 text-cyan-400 px-6 py-3 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all border border-cyan-500/20 ml-auto">🌐 Oversæt CV</button>
-                </>
-              )}
             </div>
           </section>
 

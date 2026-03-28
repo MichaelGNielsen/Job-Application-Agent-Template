@@ -2,24 +2,22 @@
 
 Dette dokument fungerer som projektets tekniske hukommelse og strategiske roadmap. Det opdateres før hver væsentlig ændring eller commit.
 
-## 🏁 Status 28. Marts 2026 - Avanceret System Kartotek & Template Management (v4.3.1) 🎨🧠🚀
+## 🏁 Status 28. Marts 2026 - System Kartotek UI Redesign & Optimering (v4.3.2) 🎨🚀✨
 
-En dag med fokus på at gøre systemets konfiguration mere tilgængelig og kraftfuld direkte fra brugerfladen.
+En oprydning i brugerfladen for at sikre bedre workflow og synlighed af vigtige funktioner.
 
-### 🛠️ Tekniske Milepæle (v4.3.0 -> v4.3.1)
-- **Multi-Template Support:** System Kartotek understøtter nu redigering af alle centrale skabeloner (`cv_layout.html`, `cv_layout.md`, `master_layout.md`, etc.) via et nyt generisk backend-endpoint.
-- **Live Preview (Design):** Tilføjet en "PREVIEW" mode under Design-tab'en, der renderer HTML-skabelonen med dummy-data i realtid. Dette gør det markant lettere at rette CSS og layout.
-- **Læse-mode (AI Prompts):** Tilføjet en "LÆS" mode til AI-prompts, der gør de lange instruktioner mere overskuelige.
-- **Gendan-funktion:** Tilføjet en "🔄 Gendan" knap til alle sektioner i Kartoteket, så brugeren kan fortryde ændringer og gå tilbage til den sidst gemte version.
-- **Swagger Fuldendelse:** Alle nye template-endpoints er fuldt dokumenteret i Swagger UI.
+### 🛠️ Tekniske Milepæle (v4.3.1 -> v4.3.2)
+- **UI Redesign (Kartotek):** Alle handlingsknapper, værktøjer og fil-vælgere er nu flyttet til en samlet "Control Bar" **over** tekstfeltet. Dette forhindrer, at knapperne bliver "væk" i bunden, når indholdet vokser.
+- **Logisk Gruppering:** Venstre side af kontrolbaren fokuserer på navigation og visnings-modes (KODE/LÆS/PREVIEW), mens højre side samler handlingsorienterede værktøjer og synkroniseringsstatus.
+- **Forbedret Status-visning:** "Traffic Light" systemet er gjort mere kompakt og elegant i top-layoutet, men stadig med tydelig visuel indikation af ulagrede ændringer (Orange puls ved AI-svar).
+- **Visuel Konsistens:** Gennemført ensartet layout på tværs af Master CV, AI Prompts og Design fanerne.
 
 ### ✅ Validering
-- Manuel test af alle skabelon-skift i frontenden.
-- Verificeret at "Gendan" virker korrekt for både Master CV, Prompts og Design.
-- Bekræftet at PDF-generering stadig fungerer efter skabelon-ændringer.
+- Verificeret at alle knapper er synlige og funktionelle i det nye top-layout.
+- Bekræftet at Live Preview og Læse-mode stadig fungerer efter flytning.
 - Synkronisering mellem MGN og Template gennemført.
 
 ---
 
-## 🏁 Status 28. Marts 2026 - Debugging, Robusthed & AI-Log-Triggers (v4.3.0) 🧪🚀✨
+## 🏁 Status 28. Marts 2026 - Avanceret System Kartotek & Template Management (v4.3.1) 🎨🧠🚀
 ... (resten af journalen)
