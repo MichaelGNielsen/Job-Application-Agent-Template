@@ -272,16 +272,44 @@ const App: React.FC = () => {
     setResults({ ...results, markdown: { ...results.markdown, [id]: newFullMd } });
   };
 
-  const getLayoutPreview = (html: string) => {
+  const getLayoutPreview = (html: string, fileName: string) => {
     if (!html) return "";
+    
+    let dummyContent = "";
+    if (fileName.includes('cv')) {
+        dummyContent = `
+            <h2>Profil</h2>
+            <p>Erfaren Fullstack udvikler med fokus på AI-integrationer og robuste arkitekturer.</p>
+            <h2>Erhvervserfaring</h2>
+            <p><strong>Senior Software Engineer | Tech Solutions (2020 - Nu)</strong></p>
+            <ul>
+                <li>Udvikling af AI-agenter til automatisering af workflow.</li>
+                <li>Migrering af legacy systemer til moderne Docker-baserede miljøer.</li>
+            </ul>
+            <h2>Uddannelse</h2>
+            <p><strong>Cand.Scient. Datalogi | Aalborg Universitet</strong></p>
+        `;
+    } else {
+        dummyContent = `
+            <div class="recipient">
+                <p>Virksomhed A/S<br/>Att: HR-afdelingen<br/>Softwarevej 1, 8000 Aarhus</p>
+            </div>
+            <div class="subject">Ansøgning om stilling som Senior Software Developer</div>
+            <p>Jeg skriver for at udtrykke min store interesse for den opslåede stilling...</p>
+            <p>Med min baggrund inden for AI-udvikling og systemarkitektur, er jeg overbevist om, at jeg kan bidrage positivt til jeres team.</p>
+            <p>Jeg ser frem til muligheden for at uddybe mine kompetencer ved en personlig samtale.</p>
+            <p>Med venlig hilsen,<br/>Michael</p>
+        `;
+    }
+
     return html
-        .replace(/{{DOC_TITLE}}/g, "PREVIEW - Dokument")
+        .replace(/{{DOC_TITLE}}/g, "PREVIEW - " + (fileName.includes('cv') ? 'CV' : 'Ansøgning'))
         .replace(/{{BRUGER_NAVN}}|{{NAME}}/g, "Michael Guldbæk Nielsen")
         .replace(/{{BRUGER_ADRESSE_BLOK}}|{{ADDRESS_BLOCK}}/g, "<p>Niels Lykkes Gade 30</p><p>9400 Nørresundby</p>")
         .replace(/{{BRUGER_TLF}}|{{PHONE}}/g, "+45 20771641")
         .replace(/{{BRUGER_EMAIL}}|{{EMAIL}}/g, "mgn@mgnielsen.dk")
         .replace(/{{FIRMA_ADRESSE}}|{{ADDRESS}}/g, "Virksomhedsvej 123, 8000 Aarhus C")
-        .replace(/{{CONTENT}}/g, "<h2>Dette er en Preview Overskrift</h2><p>Her vil AI'ens genererede tekst blive indsat. Dette er blot fyldtekst for at teste dit design-layout og CSS styling.</p><ul><li>Relevante erfaringer</li><li>Tekniske kompetencer</li><li>Personlige egenskaber</li></ul><p>Med venlig hilsen,<br/>Michael</p>")
+        .replace(/{{CONTENT}}/g, dummyContent)
         .replace(/{{SIGNATURE_SECTION}}/g, "");
   };
 
@@ -441,7 +469,7 @@ const App: React.FC = () => {
                             <textarea className="w-full h-full bg-[#112240] border border-white/10 rounded-xl p-6 font-mono text-sm text-cyan-50 focus:border-cyan-500/50 outline-none shadow-inner group-hover:border-white/20 transition-all" value={templates[selectedLayout] || ""} onChange={(e) => setTemplates(prev => ({ ...prev, [selectedLayout]: e.target.value }))} />
                         ) : (
                             <div className="w-full h-full bg-white rounded-xl overflow-hidden shadow-2xl">
-                                <iframe srcDoc={getLayoutPreview(templates[selectedLayout])} title="Layout Preview" className="w-full h-full border-none" />
+                                <iframe srcDoc={getLayoutPreview(templates[selectedLayout], selectedLayout)} title="Layout Preview" className="w-full h-full border-none" />
                             </div>
                         )}
                     </div>

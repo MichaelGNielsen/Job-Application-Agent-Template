@@ -8,7 +8,7 @@
   Brug af softwaren sker på eget ansvar.
 -->
 
-# Job Application Agent (v4.3.2)
+# Job Application Agent (v4.3.3)
 
 > **📣 Vi vil gerne høre fra dig!**
 > Har du brugt Agenten til din jobsøgning? Vi vil elske at høre om din oplevelse.
@@ -82,7 +82,7 @@ Følg altid disse regler for Markdown-filer for at sikre optimal kompatibilitet 
 
 ---
 
-*Sidst opdateret: 26. marts 2026 (v4.3.2)*
+*Sidst opdateret: 26. marts 2026 (v4.3.3)*
 
 ## 📚 Dokumentation
 
