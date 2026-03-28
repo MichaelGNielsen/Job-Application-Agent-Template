@@ -52,10 +52,10 @@ const swaggerOptions = {
         openapi: '3.0.0',
         info: {
             title: 'Job Application Agent API',
-            version: '3.2.0',
+            version: '4.3.0',
             description: 'API til automatisering af jobansøgninger og CV-skræddersyning.',
         },
-        servers: [{ url: 'http://localhost:3000' }],
+        servers: [{ url: 'http://localhost:3002' }],
     },
     apis: ['./server.js'], 
 };
@@ -347,7 +347,21 @@ app.post('/api/config/layout', (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// LIVE PREVIEW LOOPBACK (v3.0)
+/**
+ * @openapi
+ * /api/preview:
+ *   post:
+ *     summary: Generer live-preview af et dokument
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: HTML preview returneret.
+ */
 app.post('/api/preview', async (req, res) => {
     try {
         const { markdown, type, lang, candidate, meta } = req.body;
@@ -365,6 +379,24 @@ app.post('/api/preview', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+/**
+ * @openapi
+ * /api/brutto/translate:
+ *   post:
+ *     summary: Oversæt Brutto-CV til engelsk
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               content:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Oversat CV returneret.
+ */
 app.post('/api/brutto/translate', async (req, res) => {
   try {
     const { content } = req.body;
@@ -416,6 +448,34 @@ app.post('/api/generate', async (req, res) => {
   }
 });
 
+/**
+ * @openapi
+ * /api/refine:
+ *   post:
+ *     summary: Optimér en eksisterende ansøgningspakke (Manuelt eller med AI)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               folder:
+ *                 type: string
+ *               type:
+ *                 type: string
+ *               markdown:
+ *                 type: string
+ *               useAi:
+ *                 type: boolean
+ *               hint:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Dokument opdateret (manuelt).
+ *       202:
+ *         description: AI-optimering startet (jobId returneret).
+ */
 app.post('/api/refine', async (req, res) => {
   try {
     const { folder, type, markdown, useAi, hint } = req.body; 

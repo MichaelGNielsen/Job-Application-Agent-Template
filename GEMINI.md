@@ -48,7 +48,8 @@ Før enhver `git commit` eller `push` SKAL denne liste gennemføres punkt for pu
 4.  **Validering (Unit Tests):**
     -   Kør backend-tests i Docker: `docker exec jaa-backend npm test`.
     -   Kør frontend-tests: `cd frontend && npm test`.
-5.  **Commit & Push (Template):** Gennemfør `git add`, `git commit` og `git push`.
+5.  **Commit & Push (MGN):** Gennemfør `git add`, `git commit` og `git push`.
+6.  **Synkronisering (Template):** Flyt generiske rettelser til `Job-Application-Agent-Template` og gentag udrulnings-flowet dér.
 
 ## 🚀 Workflows
 
@@ -95,4 +96,4 @@ For at sikre optimal kompatibilitet med VS Code (især "Markdown All in One" ext
 7. **Niveauer:** Spring aldrig overskriftsniveauer over (MD001).
 
 ---
-*Sidst opdateret: 26. marts 2026*
+*Sidst opdateret: 28. marts 2026*
