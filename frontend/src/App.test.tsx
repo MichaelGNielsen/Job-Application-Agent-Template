@@ -47,7 +47,7 @@ test('renders action button', async () => {
 
 test('renders config tabs', async () => {
   render(<App />);
-  expect(screen.getByText(/Master CV/i)).toBeDefined();
+  expect(screen.getByRole('button', { name: /Master CV/i })).toBeDefined();
   // Navnet er ændret til 🧠 AI Prompts
   expect(screen.getByText(/AI Prompts/i)).toBeDefined();
   // Bruger getAllByText da "Design" også findes i footeren eller i andre tags

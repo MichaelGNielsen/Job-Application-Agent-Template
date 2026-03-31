@@ -8,7 +8,7 @@
   Brug af softwaren sker på eget ansvar.
 -->
 
-# Job Application Agent (v4.3.5)
+# Job Application Agent (v4.3.6)
 
 > **📣 Vi vil gerne høre fra dig!**
 > Har du brugt Agenten til din jobsøgning? Vi vil elske at høre om din oplevelse.
@@ -54,7 +54,7 @@ Systemet genererer 4 centrale dokumenter for hvert jobopslag:
 ### Særlige funktioner
 
 * **Autonom Research:** Systemet forsøger selv at finde virksomhedens hjemmeside og adresse via AI, hvis du ikke har angivet en URL. Dette sikrer et professionelt brevhoved.
-* **Personlige Hints:** Brug hint-feltet i browseren til at give AI'en specifikke instrukser (f.eks. "Læg vægt på min ledelseserfaring" eller "Skriv på tysk, selvom opslaget er engelsk").
+* **Personlige Hints:** Brug hint-feltet i browseren til at give AI'en specifikke instruktioner (f.eks. "Læg vægt på min ledelseserfaring" eller "Skriv på tysk, selvom opslaget er engelsk").
 * **Live Design:** Når du retter i dit design-layout (HTML/CSS), opdateres alle dine åbne dokument-previews øjeblikkeligt.
 
 ## 🛠️ Teknologier
