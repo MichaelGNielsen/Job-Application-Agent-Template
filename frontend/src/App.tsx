@@ -20,15 +20,29 @@ type ViewMode = 'html' | 'markdown' | 'meta';
 
 const App: React.FC = () => {
   const [version, setVersion] = useState('v3.6.8');
-  const [instanceName, setInstanceName] = useState('');
   const [jobText, setJobText] = useState('');
   const [companyUrl, setCompanyUrl] = useState('');
   const [hint, setHint] = useState('');
-  
+
+  // Hjælpefunktioner til dynamisk identitet
+  const extractName = (md: string) => {
+    const match = md.match(/(?:\*\*|\*|#|-)?\s*(?:Navn|Name)[:\s]+(.*?)(?:\n|$)/i);
+    return match ? match[1].replace(/^[\s\*\-#]+|[\s\*\-#]+$/g, '').trim() : "";
+  };
+
+  const getInitials = (name: string) => {
+    if (!name) return "AGENT";
+    const parts = name.split(/\s+/).filter(p => p.length > 0);
+    if (parts.length === 1) return parts[0].substring(0, 3).toUpperCase();
+    return parts.map(p => p[0]).join('').toUpperCase().substring(0, 4);
+  };
+
   // Kartotek States
   const [activeTab, setActiveTab] = useState<'brutto' | 'ai' | 'layout'>('brutto');
   const [bruttoCv, setBruttoCv] = useState('');
   const [originalBruttoCv, setOriginalBruttoCv] = useState('');
+
+  const currentInitials = getInitials(extractName(bruttoCv));
   
   const [templates, setTemplates] = useState<{[key: string]: string}>({});
   const [originalTemplates, setOriginalTemplates] = useState<{[key: string]: string}>({});
@@ -84,9 +98,6 @@ const App: React.FC = () => {
       
       const verRes = await fetch('/api/version').then(r => r.json());
       setVersion(verRes.version);
-      // Vask IDENTITY_ og eventuelle # eller whitespace væk
-      const cleanName = verRes.instance?.replace(/^#\s*/, '').replace(/IDENTITY_/i, '').trim() || 'MGN';
-      setInstanceName(cleanName);
     } catch (e) { console.error("Fejl ved hentning af konfig:", e); }
   };
 
@@ -275,39 +286,57 @@ const App: React.FC = () => {
   const getLayoutPreview = (html: string, fileName: string) => {
     if (!html) return "";
     
+    // Dynamisk parsing af bruttoCv for at undgå hardkodede data i templaten
+    const clean = (val: string) => val ? val.replace(/^[\s\*\-#]+|[\s\*\-#]+$/g, '').trim() : "";
+    const nameMatch = bruttoCv.match(/(?:\*\*|\*|#|-)?\s*(?:Navn|Name)[:\s]+(.*?)(?:\n|$)/i);
+    const addrMatch = bruttoCv.match(/(?:\*\*|\*|#|-)?\s*(?:Adresse|Address)[:\s]+(.*?)(?:\n|$)/i);
+    const emailMatch = bruttoCv.match(/(?:\*\*|\*|#|-)?\s*(?:Email|E-mail)[:\s]+(.*?)(?:\n|$)/i);
+    const phoneMatch = bruttoCv.match(/(?:\*\*|\*|#|-)?\s*(?:Telefon|Phone|Mobil|Mobile)[:\s]+(.*?)(?:\n|$)/i);
+
+    const name = nameMatch ? clean(nameMatch[1]) : "Kandidat Navn";
+    const address = addrMatch ? clean(addrMatch[1]) : "Adressevej 1, 0000 By";
+    const email = emailMatch ? clean(emailMatch[1]) : "email@eksempel.dk";
+    const phone = phoneMatch ? clean(phoneMatch[1]) : "+45 00000000";
+
+    const firstName = name.split(' ')[0];
+    
     let dummyContent = "";
     if (fileName.includes('cv')) {
         dummyContent = `
             <h2>Profil</h2>
-            <p>Erfaren Fullstack udvikler med fokus på AI-integrationer og robuste arkitekturer.</p>
+            <p>Erfaren reporter og undersøgende journalist med fokus på AI-integration og globale efterforskninger.</p>
             <h2>Erhvervserfaring</h2>
-            <p><strong>Senior Software Engineer | Tech Solutions (2020 - Nu)</strong></p>
+            <p><strong>Senior Undersøgende Journalist | Le Petit Vingtième (1929 - nu)</strong></p>
             <ul>
-                <li>Udvikling af AI-agenter til automatisering af workflow.</li>
-                <li>Migrering af legacy systemer til moderne Docker-baserede miljøer.</li>
+                <li>Afdækket omfattende internationale komplotter og kriminelle netværk.</li>
+                <li>Gennemført ekspeditioner til fjerntliggende egne, herunder månen.</li>
             </ul>
             <h2>Uddannelse</h2>
-            <p><strong>Cand.Scient. Datalogi | Aalborg Universitet</strong></p>
+            <p><strong>Autodidakt ekspert | Journalistik, Kryptografi og Rumfart</strong></p>
         `;
     } else {
         dummyContent = `
             <div class="recipient">
                 <p>Virksomhed A/S<br/>Att: HR-afdelingen<br/>Softwarevej 1, 8000 Aarhus</p>
             </div>
-            <div class="subject">Ansøgning om stilling som Senior Software Developer</div>
+            <div class="subject">Ansøgning om stilling som Senior Investigator</div>
             <p>Jeg skriver for at udtrykke min store interesse for den opslåede stilling...</p>
-            <p>Med min baggrund inden for AI-udvikling og systemarkitektur, er jeg overbevist om, at jeg kan bidrage positivt til jeres team.</p>
+            <p>Med min baggrund inden for efterforskning og AI-drevet journalistik, er jeg overbevist om, at jeg kan bidrage positivt til jeres team.</p>
             <p>Jeg ser frem til muligheden for at uddybe mine kompetencer ved en personlig samtale.</p>
-            <p>Med venlig hilsen,<br/>Michael</p>
+            <p>Med venlig hilsen,<br/>${firstName}</p>
         `;
     }
 
+    const addrHtml = address.includes(',') 
+        ? `<p>${address.split(',')[0].trim()}</p><p>${address.split(',')[1].trim()}</p>`
+        : `<p>${address}</p>`;
+
     return html
         .replace(/{{DOC_TITLE}}/g, "PREVIEW - " + (fileName.includes('cv') ? 'CV' : 'Ansøgning'))
-        .replace(/{{BRUGER_NAVN}}|{{NAME}}/g, "Michael Guldbæk Nielsen")
-        .replace(/{{BRUGER_ADRESSE_BLOK}}|{{ADDRESS_BLOCK}}/g, "<p>Niels Lykkes Gade 30</p><p>9400 Nørresundby</p>")
-        .replace(/{{BRUGER_TLF}}|{{PHONE}}/g, "+45 20771641")
-        .replace(/{{BRUGER_EMAIL}}|{{EMAIL}}/g, "mgn@mgnielsen.dk")
+        .replace(/{{BRUGER_NAVN}}|{{NAME}}/g, name)
+        .replace(/{{BRUGER_ADRESSE_BLOK}}|{{ADDRESS_BLOCK}}/g, addrHtml)
+        .replace(/{{BRUGER_TLF}}|{{PHONE}}/g, phone)
+        .replace(/{{BRUGER_EMAIL}}|{{EMAIL}}/g, email)
         .replace(/{{FIRMA_ADRESSE}}|{{ADDRESS}}/g, "Virksomhedsvej 123, 8000 Aarhus C")
         .replace(/{{CONTENT}}/g, dummyContent)
         .replace(/{{SIGNATURE_SECTION}}/g, "");
@@ -319,7 +348,7 @@ const App: React.FC = () => {
         <header className="mb-16 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="space-y-2 text-center md:text-left">
             <h1 className="text-4xl font-extrabold tracking-tighter text-white">
-              Job Application Agent <span className="text-cyan-500">{instanceName}</span>
+              Job Application Agent <span className="text-cyan-500">{currentInitials}</span>
             </h1>
             <p className="text-gray-400 font-mono text-sm tracking-widest">{version} | AUTOMATION ENGINE</p>
           </div>
