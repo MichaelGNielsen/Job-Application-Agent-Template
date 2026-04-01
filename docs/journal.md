@@ -2,6 +2,16 @@
 
 Dette dokument fungerer som projektets tekniske hukommelse og strategiske roadmap. Det opdateres før hver udrulning fra MGN til Template.
 
+## 🏁 Status 1. April 2026 - Gemini 2.5 Upgrade & Green CI (v4.8.1) 🧠✅✨
+
+Synkroniseret med MGN-versionen. Opgraderet AI-model og rettet alle tests.
+
+### 🛠️ Tekniske Milepæle (v4.8.0 -> v4.8.1)
+- **Model Upgrade:** Skiftet til `gemini-2.5-flash` for bedre ydeevne.
+- **Test sync:** Opdateret alle unit-tests til den nye modulære arkitektur.
+
+---
+
 ## 🏁 Status 1. April 2026 - Stable Layout & Front Matter Final (v4.7.3) 🏗️🧠⚛️✨
 
 Synkroniseret med MGN-versionen. Fuld arkitektonisk og visuel opgradering.

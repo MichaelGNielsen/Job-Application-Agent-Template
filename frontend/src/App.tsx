@@ -55,7 +55,7 @@ function App() {
   const [templates, setTemplates] = useState<Record<string, string>>({});
   const [originalTemplates, setOriginalTemplates] = useState<Record<string, string>>({});
   const [version, setVersion] = useState('');
-  const [aiBrain, setAiBrain] = useState('Gemini 2.0 Flash');
+  const [aiBrain, setAiBrain] = useState('Gemini 2.5 Flash');
   
   const [activeTab, setActiveTab] = useState<'generate' | 'brutto' | 'ai' | 'layout'>('generate');
   const [selectedLayout, setSelectedLayout] = useState('master_layout.html');
