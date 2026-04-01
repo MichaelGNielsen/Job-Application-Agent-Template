@@ -1,357 +1,207 @@
 /**
- * Job Application Agent Template
- * 
- * Designer: MGN (mgn@mgnielsen.dk)
- * Copyright (c) 2026 MGN. All rights reserved.
- * 
- * BEMÆRK: Denne kode anvender AI til generering og behandling.
- * Brugeren skal selv verificere, at resultatet er som forventet.
- * Softwaren leveres "som den er", uden nogen form for garanti.
- * Brug af softwaren sker på eget ansvar.
+ * Job Application Agent MGN - Worker (v4.8.0)
+ * Håndterer AI-behandling med JSON-arkitektur og Atomic Content Management.
+ * Nu fuldt modulær med Dependency Injection af logger.
  */
-
 const { Worker } = require('bullmq');
-const IORedis = require('ioredis');
-const { exec } = require('child_process');
-const { promisify } = require('util');
-const fs = require('fs');
 const path = require('path');
+const fs = require('fs');
 const dotenv = require('dotenv');
 const { io } = require('socket.io-client');
-const { mdToHtml, wrap, wrapAll, fetchCompanyContent, logger, printToPdf, callLocalGemini, parseCandidateInfo, extractSection } = require('./utils');
 
-const execPromise = promisify(exec);
+// Import services
+const logger = require('./logger');
+const { callLocalGemini } = require('./ai_service');
+const { mdToHtml, printToPdf } = require('./pdf_service');
+const { parseCandidateInfo, extractSection, wrap } = require('./document_service');
+const { fetchCompanyContent } = require('./company_service');
+
 const rootDir = '/app/shared';
-// Indlæs .env filen
 dotenv.config({ path: path.join(rootDir, '.env') });
 
-// Tving API nøgle til at være tilgængelig for gemini-cli
 if (process.env.GEMINI_API_KEY) {
     process.env.GOOGLE_API_KEY = process.env.GEMINI_API_KEY;
 }
 
-const redisConnection = new IORedis({
-  host: process.env.REDIS_HOST || 'redis',
-  port: 6379,
-  maxRetriesPerRequest: null
-});
-
+const redisConnection = { host: 'jaa-redis', port: 6379 };
 const socket = io('http://localhost:3002');
 
-const worker = new Worker('job_queue', async (job) => {
-  let { jobId, jobText, companyUrl: initialUrl, hint, type: jobType, folder: existingFolder, markdown: existingMarkdown } = job.data;
-  let companyUrl = initialUrl;
-  let foundCompanyAddress = "";
+const worker = new Worker('generate_application', async (job) => {
+  const { jobId, jobText: jobTextRaw, companyUrl: companyUrlRaw, hint, existingMarkdown, folder: existingFolder, type: jobType } = job.data;
+  logger.info("Worker", "--- STARTER NYT JOB ---", { jobId, jobType });
   
   const updateStatus = (status, data = {}) => {
-    socket.emit('job_status_update', { jobId, status, ...data });
     logger.info("Worker", `Status: ${status}`, { jobId });
+    socket.emit('job_status_update', { jobId, status, ...data });
   };
 
   try {
-    logger.info("Worker", "--- STARTER NYT JOB ---", { jobId, jobType });
-    // Indlæs Brutto-CV og ICAN+ definition
-    let bruttoCv = "";
-    const bruttoPath = path.join(rootDir, 'data', 'brutto_cv.md');
-    logger.assert(fs.existsSync(bruttoPath), "Worker", "Brutto-CV mangler!", { bruttoPath });
-    if (fs.existsSync(bruttoPath)) bruttoCv = fs.readFileSync(bruttoPath, 'utf8');
-
-    const candidate = parseCandidateInfo(bruttoCv);
-
-    let icanDef = "";
-    const icanDefPath = path.join(rootDir, 'resources', 'ICAN+_DEF.md');
-    logger.assert(fs.existsSync(icanDefPath), "Worker", "ICAN+ definition mangler!", { icanDefPath });
-    if (fs.existsSync(icanDefPath)) icanDef = fs.readFileSync(icanDefPath, 'utf8');
-
-    let folderName, folderPath, companyName, jobTitleRaw, jobTitleSafe, companyContext = "";
+    let jobText = jobTextRaw || "";
+    let companyUrl = companyUrlRaw || "";
+    let lang = 'da';
+    let companyName = "Firma";
+    let jobTitleRaw = "Stilling";
+    let foundCompanyAddress = "";
+    let companyContext = "";
     let docsPart = "";
+    let folderName = "";
+    let folderPath = "";
 
-    let lang = 'da'; // Standard ISO
+    const bruttoPath = path.join(rootDir, 'data', 'brutto_cv.md');
+    const icanPath = path.join(rootDir, 'resources', 'ICAN+_DEF.md');
+    const bruttoCv = fs.existsSync(bruttoPath) ? fs.readFileSync(bruttoPath, 'utf8') : "";
+    const icanDef = fs.existsSync(icanPath) ? fs.readFileSync(icanPath, 'utf8') : "";
+    const candidate = parseCandidateInfo(bruttoCv, logger);
+
+    const aiInstructionsPath = path.join(rootDir, 'templates', 'ai_instructions.md');
+    const cvLayoutPath = path.join(rootDir, 'templates', 'cv_layout.md');
+    const aiInstructions = fs.readFileSync(aiInstructionsPath, 'utf8');
+    const cvLayout = fs.readFileSync(cvLayoutPath, 'utf8');
 
     if (jobType === 'refine_with_ai') {
-        updateStatus('Forfiner dokumenter med AI...');
+        updateStatus('Forfiner dokumenter med AI (JSON mode)...');
         folderName = existingFolder;
         folderPath = path.join(rootDir, 'output', folderName);
+        if (fs.existsSync(path.join(folderPath, 'job.md'))) jobText = fs.readFileSync(path.join(folderPath, 'job.md'), 'utf8');
         
-        // Indlæs eksisterende data for at bevare dem i session.md
-        if (fs.existsSync(path.join(folderPath, 'job.md'))) {
-            jobText = fs.readFileSync(path.join(folderPath, 'job.md'), 'utf8');
-        }
-        
-        // Prøv at finde URL og SPROG i eksisterende session.md hvis muligt
-        if (fs.existsSync(path.join(folderPath, 'session.md'))) {
-            const oldSession = fs.readFileSync(path.join(folderPath, 'session.md'), 'utf8');
-            const urlMatch = oldSession.match(/## FIRMA URL\n(.*?)\n/);
-            if (urlMatch && !companyUrl) companyUrl = urlMatch[1].trim();
-            
-            const langMatch = oldSession.match(/## SPROG\n(.*?)\n/);
-            if (langMatch) lang = langMatch[1].trim();
-            else lang = existingMarkdown.toLowerCase().includes('dear') || existingMarkdown.toLowerCase().includes('sincerely') ? 'en' : 'da';
-        } else {
-            lang = existingMarkdown.toLowerCase().includes('dear') || existingMarkdown.toLowerCase().includes('sincerely') ? 'en' : 'da';
-        }
-
+        lang = existingMarkdown.toLowerCase().includes('dear') || existingMarkdown.toLowerCase().includes('sincerely') ? 'en' : 'da';
         companyName = folderName.split('_')[2] || 'firma';
-        jobTitleSafe = folderName.split('_').slice(3).join('_') || 'stilling';
-        jobTitleRaw = jobTitleSafe.replace(/_/g, ' ');
+        jobTitleRaw = (folderName.split('_').slice(3).join(' ') || 'stilling').replace(/_/g, ' ');
+
+        const refinePrompt = `Du er en præcis redaktør. Opdater ansøgningsmaterialet.
         
-        const refinePrompt = `Du er en præcis redaktør. Her er de nuværende dokumenter for ansøgeren, deres oprindelige BRUTTO_CV (kilde til sandhed) og en ny instruks fra brugeren.
+        VIGTIGT: Svar KUN med et validt JSON-objekt. Returner det FULDE indhold for hver sektion.
         
-        VIGTIGT: Dokumenterne skal skrives på ${lang === 'en' ? 'ENGELSK' : 'DANSK'}.
+        JSON FORMAT:
+        {
+          "logbog": "Dansk beskrivelse",
+          "metadata": "Layout metadata streng",
+          "ansøgning": "Fuld tekst",
+          "cv": "Fuld tekst",
+          "ican": "Fuld tekst",
+          "match": "Fuld tekst med [SCORE]"
+        }
         
-        REGLER FOR OPDATERING:
-        1. Opdater din logbog i ---REDAKTØRENS_LOGBOG--- på DANSK. Vær detaljeret omkring hvad du har ændret.
-        2. Bevar ---LAYOUT_METADATA--- og opdater dem hvis instruksen kræver det (f.eks. nyt sprog).
-        3. Lav KUN ændringer der er direkte forespurgt i instruksen.
-        4. Bevar ordlyd, struktur og indhold i alle andre sektioner 100% uændret, medmindre brugeren har bedt om andet.
-        5. VIGTIGT: Ansøgeren har IKKE fået jobbet endnu. Den ansøgte stilling ("${jobTitleRaw}") må ALDRIG stå som arbejdserfaring i CV'et.
-        6. Brug altid BRUTTO_CV som din ultimative kilde til erfaring og personlig info.
-        7. Returner ALLE sektioner med de korrekte mærkater.
-        
-        INSTRUKSER: "${hint}"
-        
-        KILDE (BRUTTO_CV):
-        """${bruttoCv}"""
+        SPROG: ${lang === 'en' ? 'ENGELSK' : 'DANSK'}.
+        INSTRUKS: "${hint}"
+        KILDE (BRUTTO_CV): """${bruttoCv}"""
+        CV STRUKTUR SKAL FØLGE: """${cvLayout}"""
         
         NUVÆRENDE DOKUMENTER (SKAL OPDATERES):
-        ${existingMarkdown}
+        ${existingMarkdown}`;
         
-        Returner dokumenterne med mærkater: ---REDAKTØRENS_LOGBOG---, ---LAYOUT_METADATA---, ---ANSØGNING---, ---CV---, ---ICAN--- og ---MATCH---. Sørg for at MATCH altid har linjen: [SCORE] XX% [/SCORE].`;
-        
-        docsPart = await callLocalGemini(refinePrompt, jobId);
+        docsPart = await callLocalGemini(refinePrompt, jobId, logger);
     } else {
         updateStatus('Analyserer jobopslag...');
-        // Kig på en bid af teksten lidt længere nede for at undgå at blive narret af kontaktinfo i toppen
         const sampleText = jobText.length > 500 ? jobText.substring(200, 1200) : jobText;
-        const langPrompt = `Hvilket sprog er dette jobopslag primært skrevet på? Svar KUN med ISO-kode på to bogstaver (f.eks. 'da', 'en'): """${sampleText}"""`;
-        lang = (await callLocalGemini(langPrompt, jobId)).trim().toLowerCase().substring(0, 2);
-        if (!/^[a-z]{2}$/.test(lang)) lang = 'da';
-        if (lang === 'dk') lang = 'da';
-        logger.info("Worker", `Detekteret sprog: ${lang}`);
+        const langPrompt = `Sprog? Svar 'da' eller 'en': """${sampleText}"""`;
+        lang = (await callLocalGemini(langPrompt, jobId, logger)).trim().toLowerCase().substring(0, 2);
+        if (lang !== 'en') lang = 'da';
 
-        // --- AUTONOM RESEARCH FASE ---
-        updateStatus('Laver autonom research på firmaet...');
-        
-        // Find firmanavn, jobtitel og LOKATION
-        const infoPrompt = `Udtræk firmanavn, jobtitel og arbejdssted (by) fra dette opslag: """${jobText.substring(0, 1500)}"""
-        Svar KUN med JSON: {"company": "Navn", "title": "Job", "location": "By"}`;
-        const infoRaw = await callLocalGemini(infoPrompt, jobId);
-        
-        // Robust JSON parsing (v4.2.4)
-        const safeParseJson = (raw, fallback) => {
-            try {
-                const start = raw.indexOf('{');
-                const end = raw.lastIndexOf('}');
-                if (start !== -1 && end !== -1 && end >= start) {
-                    const clean = raw.substring(start, end + 1).trim();
-                    return JSON.parse(clean);
-                }
-            } catch (e) {
-                logger.warn("Worker", "Kunne ikke parse JSON fra AI", { error: e.message, raw: raw.substring(0, 200) });
-            }
-            return fallback;
-        };
+        updateStatus('Research & Analyse...');
+        const infoPrompt = `Udtræk {"company": "Navn", "title": "Job"} fra: """${jobText.substring(0, 1500)}"""`;
+        const infoRaw = await callLocalGemini(infoPrompt, jobId, logger);
+        const info = JSON.parse(infoRaw.match(/\{[\s\S]*\}/)[0]);
+        companyName = info.company; jobTitleRaw = info.title;
 
-        const info = safeParseJson(infoRaw, { company: "firma", title: "stilling", location: "" });
-        companyName = info.company;
-        jobTitleRaw = info.title;
-        const jobLocation = info.location;
-
-        // Hvis URL mangler, bed Gemini foreslå en adresse og URL (målrettet lokationen)
-        if (!companyUrl) {
-            const researchPrompt = `Du skal finde den officielle hjemmeside for virksomheden "${companyName}". 
-            Find derefter den FULDE fysiske postadresse (Vejnavn, Husnummer, Postnummer og By) for deres afdeling i "${jobLocation || 'Danmark'}". 
-            Hvis jobopslaget nævner et specifikt sted som "NOVI", "Forskningsparken" eller lignende, skal du finde den nøjagtige adresse på den pågældende lokation.
-            VIGTIGT: Du må ALDRIG kun svare med et bynavn. Jeg skal bruge den fulde adresse til et professionelt brevhoved.
-            Svar KUN med JSON: {"url": "https://...", "address": "Vejnavn Nummer, Postnr By"}`;
-            
-            const researchRaw = await callLocalGemini(researchPrompt, jobId);
-            const research = safeParseJson(researchRaw, { url: "", address: "" });
-            if (research.url && research.url.startsWith('http')) companyUrl = research.url;
-            if (research.address) {
-                foundCompanyAddress = research.address;
-                companyContext += `RELEVANT ADRESSE FUNDET: ${foundCompanyAddress}\n`;
-                logger.info("Worker", "Firma adresse fundet", { address: foundCompanyAddress });
-            }
-        }
-
-        // Scrape indhold fra hjemmesiden
-        if (companyUrl && companyUrl.startsWith('http')) {
-            const webContent = await fetchCompanyContent(companyUrl);
-            if (webContent) companyContext += `\nBAGGRUNDSVIDEN FRA HJEMMESIDE:\n${webContent}`;
-        }
+        if (companyUrl && companyUrl.startsWith('http')) companyContext = await fetchCompanyContent(companyUrl, logger);
 
         const now = new Date();
-        const timestamp = now.getFullYear() + '-' + 
-                          String(now.getMonth() + 1).padStart(2, '0') + '-' + 
-                          String(now.getDate()).padStart(2, '0') + '-' + 
-                          String(now.getHours()).padStart(2, '0') + '-' + 
-                          String(now.getMinutes()).padStart(2, '0') + '-' + 
-                          String(now.getSeconds()).padStart(2, '0');
-
-        const companySafe = companyName.toLowerCase().split('.')[0].replace(/[^a-z0-9]/g, '');
-        jobTitleSafe = jobTitleRaw.substring(0, 30).replace(/[^a-zæøå0-9]/gi, '_');
-
-        folderName = `${timestamp}_${companySafe}_${jobTitleSafe}`;
-        const outputDir = path.join(rootDir, 'output');
-        if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
-
-        folderPath = path.join(outputDir, folderName);
-        if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath, { recursive: true });
-
+        const timestamp = now.toISOString().replace(/T/, '-').replace(/\..+/, '').replace(/:/g, '-');
+        folderName = `${timestamp}_${companyName.toLowerCase().replace(/[^a-z0-9]/g, '')}_${jobTitleRaw.substring(0, 20).replace(/[^a-z0-9]/gi, '_')}`;
+        folderPath = path.join(rootDir, 'output', folderName);
+        fs.mkdirSync(folderPath, { recursive: true });
         fs.writeFileSync(path.join(folderPath, 'job.md'), jobText);
-        if (companyContext) fs.writeFileSync(path.join(folderPath, 'research.md'), companyContext);
 
-        updateStatus('Genererer udkast med firma-kontekst...');
-        const aiInstructionsPath = path.join(rootDir, 'templates', 'ai_instructions.md');
-        const masterLayoutPath = path.join(rootDir, 'templates', 'master_layout.md');
-        const cvLayoutPath = path.join(rootDir, 'templates', 'cv_layout.md');
-        
-        let aiInstructions = fs.readFileSync(aiInstructionsPath, 'utf8');
-        let masterLayout = fs.readFileSync(masterLayoutPath, 'utf8');
-        let cvLayout = fs.readFileSync(cvLayoutPath, 'utf8');
-        
+        updateStatus('Genererer fuld pakke...');
         const generatePrompt = `
 ${aiInstructions}
 
-### MÅLSPROG FOR ANSØGNING OG CV
-Det detekterede sprog for jobopslaget er: **${lang === 'en' ? 'ENGELSK (English)' : 'DANSK (Danish)'}**.
-Du SKAL skrive ---ANSØGNING--- og ---CV--- på dette sprog.
-Du SKAL skrive ---REDAKTØRENS_LOGBOG---, ---ICAN--- og ---MATCH--- på DANSK.
+VIGTIGT: Svar KUN med JSON objekt.
 
-### DIN STRUKTUR-SKABELON (MASTER LAYOUT)
-Du SKAL udfylde denne skabelon med dit genererede indhold. Bevar alle mærkater (tags) præcis som de står:
+### STRUKTUR REGLER:
+- CV SKAL følge denne struktur: """${cvLayout}"""
+- Dokumenter skal pakkes i dette JSON format:
+{
+  "logbog": "Beskrivelse",
+  "metadata": "Layout metadata",
+  "ansøgning": "Fuld tekst",
+  "cv": "Fuld tekst",
+  "ican": "Fuld tekst",
+  "match": "Fuld tekst med [SCORE]"
+}
 
-${masterLayout}
-
-### CV STRUKTUR (CV_LAYOUT)
-Når du genererer sektionen ---CV---, SKAL du følge denne struktur:
-
-${cvLayout}
-
-### DATA TIL UDFYLDELSE:
+DATA:
 - BRUTTO_CV: """${bruttoCv}"""
-- JOB_TEXT: """${jobText}"""
-- COMPANY_CONTEXT: """${companyContext || "Ingen yderligere firma-info fundet."}"""
-- HINT: """${hint || "Ingen specielle hints."}"""
-- MIT_NAVN: "${process.env.MIT_NAVN || candidate.name || "Michael Guldbæk Nielsen"}"
-- ICAN_DEF: """${icanDef}"""
+- JOB: """${jobText}"""
+- FIRMA_INFO: """${companyContext}"""
+- MIT_NAVN: "${process.env.MIT_NAVN || candidate.name}"
 `;
-
-        docsPart = await callLocalGemini(generatePrompt, jobId);
+        docsPart = await callLocalGemini(generatePrompt, jobId, logger);
     }
     
-    logger.info("Worker", "Rå AI-output modtaget", { length: docsPart.length });
-    
-    let aiNotes = extractSection(docsPart, 'REDAKTØRENS_LOGBOG') || "AI'en har optimeret dokumenterne baseret på din profil og jobopslaget.";
+    // --- PARSING & CLEANUP ---
+    let aiData;
+    try {
+        const jsonMatch = docsPart.match(/\{[\s\S]*\}/);
+        aiData = JSON.parse(jsonMatch[0]);
+    } catch (e) {
+        logger.error("Worker", "Fallback til tags", { error: e.message });
+        aiData = {
+            logbog: extractSection(docsPart, 'REDAKTØRENS_LOGBOG'),
+            metadata: extractSection(docsPart, 'LAYOUT_METADATA'),
+            ansøgning: extractSection(docsPart, 'ANSØGNING'),
+            cv: extractSection(docsPart, 'CV'),
+            ican: extractSection(docsPart, 'ICAN'),
+            match: extractSection(docsPart, 'MATCH')
+        };
+    }
 
-    const metadataRaw = extractSection(docsPart, 'LAYOUT_METADATA');
-    
-    const layoutMeta = {
-        signOff: metadataRaw.match(/^Sign-off:\s*(.*?)(?=\s*(?:Location:|Date-Prefix:|Address:|Sender-Name:|Sender-Address:|Sender-Phone:|Sender-Email:|Folder-Name:)|$)/im)?.[1]?.trim() || (lang === 'en' ? "Sincerely," : "Med venlig hilsen,"),
-        location: metadataRaw.match(/^Location:\s*(.*?)(?=\s*(?:Sign-off:|Date-Prefix:|Address:|Sender-Name:|Sender-Address:|Sender-Phone:|Sender-Email:|Folder-Name:)|$)/im)?.[1]?.trim() || "",
-        datePrefix: metadataRaw.match(/^Date-Prefix:\s*(.*?)(?=\s*(?:Sign-off:|Location:|Address:|Sender-Name:|Sender-Address:|Sender-Phone:|Sender-Email:|Folder-Name:)|$)/im)?.[1]?.trim() || (lang === 'da' ? "den" : ""),
-        address: metadataRaw.match(/^Address:\s*(.*?)(?=\s*(?:Sign-off:|Location:|Date-Prefix:|Sender-Name:|Sender-Address:|Sender-Phone:|Sender-Email:|Folder-Name:)|$)/im)?.[1]?.trim() || "",
-        senderName: metadataRaw.match(/^Sender-Name:\s*(.*?)(?=\s*(?:Sign-off:|Location:|Date-Prefix:|Address:|Sender-Address:|Sender-Phone:|Sender-Email:|Folder-Name:)|$)/im)?.[1]?.trim() || "",
-        senderAddress: metadataRaw.match(/^Sender-Address:\s*(.*?)(?=\s*(?:Sign-off:|Location:|Date-Prefix:|Address:|Sender-Name:|Sender-Phone:|Sender-Email:|Folder-Name:)|$)/im)?.[1]?.trim() || "",
-        senderPhone: metadataRaw.match(/^Sender-Phone:\s*(.*?)(?=\s*(?:Sign-off:|Location:|Date-Prefix:|Address:|Sender-Name:|Sender-Address:|Sender-Email:|Folder-Name:)|$)/im)?.[1]?.trim() || "",
-        senderEmail: metadataRaw.match(/^Sender-Email:\s*(.*?)(?=\s*(?:Sign-off:|Location:|Date-Prefix:|Address:|Sender-Name:|Sender-Address:|Sender-Phone:|Folder-Name:)|$)/im)?.[1]?.trim() || "",
-        folderName: metadataRaw.match(/^Folder-Name:\s*(.*?)(?=\s*(?:Sign-off:|Location:|Date-Prefix:|Address:|Sender-Name:|Sender-Address:|Sender-Phone:|Sender-Email:)|$)/im)?.[1]?.trim() || ""
+    const cleanBody = (text) => text ? text.replace(/<!--[\s\S]*?-->/g, '').trim() : "";
+
+    const results = { 
+        bodies: {
+            ansøgning: cleanBody(aiData.ansøgning),
+            cv: cleanBody(aiData.cv),
+            match: cleanBody(aiData.match),
+            ican: cleanBody(aiData.ican)
+        },
+        metadata: (aiData.metadata || "").trim(),
+        html: {}, links: {}, aiNotes: aiData.logbog || "" 
     };
 
+    const layoutMeta = {
+        signOff: results.metadata.match(/^Sign-off:\s*(.*)$/im)?.[1]?.trim() || (lang === 'en' ? "Sincerely," : "Med venlig hilsen,"),
+        senderName: candidate.name, senderAddress: candidate.address, senderPhone: candidate.phone, senderEmail: candidate.email
+    };
 
-    // Tilføj research-info til AI noter hvis det blev fundet (v3.1.2)
-    if (companyUrl || foundCompanyAddress) {
-        let researchInfo = "\n\n--- RESEARCH RESULTAT (FIRMA) ---\n";
-        if (companyUrl && companyUrl.startsWith('http')) researchInfo += `Hjemmeside: ${companyUrl}\n`;
-        if (foundCompanyAddress) researchInfo += `Fundet firma adresse: ${foundCompanyAddress}\n`;
-        aiNotes += researchInfo;
-    }
-
-    // OPRET SESSION.MD FIL (v3.1.1)
-    try {
-        const sessionContent = `
-# SESSION DATA
-
-## FIRMA URL
-${companyUrl || 'Ingen URL angivet'}
-
-## PERSONLIGT HINT
-${hint || 'Intet hint angivet'}
-
----
-
-## AI RÆSONNEMENT (REDAKTØRENS NOTER)
-${aiNotes}
-
----
-
-## JOBBESKRIVELSE
-${jobText}
-`;
-        fs.writeFileSync(path.join(folderPath, 'session.md'), sessionContent.trim());
-        logger.info("Worker", "session.md oprettet", { folderName });
-    } catch (e) {
-        logger.error("Worker", "Kunne ikke oprette session.md", { error: e.message });
-    }
-
-    let ansMd = "", cvMd = "", icanMd = "", matchMd = "";
-    if (docsPart) {
-        ansMd = extractSection(docsPart, '---ANSØGNING---');
-        cvMd = extractSection(docsPart, '---CV---');
-        icanMd = extractSection(docsPart, '---ICAN---');
-        matchMd = extractSection(docsPart, '---MATCH---');
-    }
-
-    // Omdøb mappen hvis AI'en foreslog et bedre navn
-    if (layoutMeta.folderName && jobType !== 'refine_with_ai') {
-        const parts = folderName.split('_');
-        const timestampPart = parts[0];
-        const newFolderName = `${timestampPart}_${layoutMeta.folderName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}`;
-        const newFolderPath = path.join(rootDir, 'output', newFolderName);
-        
-        if (newFolderName !== folderName) {
-            try {
-                if (!fs.existsSync(newFolderPath)) {
-                    fs.renameSync(folderPath, newFolderPath);
-                    logger.info("Worker", "Mappe omdøbt", { old: folderName, new: newFolderName });
-                    folderName = newFolderName;
-                    folderPath = newFolderPath;
-                }
-            } catch (e) { 
-                logger.error("Worker", "Omdøbning fejlede", { error: e.message }); 
-            }
-        }
-    }
-
-    const results = { markdown: {}, html: {}, links: {}, aiNotes: aiNotes };
+    const candidateName = candidate.name.replace(/\s+/g, '_');
     const fileBaseId = folderName.includes('_') ? folderName.split('_').slice(1).join('_') : folderName;
-    const candidateName = candidate.name.replace(/\s+/g, '_') || 'Bruger';
-
     const sections = [
-        { id: 'ansøgning', md: ansMd, title: 'Ansøgning' },
-        { id: 'cv', md: cvMd, title: 'CV' },
-        { id: 'match', md: matchMd, title: 'Match_Analyse' },
-        { id: 'ican', md: icanMd, title: 'ICAN+_Pitch' }
+        { id: 'ansøgning', title: 'Ansøgning' },
+        { id: 'cv', title: 'CV' },
+        { id: 'match', title: 'Match_Analyse' },
+        { id: 'ican', title: 'ICAN+_Pitch' }
     ];
 
     for (const s of sections) {
-        if (!s.md) continue;
+        const body = results.bodies[s.id];
+        if (!body || body.length < 10) continue;
+        
         const fileName = `${s.title}_${candidateName}_${fileBaseId}`;
         const mdPath = path.join(folderPath, `${fileName}.md`);
         const htmlPath = path.join(folderPath, `${fileName}.html`);
-        const pdfPath = path.join(folderPath, `${fileName}.pdf`);
         
-        // Gem metadata øverst i Markdown-filen (v3.6.6)
-        const fullMarkdown = `---LAYOUT_METADATA---\n${metadataRaw}\n\n---${s.title.toUpperCase()}---\n${s.md}`;
-        fs.writeFileSync(mdPath, fullMarkdown);
+        // Gem MASTER MD med YAML Front Matter (v4.7.0)
+        const cleanMeta = results.metadata.replace(/^---+|---$/g, '').trim();
+        const fullMd = `---\n${cleanMeta}\n---\n${body}`;
+        fs.writeFileSync(mdPath, fullMd);
         
-        const htmlBody = await mdToHtml(s.md, mdPath, `${fileName}_body.html`);
-        const fullHtml = wrap(s.title.replace(/_/g, ' '), htmlBody, s.id, { company: companyName, position: jobTitleRaw }, candidate, lang, layoutMeta);
+        const htmlBody = await mdToHtml(body, mdPath, `${fileName}_body.html`, logger);
+        const fullHtml = wrap(s.title.replace(/_/g, ' '), htmlBody, s.id, { company: companyName, position: jobTitleRaw }, candidate, lang, layoutMeta, logger);
         fs.writeFileSync(htmlPath, fullHtml);
-        updateStatus(`Genererer PDF for ${s.title.replace(/_/g, ' ')}...`);
-        await printToPdf(htmlPath, pdfPath);
-        results.markdown[s.id] = fullMarkdown;
+        await printToPdf(htmlPath, path.join(folderPath, `${fileName}.pdf`), logger);
+        
         results.html[s.id] = fullHtml;
         results.links[s.id] = {
             md: `/api/applications/${folderName}/${fileName}.md`,
@@ -360,26 +210,9 @@ ${jobText}
         };
     }
 
-    try {
-        const newDir = path.join(rootDir, 'output', 'new');
-        if (!fs.existsSync(newDir)) fs.mkdirSync(newDir, { recursive: true });
-        for (const s of sections) {
-            if (!s.md) continue;
-            const fileName = `${s.title.replace(/\s+/g, '_')}_${candidateName}_${fileBaseId}.pdf`;
-            const srcPath = path.join(folderPath, fileName);
-            if (fs.existsSync(srcPath)) fs.copyFileSync(srcPath, path.join(newDir, fileName));
-        }
-    } catch (e) { 
-        logger.error("Worker", "Kunne ikke kopiere til new/ mappen", { error: e.message }); 
-    }
-
-    updateStatus('Færdig!', { folder: folderName, lang: jobType === 'refine_with_ai' ? 'refine' : 'initial', ...results });
-
+    updateStatus('Færdig!', { folder: folderName, ...results });
   } catch (error) {
-    logger.error("Worker", "KRITISK FEJL på job", { jobId }, error);
+    logger.error("Worker", "FEJL", { error: error.message });
     updateStatus('Fejl', { error: error.message });
   }
-}, { 
-  connection: redisConnection,
-  lockDuration: 300000 // 5 minutter
-});
+}, { connection: redisConnection });

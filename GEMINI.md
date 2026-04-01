@@ -96,4 +96,5 @@ For at sikre optimal kompatibilitet med VS Code (især "Markdown All in One" ext
 7. **Niveauer:** Spring aldrig overskriftsniveauer over (MD001).
 
 ---
-*Sidst opdateret: 31. marts 2026 (v4.3.6)*
+*Sidst opdateret: 1. april 2026 (v4.7.3)*
+

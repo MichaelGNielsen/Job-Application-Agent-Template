@@ -1,33 +1,23 @@
-<!--
-  Job Application Agent Template
-  Designer: MGN (mgn@mgnielsen.dk)
-  Copyright (c) 2026 MGN. All rights reserved.
-  BEMÆRK: Denne kode anvender AI til generering og behandling.
-  Brugeren skal selv verificere, at resultatet er som forventet.
-  Softwaren leveres "som den er", uden nogen form for garanti.
-  Brug af softwaren sker på eget ansvar.
--->
-
 # CV - {{MIT_NAVN}}
 
-## [Oversæt: Profil]
+## Profil
 (Skriv en stærk profiltekst i førsteperson ("Jeg er..."), der opsummerer ansøgerens vigtigste kompetencer i forhold til jobbet.)
 
-## [Oversæt: Erhvervserfaring]
+## Erhvervserfaring
 (Oplist relevant erhvervserfaring i omvendt kronologisk rækkefølge. Brug førsteperson til at beskrive opgaver og resultater.)
 
 ### [Jobtitel] | [Virksomhed] ([Årstal])
 - [Punkt 1]
 - [Punkt 2]
 
-## [Oversæt: Uddannelse]
+## Uddannelse
 (Oplist relevant uddannelse.)
 
-## [Oversæt: Kernekompetencer]
+## Kernekompetencer
 (Oplist de vigtigste tekniske og personlige kompetencer, der matcher jobopslaget.)
 
-## [Oversæt: Udvalgte Projekter]
+## Udvalgte Projekter
 (Inkluder de mest relevante AI- eller automationsprojekter fra Brutto-CV'et.)
 
-## [Oversæt: Sprog]
+## Sprog
 (Oplist sprogkundskaber.)

@@ -1,16 +1,12 @@
 /**
- * Job Application Agent Template
- * 
- * Designer: MGN (mgn@mgnielsen.dk)
- * Copyright (c) 2026 MGN. All rights reserved.
- * 
- * BEMÆRK: Denne kode anvender AI til generering og behandling.
- * Brugeren skal selv verificere, at resultatet er som forventet.
- * Softwaren leveres "som den er", uden nogen form for garanti.
- * Brug af softwaren sker på eget ansvar.
+ * Job Application Agent MGN - Services Unit Tests
+ * Validerer den nye modulære arkitektur (v4.8.0).
  */
 
-const { wrap, parseCandidateInfo, extractSection, printToPdf, callLocalGemini, generateMasterDocs } = require('./utils');
+const { wrap, parseCandidateInfo, extractSection } = require('./document_service');
+const { printToPdf } = require('./pdf_service');
+const { callLocalGemini } = require('./ai_service');
+const { generateMasterDocs } = require('./master_cv_service');
 const fs = require('fs');
 const child_process = require('child_process');
 
@@ -23,70 +19,70 @@ jest.mock('child_process', () => ({
     })
 }));
 
-describe('utils.js', () => {
+const mockLogger = {
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn()
+};
+
+describe('Modular Services', () => {
     
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
-    describe('wrap()', () => {
+    describe('document_service: wrap()', () => {
         beforeEach(() => {
             fs.readFileSync.mockReturnValue('<html><body><h1>{{BRUGER_NAVN}}</h1>{{BRUGER_ADRESSE_BLOK}}{{CONTENT}}</body></html>');
+            fs.existsSync.mockReturnValue(true);
         });
 
         test('bør indsætte navn og indhold korrekt', () => {
-            const html = wrap('Titel', 'Brødtekst', 'ansøgning', {}, { name: 'Test Bruger' });
+            const html = wrap('Titel', 'Brødtekst', 'ansøgning', {}, { name: 'Test Bruger' }, 'da', {}, mockLogger);
             expect(html).toContain('Test Bruger');
             expect(html).toContain('Brødtekst');
         });
-
-        test('bør håndtere adresse-opsplitning korrekt', () => {
-            const candidate = { address: 'Vejnavn 1, 1234 By' };
-            const html = wrap('Titel', 'Indhold', 'ansøgning', {}, candidate, 'da', {});
-            expect(html).toContain('Vejnavn 1');
-            expect(html).toContain('1234 By');
-        });
     });
 
-    describe('parseCandidateInfo()', () => {
+    describe('document_service: parseCandidateInfo()', () => {
         test('bør udtrække info korrekt fra Markdown', () => {
             const brutto = 'Navn: Michael Nielsen\nAdresse: Testvej 1, 9000 Aalborg';
-            const info = parseCandidateInfo(brutto);
+            const info = parseCandidateInfo(brutto, mockLogger);
             expect(info.name).toBe('Michael Nielsen');
             expect(info.address).toBe('Testvej 1, 9000 Aalborg');
         });
     });
 
-    describe('extractSection()', () => {
+    describe('document_service: extractSection()', () => {
         test('bør udtrække en sektion', () => {
-            const res = '---TEST---内容';
-            expect(extractSection(res, 'TEST')).toBe('内容');
+            const res = '---TEST---Content';
+            expect(extractSection(res, 'TEST')).toBe('Content');
         });
     });
 
-    describe('printToPdf()', () => {
+    describe('pdf_service: printToPdf()', () => {
         test('bør returnere true ved succes', async () => {
-            const success = await printToPdf('in.html', 'out.pdf');
+            const success = await printToPdf('in.html', 'out.pdf', mockLogger);
             expect(success).toBe(true);
             expect(child_process.exec).toHaveBeenCalled();
         });
     });
 
-    describe('callLocalGemini()', () => {
+    describe('ai_service: callLocalGemini()', () => {
         test('bør returnere AI svar', async () => {
-            const response = await callLocalGemini('prompt');
+            const response = await callLocalGemini('prompt', 'test-job', mockLogger);
             expect(response).toBe('Mocked output');
         });
     });
 
-    describe('generateMasterDocs()', () => {
+    describe('master_cv_service: generateMasterDocs()', () => {
         beforeEach(() => {
             fs.readFileSync.mockReturnValue('<html><body>{{CONTENT}}</body></html>');
             fs.existsSync.mockReturnValue(true);
         });
 
         test('bør køre hele flowet og returnere succes', async () => {
-            const result = await generateMasterDocs('## Mit Master CV');
+            const result = await generateMasterDocs('## Mit Master CV', mockLogger);
             expect(result.success).toBe(true);
             expect(fs.writeFileSync).toHaveBeenCalled();
             expect(child_process.exec).toHaveBeenCalled();

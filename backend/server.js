@@ -1,15 +1,8 @@
 /**
- * Job Application Agent Template
- * 
- * Designer: MGN (mgn@mgnielsen.dk)
- * Copyright (c) 2026 MGN. All rights reserved.
- * 
- * BEMÆRK: Denne kode anvender AI til generering og behandling.
- * Brugeren skal selv verificere, at resultatet er som forventet.
- * Softwaren leveres "som den er", uden nogen form for garanti.
- * Brug af softwaren sker på eget ansvar.
+ * Job Application Agent MGN - Server (v4.8.0)
+ * Stabiliseret API arkitektur med modulær service-struktur.
+ * Nu fuldt modulær med Dependency Injection af logger.
  */
-
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -19,20 +12,19 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const dotenv = require('dotenv');
-const { exec } = require('child_process');
-const { promisify } = require('util');
-const { mdToHtml, wrap, logger, printToPdf, callLocalGemini, parseCandidateInfo, extractSection, generateMasterDocs } = require('./utils');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
 
-const execPromise = promisify(exec);
+// Import services
+const logger = require('./logger');
+const { mdToHtml, printToPdf } = require('./pdf_service');
+const { parseCandidateInfo, parseFrontMatter, wrap } = require('./document_service');
+const { callLocalGemini } = require('./ai_service');
+const { generateMasterDocs } = require('./master_cv_service');
 
-// Konfigurer stier
 const rootDir = '/app/shared';
-// Indlæs .env filen
 dotenv.config({ path: path.join(rootDir, '.env') });
 
-// Tving API nøgle til at være tilgængelig for gemini-cli
 if (process.env.GEMINI_API_KEY) {
     process.env.GOOGLE_API_KEY = process.env.GEMINI_API_KEY;
 }
@@ -40,71 +32,41 @@ if (process.env.GEMINI_API_KEY) {
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
-
 const versionFilePath = path.join(rootDir, 'VERSION');
 
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json({ limit: '50mb' }));
 
-// Swagger konfiguration
 const swaggerOptions = {
     definition: {
         openapi: '3.0.0',
-        info: {
-            title: 'Job Application Agent API',
-            version: '4.3.0',
-            description: 'API til automatisering af jobansøgninger og CV-skræddersyning.',
-        },
+        info: { title: 'Job Application Agent API', version: '4.8.0' },
         servers: [{ url: 'http://localhost:3002' }],
     },
     apis: ['./server.js'], 
 };
-
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-/**
- * @openapi
- * /api/version:
- *   get:
- *     summary: Hent den aktuelle systemversion
- *     responses:
- *       200:
- *         description: Returnerer versionsnummeret.
- */
+// --- API VERSION ENDPOINT ---
 app.get('/api/version', (req, res) => {
     try {
-        let instanceName = "";
-        
-        // 1. Prioritet: Læs Master Identity direkte fra toppen af .env
+        let instanceName = "Default";
         const envPath = path.join(rootDir, '.env');
         if (fs.existsSync(envPath)) {
             const envContent = fs.readFileSync(envPath, 'utf8');
-            const lines = envContent.split('\n');
-            // Tjek de første 5 linjer for en identitet (for at være fleksibel)
-            for (let i = 0; i < Math.min(5, lines.length); i++) {
-                const identityMatch = lines[i].match(/#\s*(IDENTITY_[A-Z0-9_]+)/i);
-                if (identityMatch) {
-                    instanceName = identityMatch[1];
-                    break;
-                }
-            }
+            const identityMatch = envContent.match(/#\s*(IDENTITY_[A-Z0-9_]+)/i);
+            if (identityMatch) instanceName = identityMatch[1];
         }
-
-        // 2. Prioritet: Brug miljøvariabel hvis ingen identitet blev fundet
-        if (!instanceName || instanceName === 'TAG_DINE_INITIALER' || instanceName === 'IDENTITY_DINE_INITIALER') {
-            instanceName = process.env.APP_INSTANCE_NAME || 'Default';
-        }
-
+        
+        const model = process.env.GEMINI_MODEL || "gemini-2.0-flash";
+        let currentVersion = "2.6.x-dev";
         if (fs.existsSync(versionFilePath)) {
-            const content = fs.readFileSync(versionFilePath, 'utf8').trim();
-            const currentVersion = content.split('\n')[0].trim();
-            res.json({ version: currentVersion, instance: instanceName });
-        } else {
-            res.json({ version: "2.6.x-dev", instance: instanceName });
+            currentVersion = fs.readFileSync(versionFilePath, 'utf8').trim().split('\n')[0];
         }
+        res.json({ version: currentVersion, instance: instanceName, model: model });
     } catch (e) {
-        res.status(500).json({ version: "error", instance: "error" });
+        res.status(500).json({ version: "error", error: e.message });
     }
 });
 
@@ -113,21 +75,9 @@ const redisConnection = new IORedis({
   port: 6379,
   maxRetriesPerRequest: null
 });
-
 const jobQueue = new Queue('job_queue', { connection: redisConnection });
 
-app.use('/api/applications', (req, res, next) => {
-    try {
-        const originalUrl = req.url;
-        req.url = decodeURIComponent(req.url);
-        logger.info("Server", "Fil anmodet fra /api/applications", { original: originalUrl, decoded: req.url });
-    } catch (e) {
-        logger.warn("Server", "Kunne ikke decode URL", { url: req.url, error: e.message });
-    }
-    next();
-}, express.static(path.join(rootDir, 'output'), {
-    index: false,
-    fallthrough: false, // Tving fejl hvis fil ikke findes i stedet for at gå videre
+app.use('/api/applications', express.static(path.join(rootDir, 'output'), {
     setHeaders: (res, filePath) => {
         if (filePath.endsWith('.pdf')) {
             res.setHeader('Content-Type', 'application/pdf');
@@ -136,29 +86,6 @@ app.use('/api/applications', (req, res, next) => {
     }
 }));
 
-/**
- * @openapi
- * /api/brutto:
- *   get:
- *     summary: Hent det nuværende Brutto-CV (Markdown)
- *     responses:
- *       200:
- *         description: Returnerer CV-indholdet.
- *   post:
- *     summary: Gem opdateret Brutto-CV
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               content:
- *                 type: string
- *     responses:
- *       200:
- *         description: CV gemt succesfuldt.
- */
 app.get('/api/brutto', async (req, res) => {
   try {
     const bruttoPath = path.join(rootDir, 'data', 'brutto_cv.md');
@@ -167,43 +94,10 @@ app.get('/api/brutto', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-/**
- * @openapi
- * /api/brutto/render:
- *   get:
- *     summary: Generer HTML og PDF visning af Brutto-CV
- *     responses:
- *       200:
- *         description: Returnerer den genererede HTML.
- */
 app.get('/api/brutto/render', async (req, res) => {
     try {
-        const result = await generateMasterDocs();
+        const result = await generateMasterDocs(null, logger);
         res.json({ success: true, html: result.html });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-/**
- * @openapi
- * /api/brutto/pdf:
- *   get:
- *     summary: Hent den genererede Brutto-CV PDF
- *     responses:
- *       200:
- *         description: Returnerer PDF-filen.
- */
-app.get('/api/brutto/pdf', (req, res) => {
-    try {
-        const pdfPath = path.join(rootDir, 'data', 'brutto_cv.pdf');
-        if (fs.existsSync(pdfPath)) {
-            res.setHeader('Content-Type', 'application/pdf');
-            res.setHeader('Content-Disposition', 'inline; filename="brutto_cv.pdf"');
-            fs.createReadStream(pdfPath).pipe(res);
-        } else {
-            res.status(404).json({ error: "PDF ikke fundet. Prøv at gemme eller render først." });
-        }
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -214,379 +108,82 @@ app.post('/api/brutto', async (req, res) => {
     const { content } = req.body;
     const bruttoPath = path.join(rootDir, 'data', 'brutto_cv.md');
     fs.writeFileSync(bruttoPath, content);
-    
-    // Automatisk generering af visning ved hver gem
-    try {
-        await generateMasterDocs(content);
-        logger.info("Server", "Master CV dokumenter opdateret efter gem");
-    } catch (renderErr) {
-        logger.warn("Server", "Kunne ikke opdatere dokumentvisning efter gem", { error: renderErr.message });
-    }
-    
+    await generateMasterDocs(content, logger);
     res.json({ success: true });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-/**
- * @openapi
- * /api/brutto/refine:
- *   post:
- *     summary: Optimér Brutto-CV med AI (stram op, fjern fyldord)
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               content:
- *                 type: string
- *               hint:
- *                 type: string
- */
-app.post('/api/brutto/refine', async (req, res) => {
-    try {
-        const { content, hint } = req.body;
-        
-        const refinePrompt = `Du er en Senior Karriererådgiver og Redaktør. Din opgave er at optimere brugerens MASTER CV (Brutto-CV) for at gøre det mere professionelt, skarpt og slagkraftigt.
-
-DIN TONE: "Jysk ærlighed" (Direct, no fluff, factual).
-
-REGLER FOR OPTIMERING:
-1. **Fjern fyldord og floskler:** Slet ord som "passioneret", "krydsfelt", "synergi", "innovationskraft" og lignende buzzwords.
-2. **Stram punktopstillinger op:** Gør resultater og kompetencer mere præcise. Brug aktive verber (f.eks. "Implementeret...", "Designet...", "Optimeret...").
-3. **Bevar FAKTA 100%:** Du må ALDRIG ændre på årstal, firmanavne, titler eller de faktiske tekniske kompetencer.
-4. **Bevar Markdown-struktur:** Sørg for at bibeholde den overordnede struktur med overskrifter og lister. Husk en tom linje efter hver overskrift.
-5. **Brugerens fokus:** Brugeren har givet dette hint til optimeringen: "${hint || "Stram op og fjern floskler"}"
-
-VIGTIGT: Du skal returnere dit svar i dette format:
----REDAKTØRENS_LOGBOG---
-(Kort liste over hvad du har ændret/optimeret på DANSK)
-
----OPTIMERET_CV---
-(Det fulde optimerede Master CV i Markdown)
-
-Her er det nuværende MASTER CV:
-"""${content}"""`;
-
-        const response = await callLocalGemini(refinePrompt, "master_refine");
-        const log = extractSection(response, 'REDAKTØRENS_LOGBOG');
-        const refined = extractSection(response, 'OPTIMERET_CV');
-        
-        res.json({ refined: refined || response, log: log || "Optimering gennemført." });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// NYE ENDPOINTS TIL KARTOTEK-SYSTEMET (v3.0)
-
-/**
- * @openapi
- * /api/config/templates/{name}:
- *   get:
- *     summary: Hent en specifik skabelon-fil
- *     parameters:
- *       - in: path
- *         name: name
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Filindhold returneret.
- *   post:
- *     summary: Gem en specifik skabelon-fil
- */
-app.get('/api/config/templates/:name', (req, res) => {
-    try {
-        const { name } = req.params;
-        const allowed = ['ai_instructions.md', 'master_layout.html', 'cv_layout.html', 'cv_layout.md', 'master_layout.md'];
-        if (!allowed.includes(name)) return res.status(403).json({ error: "Adgang nægtet" });
-        
-        const p = path.join(rootDir, 'templates', name);
-        if (!fs.existsSync(p)) return res.status(404).json({ error: "Fil ikke fundet" });
-        
-        res.json({ content: fs.readFileSync(p, 'utf8') });
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-app.post('/api/config/templates/:name', (req, res) => {
-    try {
-        const { name } = req.params;
-        const allowed = ['ai_instructions.md', 'master_layout.html', 'cv_layout.html', 'cv_layout.md', 'master_layout.md'];
-        if (!allowed.includes(name)) return res.status(403).json({ error: "Adgang nægtet" });
-        
-        const p = path.join(rootDir, 'templates', name);
-        fs.writeFileSync(p, req.body.content);
-        res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-/**
- * @openapi
- * /api/config/instructions:
- *   get:
- *     summary: Hent AI-instruktioner
- *     responses:
- *       200:
- *         description: AI-instruktionerne i Markdown.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 content:
- *                   type: string
- *   post:
- *     summary: Gem AI-instruktioner
- */
-app.get('/api/config/instructions', (req, res) => {
-    try {
-        const p = path.join(rootDir, 'templates', 'ai_instructions.md');
-        res.json({ content: fs.readFileSync(p, 'utf8') });
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-app.post('/api/config/instructions', (req, res) => {
-    try {
-        const p = path.join(rootDir, 'templates', 'ai_instructions.md');
-        fs.writeFileSync(p, req.body.content);
-        res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-/**
- * @openapi
- * /api/config/layout:
- *   get:
- *     summary: Hent Master Layout (HTML)
- *     responses:
- *       200:
- *         description: Master Layoutet i HTML.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 content:
- *                   type: string
- *   post:
- *     summary: Gem Master Layout (HTML)
- */
-app.get('/api/config/layout', (req, res) => {
-    try {
-        const p = path.join(rootDir, 'templates', 'master_layout.html');
-        res.json({ content: fs.readFileSync(p, 'utf8') });
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-app.post('/api/config/layout', (req, res) => {
-    try {
-        const p = path.join(rootDir, 'templates', 'master_layout.html');
-        fs.writeFileSync(p, req.body.content);
-        res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-/**
- * @openapi
- * /api/preview:
- *   post:
- *     summary: Generer live-preview af et dokument
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *     responses:
- *       200:
- *         description: HTML preview returneret.
- */
-app.post('/api/preview', async (req, res) => {
-    try {
-        const { markdown, type, lang, candidate, meta } = req.body;
-        
-        // Lav en midlertidig fil til pandoc
-        const tempMdPath = path.join('/tmp', `preview_${Date.now()}.md`);
-        const htmlBody = await mdToHtml(markdown, tempMdPath, `preview_${Date.now()}.html`);
-        if (fs.existsSync(tempMdPath)) fs.unlinkSync(tempMdPath);
-
-        // Hent de nyeste metadata hvis de findes i requesten
-        const layoutMeta = req.body.layoutMeta || {};
-
-        const fullHtml = wrap(type, htmlBody, type.toLowerCase(), meta, candidate, lang || 'dk', layoutMeta);
-        res.json({ html: fullHtml });
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-/**
- * @openapi
- * /api/brutto/translate:
- *   post:
- *     summary: Oversæt Brutto-CV til engelsk
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               content:
- *                 type: string
- *     responses:
- *       200:
- *         description: Oversat CV returneret.
- */
-app.post('/api/brutto/translate', async (req, res) => {
-  try {
-    const { content } = req.body;
-    const prompt = `Oversæt dette CV til professionelt engelsk. Behold Markdown-formateringen:\n\n${content}`;
-    const translated = await callLocalGemini(prompt);
-    res.json({ translated });
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-/**
- * @openapi
- * /api/generate:
- *   post:
- *     summary: Start generering af en ny ansøgningspakke
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               jobText:
- *                 type: string
- *               companyUrl:
- *                 type: string
- *               hint:
- *                 type: string
- *     responses:
- *       202:
- *         description: Job er tilføjet til køen.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 jobId:
- *                   type: string
- */
 app.post('/api/generate', async (req, res) => {
   try {
     const { jobText, companyUrl, hint } = req.body;
     const jobId = "job_" + Date.now().toString();
-    logger.info("Server", "Ny generering anmodet", { jobId, companyUrl });
+    logger.info("Server", "Ny generering anmodet", { jobId });
     await jobQueue.add('generate_application', { jobId, jobText, companyUrl, hint, type: 'initial' }, { jobId });
     res.status(202).json({ jobId });
-  } catch (err) { 
-    logger.error("Server", "Fejl ved /api/generate", { error: err.message });
-    res.status(500).json({ error: err.message }); 
-  }
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-/**
- * @openapi
- * /api/refine:
- *   post:
- *     summary: Optimér en eksisterende ansøgningspakke (Manuelt eller med AI)
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               folder:
- *                 type: string
- *               type:
- *                 type: string
- *               markdown:
- *                 type: string
- *               useAi:
- *                 type: boolean
- *               hint:
- *                 type: string
- *     responses:
- *       200:
- *         description: Dokument opdateret (manuelt).
- *       202:
- *         description: AI-optimering startet (jobId returneret).
- */
 app.post('/api/refine', async (req, res) => {
   try {
-    const { folder, type, markdown, useAi, hint } = req.body; 
+    const { folder, type, body: rawBody, meta: rawMeta, useAi, hint, markdown } = req.body;
 
     if (useAi) {
         const jobId = "refine_" + Date.now().toString();
-        // Saml alle nuværende MD filer i mappen for at give AI'en kontekst
         const folderPath = path.join(rootDir, 'output', folder);
         const files = fs.readdirSync(folderPath).filter(f => f.endsWith('.md') && !f.includes('job.md'));
         let combinedMarkdown = "";
         files.forEach(f => {
             const content = fs.readFileSync(path.join(folderPath, f), 'utf8');
-            combinedMarkdown += `\n---${f}---\n${content}\n`;
+            combinedMarkdown += `\n### FIL: ${f}\n${content}\n`;
         });
-
-        await jobQueue.add('generate_application', { 
-            jobId, 
-            folder, 
-            hint, 
-            markdown: combinedMarkdown, 
-            type: 'refine_with_ai' 
-        }, { jobId });
-        
+        await jobQueue.add('generate_application', { jobId, folder, hint, markdown: combinedMarkdown, type: 'refine_with_ai' }, { jobId });
         return res.status(202).json({ jobId });
     }
 
-    // Manuel refinement (eksisterende logik)
     const folderPath = path.join(rootDir, 'output', folder);
     const files = fs.readdirSync(folderPath);
     const typeLabel = type === 'ansøgning' ? 'Ansøgning' : type === 'cv' ? 'CV' : type === 'match' ? 'Match_Analyse' : 'ICAN+_Pitch';
-    const existingFile = files.find(f => f.startsWith(typeLabel) && f.endsWith('.md'));
-    const baseName = existingFile ? existingFile.replace('.md', '') : type;
+    let existingFile = files.find(f => f.startsWith(typeLabel + '_') && f.endsWith('.md') && !f.includes('copy'));
+    if (!existingFile) existingFile = files.find(f => f.startsWith(typeLabel) && f.endsWith('.md'));
+    
+    const baseName = existingFile ? existingFile.replace('.md', '') : typeLabel;
     const mdPath = path.join(folderPath, `${baseName}.md`);
     const htmlPath = path.join(folderPath, `${baseName}.html`);
     const pdfPath = path.join(folderPath, `${baseName}.pdf`);
-    
-    fs.writeFileSync(mdPath, markdown);
 
+    let finalizedMarkdown = "";
+    let bodyToConvert = rawBody || "";
+    let currentMetadata = rawMeta || "";
+
+    if (rawBody !== undefined || rawMeta !== undefined) {
+        const cleanMeta = currentMetadata.replace(/^---+|---$/g, '').trim();
+        finalizedMarkdown = `---\n${cleanMeta}\n---\n${bodyToConvert}`;
+    } else {
+        finalizedMarkdown = markdown || "";
+        const parsed = parseFrontMatter(finalizedMarkdown);
+        bodyToConvert = parsed.body;
+    }
+
+    fs.writeFileSync(mdPath, finalizedMarkdown);
     const bruttoPath = path.join(rootDir, 'data', 'brutto_cv.md');
     const bruttoCv = fs.existsSync(bruttoPath) ? fs.readFileSync(bruttoPath, 'utf8') : "";
-    const candidate = parseCandidateInfo(bruttoCv);
-
-    const metadataRaw = extractSection(markdown, 'LAYOUT_METADATA');
-    const layoutMeta = {
-        signOff: metadataRaw.match(/^Sign-off:\s*(.*)$/im)?.[1]?.trim(),
-        location: metadataRaw.match(/^Location:\s*(.*)$/im)?.[1]?.trim(),
-        datePrefix: metadataRaw.match(/^Date-Prefix:\s*(.*)$/im)?.[1]?.trim(),
-        address: metadataRaw.match(/^Address:\s*(.*)$/im)?.[1]?.trim(),
-        senderName: metadataRaw.match(/^Sender-Name:\s*(.*)$/im)?.[1]?.trim(),
-        senderAddress: metadataRaw.match(/^Sender-Address:\s*(.*)$/im)?.[1]?.trim(),
-        senderPhone: metadataRaw.match(/^Sender-Phone:\s*(.*)$/im)?.[1]?.trim(),
-        senderEmail: metadataRaw.match(/^Sender-Email:\s*(.*)$/im)?.[1]?.trim()
-    };
-
-    // Detekter sprog fra det indsendte markdown
-    const lang = markdown.toLowerCase().includes('dear') || markdown.toLowerCase().includes('sincerely') ? 'en' : 'da';
-
-    const htmlBody = await mdToHtml(markdown, mdPath, `${baseName}_body.html`);
+    const candidate = parseCandidateInfo(bruttoCv, logger);
+    const fm = parseFrontMatter(finalizedMarkdown);
+    
+    const lang = finalizedMarkdown.toLowerCase().includes('dear') || finalizedMarkdown.toLowerCase().includes('sincerely') ? 'en' : 'da';
+    const htmlBody = await mdToHtml(bodyToConvert, mdPath, `${baseName}_body.html`, logger);
     const companyName = folder.split('_')[2] || 'firma';
     const jobTitle = folder.split('_').slice(3).join(' ') || 'stilling';
-    const fullHtml = wrap(typeLabel.replace('_', ' '), htmlBody, type, { company: companyName, position: jobTitle }, candidate, lang, layoutMeta);
     
+    const fullHtml = wrap(typeLabel.replace('_', ' '), htmlBody, type, { company: companyName, position: jobTitle }, candidate, lang, fm.attributes, logger);
     fs.writeFileSync(htmlPath, fullHtml);
+    await printToPdf(htmlPath, pdfPath, logger);
     
-    // Brug utils.js version af printToPdf (håndterer selv file://)
-    await printToPdf(htmlPath, pdfPath);
-    
-    res.json({ success: true, html: fullHtml });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+    res.json({ success: true, html: fullHtml, markdown: finalizedMarkdown });
+  } catch (err) { 
+      logger.error("Server", "Fejl ved refine", { error: err.message });
+      res.status(500).json({ error: err.message }); 
+  }
 });
 
 io.on('connection', (socket) => {
@@ -596,10 +193,5 @@ io.on('connection', (socket) => {
 
 const PORT = 3002;
 server.listen(PORT, '0.0.0.0', () => {
-  let startVersion = "2.6.x-dev";
-  if (fs.existsSync(versionFilePath)) {
-      const content = fs.readFileSync(versionFilePath, 'utf8').trim();
-      startVersion = content.split('\n')[0].trim();
-  }
-  logger.info("Server", "Systemet kører", { version: startVersion, port: PORT });
+  logger.info("Server", "Systemet kører", { port: PORT });
 });

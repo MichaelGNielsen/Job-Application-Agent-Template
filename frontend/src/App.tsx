@@ -1,76 +1,88 @@
-/**
- * Job Application Agent Template
- * 
- * Designer: MGN (mgn@mgnielsen.dk)
- * Copyright (c) 2026 MGN. All rights reserved.
- * 
- * BEMÆRK: Denne kode anvender AI til generering og behandling.
- * Brugeren skal selv verificere, at resultatet er som forventet.
- * Softwaren leveres "som den er", uden nogen form for garanti.
- * Brug af softwaren sker på eget ansvar.
- */
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  FileText, 
+  Send, 
+  Loader2, 
+  CheckCircle2, 
+  AlertCircle, 
+  Download, 
+  Eye, 
+  Edit3, 
+  FileJson, 
+  RefreshCw,
+  Search,
+  Plus,
+  Trash2,
+  ExternalLink,
+  ChevronRight,
+  User,
+  Settings,
+  BrainCircuit,
+  Rocket,
+  Palette,
+  Layout,
+  Terminal,
+  Save,
+  Globe,
+  Languages,
+  Clock,
+  Sparkles,
+  Zap,
+  Fingerprint
+} from 'lucide-react';
 import { io } from 'socket.io-client';
 
 const socket = io();
-const THEME_COLOR = "cyan";
 
-type ViewMode = 'html' | 'markdown' | 'meta';
+type ViewMode = 'html' | 'markdown' | 'pdf' | 'meta';
 
-const App: React.FC = () => {
-  const [version, setVersion] = useState('v3.6.8');
+interface JobResults {
+  folder: string;
+  bodies: Record<string, string>;
+  metadata: string;
+  html: Record<string, string>;
+  links: Record<string, { md: string, html: string, pdf: string }>;
+  aiNotes: string;
+  lang?: string;
+}
+
+function App() {
   const [jobText, setJobText] = useState('');
   const [companyUrl, setCompanyUrl] = useState('');
   const [hint, setHint] = useState('');
-
-  // Hjælpefunktioner til dynamisk identitet
-  const extractName = (md: string) => {
-    const match = md.match(/(?:\*\*|\*|#|-)?\s*(?:Navn|Name)[:\s]+(.*?)(?:\n|$)/i);
-    return match ? match[1].replace(/^[\s\*\-#]+|[\s\*\-#]+$/g, '').trim() : "";
-  };
-
-  const getInitials = (name: string) => {
-    if (!name) return "AGENT";
-    const parts = name.split(/\s+/).filter(p => p.length > 0);
-    if (parts.length === 1) return parts[0].substring(0, 3).toUpperCase();
-    return parts.map(p => p[0]).join('').toUpperCase().substring(0, 4);
-  };
-
-  // Kartotek States
-  const [activeTab, setActiveTab] = useState<'brutto' | 'ai' | 'layout'>('brutto');
   const [bruttoCv, setBruttoCv] = useState('');
   const [originalBruttoCv, setOriginalBruttoCv] = useState('');
-
-  const currentInitials = getInitials(extractName(bruttoCv));
+  const [templates, setTemplates] = useState<Record<string, string>>({});
+  const [originalTemplates, setOriginalTemplates] = useState<Record<string, string>>({});
+  const [version, setVersion] = useState('');
+  const [aiBrain, setAiBrain] = useState('Gemini 2.0 Flash');
   
-  const [templates, setTemplates] = useState<{[key: string]: string}>({});
-  const [originalTemplates, setOriginalTemplates] = useState<{[key: string]: string}>({});
+  const [activeTab, setActiveTab] = useState<'generate' | 'brutto' | 'ai' | 'layout'>('generate');
   const [selectedLayout, setSelectedLayout] = useState('master_layout.html');
   const [selectedAi, setSelectedAi] = useState('ai_instructions.md');
-  const [designViewMode, setDesignViewMode] = useState<'code' | 'preview'>('code');
-  const [aiViewMode, setAiViewMode] = useState<'code' | 'read'>('code');
-
-  const [isAiRefined, setIsAiRefined] = useState(false);
-  const [showConfig, setShowConfig] = useState(false);
-
+  
   const [isLoading, setIsLoading] = useState(false);
   const [isMasterLoading, setIsMasterLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [viewModes, setViewModes] = useState<{ [key: string]: ViewMode }>({
     ansøgning: 'html', cv: 'html', match: 'html', ican: 'html'
   });
-  const [results, setResults] = useState<{ 
-    folder: string, 
-    lang?: string,
-    aiNotes?: string,
-    markdown: { [key: string]: string },
-    html: { [key: string]: string },
-    links: { [key: string]: { md: string, html: string, pdf: string } }
-  } | null>(null);
+  const [results, setResults] = useState<JobResults | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const fetchData = async () => {
+    // Hent version uafhængigt for at sikre den altid vises
+    fetch('/api/version')
+      .then(r => r.json())
+      .then(data => {
+        setVersion(data.version);
+        if (data.model) {
+          const formatted = data.model.split('-').map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
+          setAiBrain(formatted);
+        }
+      })
+      .catch(e => console.error("Kunne ikke hente version:", e));
+
     try {
       const [brutto, ai, layout, cvHtml, cvMd, masterMd] = await Promise.all([
         fetch('/api/brutto').then(r => r.json()),
@@ -93,11 +105,6 @@ const App: React.FC = () => {
       };
       setTemplates(allTemplates);
       setOriginalTemplates({ ...allTemplates });
-      
-      setIsAiRefined(false);
-      
-      const verRes = await fetch('/api/version').then(r => r.json());
-      setVersion(verRes.version);
     } catch (e) { console.error("Fejl ved hentning af konfig:", e); }
   };
 
@@ -106,7 +113,15 @@ const App: React.FC = () => {
     socket.on('job_status_update', (data) => {
       setStatusMessage(data.status);
       if (data.status === 'Færdig!') {
-        setResults(data);
+        setResults({
+          folder: data.folder,
+          bodies: data.bodies,
+          metadata: data.metadata,
+          html: data.html,
+          links: data.links,
+          aiNotes: data.aiNotes,
+          lang: data.lang
+        });
         setIsLoading(false);
       }
       if (data.status === 'Fejl') {
@@ -130,7 +145,7 @@ const App: React.FC = () => {
     } catch (err: any) { setError(err.message); setIsLoading(false); }
   };
 
-  const handleSaveConfig = async (type: typeof activeTab) => {
+  const handleSaveConfig = async (type: string) => {
     setIsLoading(true); 
     let url = '/api/brutto';
     let body = { content: bruttoCv };
@@ -156,10 +171,8 @@ const App: React.FC = () => {
         body: JSON.stringify(body),
       });
       
-      // Opdater originalerne efter gem
       if (type === 'brutto') { 
           setOriginalBruttoCv(bruttoCv); 
-          setIsAiRefined(false); 
       } else {
           setOriginalTemplates(prev => ({ ...prev, [fileName]: templates[fileName] }));
       }
@@ -170,10 +183,10 @@ const App: React.FC = () => {
   };
 
   const handleRefineMaster = async () => {
-    const userHint = window.prompt("Indtast dit specielle fokus for optimering (f.eks. 'Opdatér kun Kernekompetencer' eller 'Gør profiltekst mere formel'):", hint || "Stram op og fjern floskler");
-    if (userHint === null) return; // Brugeren afbrød
+    const userHint = window.prompt("Indtast dit specielle fokus for optimering:", hint || "Stram op og fjern floskler");
+    if (userHint === null) return;
 
-    setIsMasterLoading(true); setStatusMessage('AI optimerer Master CV (tager ca. 30 sek)...');
+    setIsMasterLoading(true); setStatusMessage('AI optimerer Master CV...');
     try {
       const res = await fetch('/api/brutto/refine', {
         method: 'POST',
@@ -182,17 +195,62 @@ const App: React.FC = () => {
       });
       const data = await res.json();
       setBruttoCv(data.refined);
-      setIsAiRefined(true); // Marker at AI har lavet ændringer
-
       setIsMasterLoading(false); 
-      // Vis AI'ens log i en alert eller en specifik boks
-      if (data.log) {
-          window.alert("AI RÆSONNEMENT (MASTER CV):\n\n" + data.log);
-      }
+      if (data.log) window.alert("AI RÆSONNEMENT:\n\n" + data.log);
       setStatusMessage('Optimeret!');
       setTimeout(() => setStatusMessage(''), 2000);
     } catch (err: any) { setError(err.message); setIsMasterLoading(false); }
   };
+
+  const handleRefine = async (type: string, useAi: boolean = false) => {
+    if (!results) return;
+    setIsLoading(true); setStatusMessage(useAi ? 'AI forfiner dokumenterne...' : `Opdaterer ${type}...`);
+    
+    const currentBody = results.bodies[type];
+    
+    try {
+      const response = await fetch('/api/refine', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          folder: results.folder, 
+          type, 
+          body: currentBody,
+          meta: results.metadata,
+          useAi,
+          hint
+        }),
+      });
+      
+      if (useAi) {
+        const { jobId } = await response.json();
+        socket.emit('join_job', jobId);
+      } else {
+        const data = await response.json();
+        if (data.success) {
+          setResults(prev => prev ? {
+            ...prev,
+            html: { ...prev.html, [type]: data.html }
+          } : null);
+          setStatusMessage('Gemt!');
+          setTimeout(() => setStatusMessage(''), 2000);
+        }
+        setIsLoading(false);
+      }
+    } catch (err: any) { setError(err.message); setIsLoading(false); }
+  };
+
+  const updateBody = (id: string, newBody: string) => {
+    setResults(prev => prev ? { 
+        ...prev, 
+        bodies: { ...prev.bodies, [id]: newBody } 
+    } : null);
+  };
+
+  const updateMetadata = (newMeta: string) => {
+    setResults(prev => prev ? { ...prev, metadata: newMeta } : null);
+  };
+
   const handleRenderMaster = async () => {
     setIsLoading(true); setStatusMessage('Genererer visning...');
     try {
@@ -210,417 +268,228 @@ const App: React.FC = () => {
     } catch (err: any) { setError(err.message); setIsLoading(false); }
   };
 
-  const handleRefine = async (type: string, useAi: boolean = false) => {
-    if (!results) return;
-    setIsLoading(true); setStatusMessage(useAi ? 'AI forfiner dokumenterne...' : `Opdaterer ${type}...`);
-    try {
-      const response = await fetch('/api/refine', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          folder: results.folder, 
-          type, 
-          markdown: results.markdown[type],
-          useAi,
-          hint
-        }),
-      });
-      
-      if (useAi) {
-        const { jobId } = await response.json();
-        socket.emit('join_job', jobId);
-      } else {
-        const data = await response.json();
-        if (data.success) {
-          setResults({
-            ...results,
-            html: { ...results.html, [type]: data.html }
-          });
-          setIsLoading(false);
-          setStatusMessage('Gemt!');
-          setTimeout(() => setStatusMessage(''), 2000);
-        }
-      }
-    } catch (err: any) { setError(err.message); setIsLoading(false); }
-  };
-
-  // --- ROBUST SPLIT LOGIK (v3.6.8) ---
-  const splitMarkdown = (fullMd: string) => {
-    const sections = fullMd.split(/---([A-ZÆØÅ0-9_+]+)---/);
-    let meta = "";
-    let body = fullMd;
-    let currentTag = "";
-
-    for (let i = 1; i < sections.length; i += 2) {
-        const tag = sections[i];
-        const content = sections[i+1] ? sections[i+1].trim() : "";
-        
-        if (tag === 'LAYOUT_METADATA') {
-            meta = content;
-        } else if (['ANSØGNING', 'CV', 'MATCH_ANALYSE', 'ICAN+_PITCH'].includes(tag.toUpperCase())) {
-            body = content;
-            currentTag = tag;
-            break; // Vi har fundet den primære sektion
-        }
-    }
-    
-    return { meta, body, tag: currentTag };
-  };
-
-  const updateMetadata = (id: string, newMeta: string) => {
-    if (!results) return;
-    const { body, tag } = splitMarkdown(results.markdown[id]);
-    const finalTag = tag || id.toUpperCase();
-    const newFullMd = `---LAYOUT_METADATA---\n${newMeta}\n\n---${finalTag}---\n${body}`;
-    setResults({ ...results, markdown: { ...results.markdown, [id]: newFullMd } });
-  };
-
-  const updateBody = (id: string, newBody: string) => {
-    if (!results) return;
-    const { meta, tag } = splitMarkdown(results.markdown[id]);
-    const finalTag = tag || id.toUpperCase();
-    const newFullMd = `---LAYOUT_METADATA---\n${newMeta}\n\n---${finalTag}---\n${newBody}`;
-    setResults({ ...results, markdown: { ...results.markdown, [id]: newFullMd } });
-  };
-
-  const getLayoutPreview = (html: string, fileName: string) => {
-    if (!html) return "";
-    
-    // Dynamisk parsing af bruttoCv for at undgå hardkodede data i templaten
-    const clean = (val: string) => val ? val.replace(/^[\s\*\-#]+|[\s\*\-#]+$/g, '').trim() : "";
-    const nameMatch = bruttoCv.match(/(?:\*\*|\*|#|-)?\s*(?:Navn|Name)[:\s]+(.*?)(?:\n|$)/i);
-    const addrMatch = bruttoCv.match(/(?:\*\*|\*|#|-)?\s*(?:Adresse|Address)[:\s]+(.*?)(?:\n|$)/i);
-    const emailMatch = bruttoCv.match(/(?:\*\*|\*|#|-)?\s*(?:Email|E-mail)[:\s]+(.*?)(?:\n|$)/i);
-    const phoneMatch = bruttoCv.match(/(?:\*\*|\*|#|-)?\s*(?:Telefon|Phone|Mobil|Mobile)[:\s]+(.*?)(?:\n|$)/i);
-
-    const name = nameMatch ? clean(nameMatch[1]) : "Kandidat Navn";
-    const address = addrMatch ? clean(addrMatch[1]) : "Adressevej 1, 0000 By";
-    const email = emailMatch ? clean(emailMatch[1]) : "email@eksempel.dk";
-    const phone = phoneMatch ? clean(phoneMatch[1]) : "+45 00000000";
-
-    const firstName = name.split(' ')[0];
-    
-    let dummyContent = "";
-    if (fileName.includes('cv')) {
-        dummyContent = `
-            <h2>Profil</h2>
-            <p>Erfaren reporter og undersøgende journalist med fokus på AI-integration og globale efterforskninger.</p>
-            <h2>Erhvervserfaring</h2>
-            <p><strong>Senior Undersøgende Journalist | Le Petit Vingtième (1929 - nu)</strong></p>
-            <ul>
-                <li>Afdækket omfattende internationale komplotter og kriminelle netværk.</li>
-                <li>Gennemført ekspeditioner til fjerntliggende egne, herunder månen.</li>
-            </ul>
-            <h2>Uddannelse</h2>
-            <p><strong>Autodidakt ekspert | Journalistik, Kryptografi og Rumfart</strong></p>
-        `;
-    } else {
-        dummyContent = `
-            <div class="recipient">
-                <p>Virksomhed A/S<br/>Att: HR-afdelingen<br/>Softwarevej 1, 8000 Aarhus</p>
-            </div>
-            <div class="subject">Ansøgning om stilling som Senior Investigator</div>
-            <p>Jeg skriver for at udtrykke min store interesse for den opslåede stilling...</p>
-            <p>Med min baggrund inden for efterforskning og AI-drevet journalistik, er jeg overbevist om, at jeg kan bidrage positivt til jeres team.</p>
-            <p>Jeg ser frem til muligheden for at uddybe mine kompetencer ved en personlig samtale.</p>
-            <p>Med venlig hilsen,<br/>${firstName}</p>
-        `;
-    }
-
-    const addrHtml = address.includes(',') 
-        ? `<p>${address.split(',')[0].trim()}</p><p>${address.split(',')[1].trim()}</p>`
-        : `<p>${address}</p>`;
-
-    return html
-        .replace(/{{DOC_TITLE}}/g, "PREVIEW - " + (fileName.includes('cv') ? 'CV' : 'Ansøgning'))
-        .replace(/{{BRUGER_NAVN}}|{{NAME}}/g, name)
-        .replace(/{{BRUGER_ADRESSE_BLOK}}|{{ADDRESS_BLOCK}}/g, addrHtml)
-        .replace(/{{BRUGER_TLF}}|{{PHONE}}/g, phone)
-        .replace(/{{BRUGER_EMAIL}}|{{EMAIL}}/g, email)
-        .replace(/{{FIRMA_ADRESSE}}|{{ADDRESS}}/g, "Virksomhedsvej 123, 8000 Aarhus C")
-        .replace(/{{CONTENT}}/g, dummyContent)
-        .replace(/{{SIGNATURE_SECTION}}/g, "");
-  };
-
   return (
-    <div className="min-h-screen bg-[#0a192f] text-gray-100 font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
-      <div className="max-w-6xl mx-auto px-4 py-12">
-        <header className="mb-16 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="space-y-2 text-center md:text-left">
-            <h1 className="text-4xl font-extrabold tracking-tighter text-white">
-              Job Application Agent <span className="text-cyan-500">{currentInitials}</span>
-            </h1>
-            <p className="text-gray-400 font-mono text-sm tracking-widest">{version} | AUTOMATION ENGINE</p>
+    <div className="min-h-screen bg-[#050505] text-gray-300 font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
+      {/* HEADER */}
+      <nav className="border-b border-white/5 bg-black/40 backdrop-blur-xl sticky top-0 z-50">
+        <div className="max-w-[1600px] mx-auto px-6 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/20">
+              <Fingerprint className="text-white w-6 h-6" />
+            </div>
+            <div>
+              <h1 className="text-sm font-black tracking-[0.2em] text-white uppercase">Job Application Agent <span className="text-cyan-500">TEMPLATE</span></h1>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-gray-500 font-mono">{version}</span>
+                <span className="w-1 h-1 rounded-full bg-gray-700"></span>
+                <div className="flex items-center gap-1.5 px-2 py-0.5 bg-white/5 rounded-full border border-white/5 shadow-inner">
+                  <BrainCircuit className="w-2.5 h-2.5 text-cyan-500" />
+                  <span className="text-[9px] text-cyan-500/70 font-bold tracking-widest uppercase">{aiBrain}</span>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="flex gap-4">
-            <button onClick={() => setShowConfig(!showConfig)} className={`px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all border ${showConfig ? 'bg-cyan-600 border-cyan-500 text-white shadow-lg shadow-cyan-500/20' : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'}`}>
-              ⚙️ System Kartotek
+          
+          <div className="flex items-center gap-2 bg-white/5 p-1 rounded-xl border border-white/5">
+            <button onClick={() => setActiveTab('generate')} className={`px-6 py-2.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all ${activeTab === 'generate' ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/20' : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'}`}>
+              <Zap className="w-3 h-3 inline-block mr-2 mt-[-2px]" /> Generer
+            </button>
+            <button onClick={() => setActiveTab('brutto')} className={`px-6 py-2.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all ${activeTab === 'brutto' ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/20' : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'}`}>
+              <FileText className="w-3 h-3 inline-block mr-2 mt-[-2px]" /> Master CV
+            </button>
+            <button onClick={() => setActiveTab('ai')} className={`px-6 py-2.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all ${activeTab === 'ai' ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/20' : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'}`}>
+              <BrainCircuit className="w-3 h-3 inline-block mr-2 mt-[-2px]" /> AI Instrukser
+            </button>
+            <button onClick={() => setActiveTab('layout')} className={`px-6 py-2.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all ${activeTab === 'layout' ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/20' : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'}`}>
+              <Palette className="w-3 h-3 inline-block mr-2 mt-[-2px]" /> Layout
             </button>
           </div>
-        </header>
+        </div>
+      </nav>
 
-        <main className="space-y-12">
-          {/* KONFIGURATIONSPANEL */}
-          <section className={`transition-all duration-500 overflow-hidden ${showConfig ? 'max-h-[1200px] opacity-100 mb-12' : 'max-h-0 opacity-0'}`}>
-            <div className="flex gap-1 mb-6 bg-white/5 p-1 rounded-lg w-fit">
-              {(['brutto', 'ai', 'layout'] as const).map(tab => (
-                <button key={tab} onClick={() => setActiveTab(tab)} className={`px-6 py-2 rounded-md text-[10px] font-bold uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-[#112240] text-cyan-400 shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}>
-                  {tab === 'brutto' ? '📜 Master CV' : tab === 'ai' ? '🧠 AI Prompts' : '🎨 Design'}
+      <main className="max-w-[1200px] mx-auto px-6 py-12">
+        {activeTab === 'generate' && (
+          <div className="space-y-8 max-w-4xl mx-auto">
+            {/* STABLE VERTICAL STACK (v4.7.3) */}
+            <div className="space-y-8">
+              <div className="group relative">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-2xl blur opacity-10 group-focus-within:opacity-20 transition duration-1000"></div>
+                <div className="relative bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+                  <div className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-white/[0.02]">
+                    <div className="flex items-center gap-3">
+                      <Terminal className="w-4 h-4 text-cyan-500" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Jobopslag / Tekst</span>
+                    </div>
+                  </div>
+                  <textarea value={jobText} onChange={(e) => setJobText(e.target.value)} placeholder="Indsæt jobbeskrivelsen her..." className="w-full h-80 bg-transparent p-8 text-gray-200 placeholder-gray-700 focus:outline-none resize-none text-sm leading-relaxed font-mono" />
+                </div>
+              </div>
+
+              <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-8 space-y-8 shadow-2xl">
+                <div className="grid grid-cols-1 gap-8">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 ml-1">Virksomhed URL</label>
+                    <div className="relative">
+                      <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
+                      <input type="text" value={companyUrl} onChange={(e) => setCompanyUrl(e.target.value)} placeholder="https://virksomhed.dk" className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-xs focus:border-cyan-500/50 focus:outline-none transition-all" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 ml-1">Personligt Hint</label>
+                    <div className="relative">
+                      <Sparkles className="absolute left-4 top-4 w-4 h-4 text-gray-600" />
+                      <textarea value={hint} onChange={(e) => setHint(e.target.value)} placeholder="F.eks. 'Fokusér på min erfaring med AI'..." className="w-full h-32 bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-xs focus:border-cyan-500/50 focus:outline-none transition-all resize-none" />
+                    </div>
+                  </div>
+                </div>
+
+                <button onClick={handleGenerate} disabled={isLoading || !jobText} className={`w-full group relative flex items-center justify-center gap-3 py-6 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl font-black uppercase tracking-[0.2em] text-xs transition-all shadow-lg shadow-cyan-600/20 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden`}>
+                  <div className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 -translate-x-full group-hover:animate-[shimmer_2s_infinite]"></div>
+                  {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Rocket className="w-4 h-4" />}
+                  {isLoading ? 'Behandler...' : 'Start Automatisering'}
                 </button>
-              ))}
+              </div>
             </div>
 
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6 bg-white/5 p-4 rounded-xl border border-white/5">
-                {/* LEFT SIDE: Navigation & Modes */}
-                <div className="flex flex-wrap gap-4 items-center">
-                    {activeTab === 'ai' && (
-                        <div className="flex gap-4 items-center">
-                            <div className="flex gap-1 bg-[#0a192f] p-1 rounded-lg border border-white/5 shadow-inner">
-                                <button onClick={() => setAiViewMode('code')} className={`px-3 py-1.5 rounded text-[9px] font-bold uppercase transition-all ${aiViewMode === 'code' ? 'bg-cyan-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}>KODE</button>
-                                <button onClick={() => setAiViewMode('read')} className={`px-3 py-1.5 rounded text-[9px] font-bold uppercase transition-all ${aiViewMode === 'read' ? 'bg-cyan-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}>LÆS</button>
-                            </div>
-                            <div className="flex gap-2 bg-[#0a192f] p-1 rounded-lg border border-white/5 shadow-inner">
-                                {['ai_instructions.md', 'cv_layout.md', 'master_layout.md'].map(file => (
-                                    <button key={file} onClick={() => setSelectedAi(file)} className={`px-3 py-1.5 rounded text-[9px] font-bold uppercase tracking-tighter transition-all ${selectedAi === file ? 'bg-cyan-600/20 text-cyan-400 border border-cyan-500/30 shadow-inner' : 'text-gray-500 hover:text-gray-400 border border-transparent'}`}>
-                                        {file.replace('.md', '').replace('_', ' ')}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    )}
+            {statusMessage && (
+              <div className="flex items-center justify-center gap-4 py-8 animate-pulse">
+                <div className="h-px w-12 bg-gradient-to-r from-transparent to-cyan-500/50"></div>
+                <div className="text-[10px] font-black uppercase tracking-[0.4em] text-cyan-400">{statusMessage}</div>
+                <div className="h-px w-12 bg-gradient-to-l from-transparent to-cyan-500/50"></div>
+              </div>
+            )}
 
-                    {activeTab === 'layout' && (
-                        <div className="flex gap-4 items-center">
-                            <div className="flex gap-1 bg-[#0a192f] p-1 rounded-lg border border-white/5 shadow-inner">
-                                <button onClick={() => setDesignViewMode('code')} className={`px-3 py-1.5 rounded text-[9px] font-bold uppercase transition-all ${designViewMode === 'code' ? 'bg-cyan-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}>KODE</button>
-                                <button onClick={() => setDesignViewMode('preview')} className={`px-3 py-1.5 rounded text-[9px] font-bold uppercase transition-all ${designViewMode === 'preview' ? 'bg-cyan-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}>PREVIEW</button>
-                            </div>
-                            <div className="flex gap-2 bg-[#0a192f] p-1 rounded-lg border border-white/5 shadow-inner">
-                                {['master_layout.html', 'cv_layout.html'].map(file => (
-                                    <button key={file} onClick={() => setSelectedLayout(file)} className={`px-3 py-1.5 rounded text-[9px] font-bold uppercase tracking-tighter transition-all ${selectedLayout === file ? 'bg-cyan-600/20 text-cyan-400 border border-cyan-500/30 shadow-inner' : 'text-gray-500 hover:text-gray-400 border border-transparent'}`}>
-                                        {file.replace('_layout.html', '')}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    )}
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-6 flex items-center gap-4 text-red-400">
+                <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                <p className="text-xs font-bold tracking-wide">{error}</p>
+              </div>
+            )}
 
-                    {activeTab === 'brutto' && (
-                        <span className="text-[10px] font-black text-cyan-500 uppercase tracking-widest ml-2">Master CV Management</span>
-                    )}
+            {results && (
+              <div className="space-y-16 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+                <div className="bg-cyan-500/5 border border-cyan-500/10 rounded-2xl p-8 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-8 opacity-5">
+                    <BrainCircuit className="w-24 h-24 text-cyan-500" />
+                  </div>
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-8 h-8 bg-cyan-500/20 rounded-lg flex items-center justify-center">
+                      <Sparkles className="text-cyan-400 w-4 h-4" />
+                    </div>
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-400">AI Redaktørens Noter</h3>
+                  </div>
+                  <div className="prose prose-invert prose-sm max-w-none prose-p:text-gray-400 prose-p:leading-relaxed font-mono text-[13px]">
+                    {results.aiNotes.split('\n').map((line, i) => <p key={i} className="mb-2">{line}</p>)}
+                  </div>
                 </div>
 
-                {/* RIGHT SIDE: Actions & Tools */}
-                <div className="flex flex-wrap gap-2 items-center lg:ml-auto">
-                    {activeTab === 'brutto' && (
-                        <>
-                            <button onClick={handleRenderMaster} className="bg-[#112240] hover:bg-[#1d355e] text-white px-4 py-2 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all border border-cyan-500/30 shadow-sm">👁️ Vis HTML</button>
-                            <a href="/api/brutto/pdf" target="_blank" rel="noreferrer" className="bg-[#112240] hover:bg-[#1d355e] text-white px-4 py-2 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all border border-cyan-500/30 shadow-sm">📄 PDF</a>
-                            <button onClick={handleRefineMaster} disabled={isMasterLoading} className="bg-cyan-900/40 hover:bg-cyan-600/40 text-cyan-400 px-4 py-2 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all border border-cyan-500/20 flex items-center gap-2 shadow-sm">
-                                {isMasterLoading ? '🌀...' : '✨ Optimér'}
-                            </button>
-                            <button onClick={async () => {
-                                setIsLoading(true); setStatusMessage('Oversætter...');
-                                const res = await fetch('/api/brutto/translate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: bruttoCv }) });
-                                const data = await res.json();
-                                setBruttoCv(data.translated);
-                                setIsLoading(false); setStatusMessage('Oversat!');
-                            }} className="bg-cyan-600/10 hover:bg-cyan-600/20 text-cyan-400 px-4 py-2 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all border border-cyan-500/20 shadow-sm mr-2">🌐 Oversæt</button>
-                        </>
-                    )}
-
-                    {/* TRAFIKLYS & GENDAN */}
-                    <div className="flex items-center gap-2 pl-4 border-l border-white/10">
-                        {(() => {
-                            const isBruttoDirty = bruttoCv !== originalBruttoCv;
-                            const isAiDirty = templates[selectedAi] !== originalTemplates[selectedAi];
-                            const isLayoutDirty = templates[selectedLayout] !== originalTemplates[selectedLayout];
-                            
-                            let isDirty = false;
-                            if (activeTab === 'brutto') isDirty = isBruttoDirty || isAiRefined;
-                            else if (activeTab === 'ai') isDirty = isAiDirty;
-                            else if (activeTab === 'layout') isDirty = isLayoutDirty;
-
-                            if (!isDirty) {
-                                return <span className="text-[9px] font-bold text-green-500/70 uppercase tracking-widest px-4 py-2 bg-green-500/5 rounded-lg border border-green-500/20">✅ Sync</span>;
-                            }
-
-                            if (activeTab === 'brutto' && isAiRefined) {
-                                return (
-                                    <button onClick={() => handleSaveConfig('brutto')} className="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all shadow-lg animate-pulse border border-orange-400">
-                                        ✨ GEM AI-SVAR
-                                    </button>
-                                );
-                            }
-
-                            return (
-                                <button onClick={() => handleSaveConfig(activeTab)} className="bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all shadow-lg shadow-cyan-500/20 border border-cyan-400">
-                                    💾 Gem ændringer
-                                </button>
-                            );
-                        })()}
-
-                        <button 
-                            onClick={() => {
-                                if (window.confirm('Gendan standard-indholdet? Ulagede ændringer går tabt.')) {
-                                    if (activeTab === 'brutto') setBruttoCv(originalBruttoCv);
-                                    else if (activeTab === 'ai') setTemplates(prev => ({ ...prev, [selectedAi]: originalTemplates[selectedAi] }));
-                                    else if (activeTab === 'layout') setTemplates(prev => ({ ...prev, [selectedLayout]: originalTemplates[selectedLayout] }));
-                                }
-                            }}
-                            className="bg-white/5 hover:bg-white/10 text-gray-500 px-3 py-2 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all border border-white/10"
-                            title="Gendan original"
-                        >
-                            🔄
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div className="relative group">
-                {activeTab === 'brutto' && <textarea className="w-full h-96 bg-[#112240] border border-white/10 rounded-xl p-6 font-mono text-sm text-cyan-50 focus:border-cyan-500/50 outline-none shadow-inner group-hover:border-white/20 transition-all" value={bruttoCv} onChange={(e) => setBruttoCv(e.target.value)} />}
-                
-                {activeTab === 'ai' && (
-                    <div className="h-96">
-                        {aiViewMode === 'code' ? (
-                            <textarea className="w-full h-full bg-[#112240] border border-white/10 rounded-xl p-6 font-mono text-sm text-cyan-50 focus:border-cyan-500/50 outline-none shadow-inner group-hover:border-white/20 transition-all" value={templates[selectedAi] || ""} onChange={(e) => setTemplates(prev => ({ ...prev, [selectedAi]: e.target.value }))} />
-                        ) : (
-                            <div className="w-full h-full bg-[#112240] border border-white/10 rounded-xl p-8 overflow-y-auto prose prose-invert prose-cyan max-w-none shadow-inner group-hover:border-white/20 transition-all">
-                                <pre className="whitespace-pre-wrap font-sans text-gray-300 text-sm">{templates[selectedAi]}</pre>
+                <div className="grid grid-cols-1 gap-12">
+                  {[
+                    { id: 'ansøgning', title: 'Målrettet Ansøgning', icon: <FileText /> },
+                    { id: 'cv', title: 'Skræddersyet CV', icon: <User /> },
+                    { id: 'match', title: 'Match Analyse', icon: <Search /> },
+                    { id: 'ican', title: 'ICAN+ Interview Pitch', icon: <Languages /> }
+                  ].map(({ id, title, icon }) => {
+                    const body = results.bodies[id];
+                    if (!body) return null;
+                    return (
+                      <div key={id} className="bg-[#0a0a0a] border border-white/10 rounded-3xl overflow-hidden shadow-2xl group transition-all hover:border-white/20">
+                        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6 bg-white/5 p-4 rounded-xl border border-white/5">
+                          <div className="flex flex-wrap gap-4 items-center">
+                            <div className="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-xl border border-white/5">
+                              <div className="text-cyan-500 w-4 h-4">{icon}</div>
+                              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white">{title}</span>
                             </div>
-                        )}
-                    </div>
-                )}
-
-                {activeTab === 'layout' && (
-                    <div className="h-[600px]">
-                        {designViewMode === 'code' ? (
-                            <textarea className="w-full h-full bg-[#112240] border border-white/10 rounded-xl p-6 font-mono text-sm text-cyan-50 focus:border-cyan-500/50 outline-none shadow-inner group-hover:border-white/20 transition-all" value={templates[selectedLayout] || ""} onChange={(e) => setTemplates(prev => ({ ...prev, [selectedLayout]: e.target.value }))} />
-                        ) : (
-                            <div className="w-full h-full bg-white rounded-xl overflow-hidden shadow-2xl">
-                                <iframe srcDoc={getLayoutPreview(templates[selectedLayout], selectedLayout)} title="Layout Preview" className="w-full h-full border-none" />
+                            <div className="flex bg-black/40 p-1 rounded-xl border border-white/5">
+                              <button onClick={() => setViewModes(prev => ({ ...prev, [id]: 'html' }))} className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${viewModes[id] === 'html' ? 'bg-cyan-600 text-white' : 'text-gray-500 hover:text-gray-300'}`}><Eye className="w-3 h-3 inline-block mr-2" /> Preview</button>
+                              <button onClick={() => setViewModes(prev => ({ ...prev, [id]: 'markdown' }))} className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${viewModes[id] === 'markdown' ? 'bg-cyan-600 text-white' : 'text-gray-500 hover:text-gray-300'}`}><Edit3 className="w-3 h-3 inline-block mr-2" /> Ret Indhold</button>
+                              <button onClick={() => setViewModes(prev => ({ ...prev, [id]: 'meta' }))} className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${viewModes[id] === 'meta' ? 'bg-cyan-600 text-white' : 'text-gray-500 hover:text-gray-300'}`}><Settings className="w-3 h-3 inline-block mr-2" /> Metadata</button>
                             </div>
-                        )}
-                    </div>
-                )}
-            </div>
-          </section>
-
-          {/* JOB INPUT */}
-          <section className="bg-[#112240] p-8 rounded-2xl shadow-2xl border border-white/5 relative">
-            <div className="grid md:grid-cols-2 gap-6 mb-6">
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Firma URL (Valgfrit)</label>
-                <input type="text" placeholder="https://firma.dk/job" className="w-full bg-[#0a192f] border border-white/10 rounded-xl p-4 text-gray-300 focus:border-cyan-500/50 outline-none transition-all" value={companyUrl} onChange={(e) => setCompanyUrl(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Personligt Hint (Valgfrit)</label>
-                <input type="text" placeholder="F.eks. Læg vægt på min ledelseserfaring..." className="w-full bg-[#0a192f] border border-white/10 rounded-xl p-4 text-gray-300 focus:border-cyan-500/50 outline-none transition-all" value={hint} onChange={(e) => setHint(e.target.value)} />
-              </div>
-            </div>
-            <div className="space-y-2 mb-8">
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Jobopslag (Indsæt tekst)</label>
-              <textarea className="w-full h-64 bg-[#0a192f] border border-white/10 rounded-2xl p-6 text-gray-300 focus:border-cyan-500/50 outline-none transition-all resize-none" value={jobText} onChange={(e) => setJobText(e.target.value)} />
-            </div>
-            <button onClick={results ? () => handleRefine('all', true) : handleGenerate} disabled={isLoading} className={`w-full py-5 rounded-2xl font-black uppercase tracking-[0.2em] transition-all text-sm ${isLoading ? 'bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-xl shadow-cyan-500/20'}`}>
-              {isLoading ? (
-                <span className="flex items-center justify-center gap-3">
-                  <span className="inline-block [transform:scaleX(-1)]">
-                    <span className="inline-block animate-spin [animation-direction:reverse] text-xl">🌀</span>
-                  </span> {statusMessage}
-                </span>
-              ) : (results ? '✨ Forfin alt med AI' : '🚀 Start Automatisering')}
-            </button>
-          </section>
-
-          {/* RESULTATER */}
-          {results && (
-            <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-              {/* AI LOGBOG */}
-              <div className="bg-cyan-950/20 border border-cyan-500/20 p-8 rounded-2xl relative overflow-hidden group">
-                <div className="absolute top-0 left-0 w-1 h-full bg-cyan-500"></div>
-                <h3 className="text-cyan-400 font-black mb-4 flex items-center gap-3 uppercase tracking-tighter italic">
-                  <span className="text-2xl">🧠</span> AI Ræsonnement (Redaktørens noter)
-                </h3>
-                <p className="text-gray-300 leading-relaxed italic text-sm group-hover:text-gray-100 transition-colors">
-                  {results.aiNotes ? `"${results.aiNotes}"` : "AI'en har optimeret dokumenterne baseret på din profil og jobopslaget."}
-                </p>
-              </div>
-
-              {/* DOKUMENTER */}
-              <div className="grid grid-cols-1 gap-12">
-                {['ansøgning', 'cv', 'match', 'ican'].map((id) => {
-                  const title = id === 'ansøgning' ? 'Ansøgning' : id === 'cv' ? 'CV' : id === 'match' ? 'Match Analyse' : 'ICAN+ Pitch';
-                  const { meta, body } = splitMarkdown(results.markdown[id] || "");
-                  
-                  return (
-                    <div key={id} className="bg-[#112240] rounded-2xl border border-white/5 shadow-2xl overflow-hidden flex flex-col h-[700px]">
-                      <div className="bg-white/5 px-6 py-4 flex justify-between items-center border-b border-white/5">
-                        <div className="flex flex-col">
-                          <span className="text-[10px] font-black text-cyan-500 uppercase tracking-widest mb-1">Dokument</span>
-                          <span className="text-sm font-bold text-white uppercase">{title}</span>
-                        </div>
-                        <div className="flex gap-1 bg-[#0a192f] p-1 rounded-xl">
-                          <button onClick={() => setViewModes(p => ({...p, [id]: 'html'}))} className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${viewModes[id] === 'html' ? 'bg-cyan-600 text-white' : 'text-gray-500 hover:text-gray-300'}`}>PREVIEW</button>
-                          <button onClick={() => setViewModes(p => ({...p, [id]: 'markdown'}))} className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${viewModes[id] === 'markdown' ? 'bg-cyan-600 text-white' : 'text-gray-500 hover:text-gray-300'}`}>RET INDHOLD</button>
-                          <button onClick={() => setViewModes(p => ({...p, [id]: 'meta'}))} className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${viewModes[id] === 'meta' ? 'bg-cyan-600 text-white' : 'text-gray-500 hover:text-gray-300'}`}>KONTAKT (META)</button>
-                        </div>
-                        <div className="flex gap-3 ml-4 border-l border-white/10 pl-4">
-                          <a href={results.links[id]?.pdf} target="_blank" rel="noreferrer" className="bg-red-600/20 hover:bg-red-600/40 text-red-400 text-[10px] font-bold px-4 py-2 rounded-lg transition-all border border-red-500/20">PDF</a>
-                        </div>
-                      </div>
-
-                      <div className="flex-1 p-6 relative">
-                        {viewModes[id] === 'html' && (
-                          <iframe srcDoc={results.html[id]} title={`Preview ${id}`} className="w-full h-full border-none rounded-xl bg-white shadow-2xl" />
-                        )}
-                        {viewModes[id] === 'markdown' && (
-                          <textarea 
-                            className="w-full h-full bg-[#0a192f] text-cyan-50 font-mono text-sm p-8 rounded-xl outline-none focus:ring-2 ring-cyan-500/20 resize-none shadow-inner" 
-                            value={body} 
-                            onChange={(e) => updateBody(id, e.target.value)} 
-                          />
-                        )}
-                        {viewModes[id] === 'meta' && (
-                          <div className="h-full flex flex-col space-y-4">
-                            <div className="bg-cyan-900/10 border border-cyan-500/20 p-4 rounded-xl">
-                              <p className="text-[10px] text-cyan-400 font-bold uppercase tracking-wider mb-1">Info</p>
-                              <p className="text-xs text-gray-400 italic">Her kan du rette dine kontaktdata og firmaets adresse. Disse data styrer brevhovedet i din PDF.</p>
-                            </div>
-                            <textarea 
-                              className="flex-1 bg-[#0a192f] text-yellow-200/80 font-mono text-sm p-8 rounded-xl outline-none focus:ring-2 ring-cyan-500/20 resize-none shadow-inner" 
-                              value={meta} 
-                              onChange={(e) => updateMetadata(id, e.target.value)} 
-                            />
                           </div>
-                        )}
+                          <div className="flex items-center gap-3">
+                            <a href={results.links[id]?.pdf} target="_blank" className="flex items-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 px-4 py-2 rounded-xl border border-red-500/20 text-[10px] font-black uppercase tracking-widest transition-all"><Download className="w-3 h-3" /> PDF</a>
+                          </div>
+                        </div>
+                        <div className="p-8">
+                          {viewModes[id] === 'html' && <div className="bg-white rounded-2xl shadow-inner min-h-[600px] overflow-hidden"><iframe srcDoc={results.html[id]} className="w-full h-[800px] border-none" title={title} /></div>}
+                          {viewModes[id] === 'markdown' && (
+                            <div className="bg-[#050505] rounded-2xl border border-white/5 overflow-hidden">
+                              <div className="px-6 py-3 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
+                                <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Markdown Editor</span>
+                                <span className="flex items-center gap-2 text-[9px] text-cyan-500/50 font-mono"><span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse"></span> FRONT_MATTER_v4.7.0</span>
+                              </div>
+                              <textarea value={body} onChange={(e) => updateBody(id, e.target.value)} className="w-full h-[600px] bg-transparent p-8 text-gray-300 font-mono text-[13px] leading-relaxed focus:outline-none resize-none" />
+                            </div>
+                          )}
+                          {viewModes[id] === 'meta' && (
+                            <div className="bg-[#050505] rounded-2xl border border-white/5 overflow-hidden">
+                              <div className="px-6 py-3 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
+                                <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Dokument Attributter (YAML)</span>
+                                <span className="text-[9px] text-gray-600 font-mono italic">Ret din adresse eller hilsen her</span>
+                              </div>
+                              <textarea value={results.metadata} onChange={(e) => updateMetadata(e.target.value)} className="w-full h-64 bg-transparent p-8 text-cyan-500/70 font-mono text-[12px] leading-relaxed focus:outline-none resize-none" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-6 pt-0">
+                          <button onClick={() => handleRefine(id, false)} disabled={isLoading} className={`w-full py-4 bg-white/5 hover:bg-cyan-600/20 text-white text-xs font-black uppercase tracking-[0.3em] rounded-xl transition-all border border-white/10 hover:border-cyan-500/50 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                            {isLoading ? '⏳ Gemmer...' : `💾 Gem alle rettelser i ${title}`}
+                          </button>
+                        </div>
                       </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
-                      <div className="p-6 pt-0">
-                        <button onClick={() => handleRefine(id, false)} className="w-full py-4 bg-white/5 hover:bg-cyan-600/20 text-white text-xs font-black uppercase tracking-[0.3em] rounded-xl transition-all border border-white/10 hover:border-cyan-500/50">
-                          💾 Gem alle rettelser i {title}
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
+        {activeTab === 'brutto' && (
+          <div className="space-y-8 animate-in fade-in duration-700">
+            <div className="flex items-center justify-between">
+              <div><h2 className="text-xl font-black text-white uppercase tracking-wider mb-1">Master CV</h2><p className="text-[10px] text-gray-500 uppercase tracking-[0.2em]">Din kilde til sandhed</p></div>
+              <div className="flex gap-3">
+                <button onClick={handleRenderMaster} className="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-white px-6 py-2.5 rounded-xl border border-white/10 text-[10px] font-black uppercase tracking-widest transition-all"><Eye className="w-3 h-3" /> Vis som HTML</button>
+                <button onClick={handleRefineMaster} disabled={isMasterLoading} className="flex items-center gap-2 bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-400 px-6 py-2.5 rounded-xl border border-cyan-500/30 text-[10px] font-black uppercase tracking-widest transition-all"><BrainCircuit className="w-3 h-3" /> AI Optimer</button>
+                <button onClick={() => handleSaveConfig('brutto')} disabled={isLoading || bruttoCv === originalBruttoCv} className={`flex items-center gap-2 ${bruttoCv === originalBruttoCv ? 'bg-gray-500/10 text-gray-500' : 'bg-green-600 hover:bg-green-500 text-white'} px-6 py-2.5 rounded-xl border border-white/10 text-[10px] font-black uppercase tracking-widest transition-all`}><Save className="w-3 h-3" /> Gem Ændringer</button>
               </div>
             </div>
-          )}
-        </main>
+            <div className="bg-[#0a0a0a] border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
+              <textarea value={bruttoCv} onChange={(e) => setBruttoCv(e.target.value)} className="w-full h-[700px] bg-transparent p-12 text-gray-300 font-mono text-sm leading-relaxed focus:outline-none resize-none" />
+            </div>
+          </div>
+        )}
 
-        <footer className="mt-24 pb-16 border-t border-white/5 pt-12 text-center">
-          <p className="text-[10px] text-gray-500 uppercase tracking-[0.4em] font-bold mb-4">
-            Job Application Agent MGN &copy; 2026
-          </p>
-          <p className="text-[9px] text-gray-600 italic max-w-lg mx-auto leading-loose">
-            Denne AI-drevne platform er skabt til at hjælpe dig med at lande dit drømmejob. 
-            Husk altid at læse dine dokumenter igennem før afsendelse. Held og lykke! 🚀
-          </p>
-        </footer>
-      </div>
+        {(activeTab === 'ai' || activeTab === 'layout') && (
+          <div className="space-y-8 animate-in fade-in duration-700">
+            <div className="flex items-center justify-between">
+              <div><h2 className="text-xl font-black text-white uppercase tracking-wider mb-1">{activeTab === 'ai' ? 'AI Agent System' : 'Visuelt Design'}</h2><p className="text-[10px] text-gray-500 uppercase tracking-[0.2em]">{activeTab === 'ai' ? 'Finjuster agentens personlighed' : 'Rediger HTML/CSS skabeloner'}</p></div>
+              <button onClick={() => handleSaveConfig(activeTab)} disabled={isLoading || templates[activeTab === 'ai' ? selectedAi : selectedLayout] === originalTemplates[activeTab === 'ai' ? selectedAi : selectedLayout]} className={`flex items-center gap-2 ${templates[activeTab === 'ai' ? selectedAi : selectedLayout] === originalTemplates[activeTab === 'ai' ? selectedAi : selectedLayout] ? 'bg-gray-500/10 text-gray-500' : 'bg-cyan-600 hover:bg-cyan-500 text-white'} px-8 py-3 rounded-xl border border-white/10 text-[10px] font-black uppercase tracking-widest transition-all`}><Save className="w-4 h-4" /> Gem Skabelon</button>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+              <div className="lg:col-span-1 space-y-4">
+                {(activeTab === 'ai' ? ['ai_instructions.md'] : ['master_layout.html', 'cv_layout.html', 'cv_layout.md', 'master_layout.md']).map(file => (
+                  <button key={file} onClick={() => activeTab === 'ai' ? setSelectedAi(file) : setSelectedLayout(file)} className={`w-full text-left px-6 py-4 rounded-2xl border transition-all text-[10px] font-black uppercase tracking-widest ${ (activeTab === 'ai' ? selectedAi : selectedLayout) === file ? 'bg-cyan-600/20 border-cyan-500/50 text-white shadow-lg shadow-cyan-500/10' : 'bg-white/5 border-white/5 text-gray-500 hover:bg-white/10'}`}>{file}</button>
+                ))}
+              </div>
+              <div className="lg:col-span-3">
+                <div className="bg-[#0a0a0a] border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
+                  <textarea value={templates[activeTab === 'ai' ? selectedAi : selectedLayout] || ''} onChange={(e) => { const file = activeTab === 'ai' ? selectedAi : selectedLayout; setTemplates(prev => ({ ...prev, [file]: e.target.value })); }} className="w-full h-[600px] bg-transparent p-12 text-gray-300 font-mono text-sm leading-relaxed focus:outline-none resize-none" />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
+
+      <footer className="mt-24 pb-16 border-t border-white/5 pt-12 text-center">
+        <p className="text-[10px] text-gray-500 uppercase tracking-[0.4em] font-bold mb-4">Job Application Agent MGN &copy; 2026</p>
+        <div className="flex items-center justify-center gap-6"><span className="w-1.5 h-1.5 rounded-full bg-cyan-500/30"></span><span className="text-[9px] text-gray-600 font-black uppercase tracking-widest">Designed by MGN</span><span className="w-1.5 h-1.5 rounded-full bg-cyan-500/30"></span></div>
+      </footer>
     </div>
   );
-};
+}
 
 export default App;

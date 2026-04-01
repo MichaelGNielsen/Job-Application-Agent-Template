@@ -8,7 +8,7 @@
   Brug af softwaren sker på eget ansvar.
 -->
 
-# Job Application Agent (v4.3.6)
+# Job Application Agent (v4.7.3)
 
 > **📣 Vi vil gerne høre fra dig!**
 > Har du brugt Agenten til din jobsøgning? Vi vil elske at høre om din oplevelse.
