@@ -88,6 +88,8 @@ Folder-Name: (Kort navn til mappe)
 ---MATCH---
 # Match Analyse
 
+[SCORE] XX% [/SCORE]
+
 (Skriv match analyse på dansk her. Brug overskriften "# Match Analyse" uden personnavn. Neutral tone, ingen buzzwords, faktuelt og ærligt.)
 
 **STRIKT REGEL FOR MATCH:**

@@ -1,9 +1,11 @@
 /**
- * Job Application Agent MGN - Frontend Unit Tests
- * Validerer UI-rendering og tab-navigation (v4.8.0).
+ * Job Application Agent Template
+ * 
+ * Designer: MGN (mgn@mgnielsen.dk)
+ * Copyright (c) 2026 MGN. All rights reserved.
  */
 
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import App from './App';
 import { expect, test, vi } from 'vitest';
 
@@ -17,11 +19,14 @@ vi.mock('socket.io-client', () => ({
 }));
 
 // Mock fetch for initial data loading
-global.fetch = vi.fn().mockImplementation((url) => {
-    if (url === '/api/version') return Promise.resolve({ json: () => Promise.resolve({ version: '4.8.0', instance: 'TEMPLATE', model: 'gemini-2.0-flash' }) });
+vi.stubGlobal('fetch', vi.fn().mockImplementation((url) => {
+    if (url === '/api/version') return Promise.resolve({ json: () => Promise.resolve({ version: '5.6.0', instance: 'MGN' }) });
     if (url === '/api/brutto') return Promise.resolve({ json: () => Promise.resolve({ content: '' }) });
-    return Promise.resolve({ json: () => Promise.resolve({ content: '' }) });
-});
+    if (url === '/api/config/instructions') return Promise.resolve({ json: () => Promise.resolve({ content: '' }) });
+    if (url === '/api/config/layout') return Promise.resolve({ json: () => Promise.resolve({ content: '' }) });
+    if (url === '/api/radar') return Promise.resolve({ json: () => Promise.resolve({ jobs: [], config: { radius: 30, baseCity: 'Aalborg' } }) });
+    return Promise.resolve({ json: () => Promise.resolve({}) });
+}));
 
 test('renders headline', async () => {
   render(<App />);
@@ -35,11 +40,18 @@ test('renders action button', async () => {
   expect(button).toBeDefined();
 });
 
-test('renders config tabs with correct labels', async () => {
+test('renders config tabs when opened', async () => {
   render(<App />);
-  // Check for the main tabs using the current v4.8.0 labels
-  expect(screen.getByText(/Generer/i)).toBeDefined();
-  expect(screen.getByText(/Master CV/i)).toBeDefined();
-  expect(screen.getByText(/AI Instrukser/i)).toBeDefined();
-  expect(screen.getByText(/Layout/i)).toBeDefined();
+  
+  // Åbn kartoteket
+  const configButton = screen.getByText(/System Kartotek/i);
+  fireEvent.click(configButton);
+
+  // Nu skal tabs være synlige
+  expect(screen.getAllByText(/Master CV/i).length).toBeGreaterThan(0);
+  expect(screen.getAllByText(/AI Prompts/i).length).toBeGreaterThan(0);
+  expect(screen.getByText(/Job-Radar/i)).toBeDefined();
+  
+  const designElements = screen.getAllByText(/Design/i);
+  expect(designElements.length).toBeGreaterThan(0);
 });

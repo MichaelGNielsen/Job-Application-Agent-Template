@@ -38,5 +38,5 @@ COPY . .
 # Eksponer porten
 EXPOSE 3002
 
-# Kør både server og worker (vi bruger en simpel start-kommando)
-CMD ["sh", "-c", "node server.js & node worker.js"]
+# Start server og worker øjeblikkeligt, og generer dokumentation i baggrunden efter 5 sekunder
+CMD ["sh", "-c", "node server.js & node worker.js & (sleep 5; npm run docs) & wait"]

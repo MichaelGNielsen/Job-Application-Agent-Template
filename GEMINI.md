@@ -8,7 +8,7 @@
   Brug af softwaren sker på eget ansvar.
 -->
 
-# GEMINI.md - Job Application Agent Template
+# GEMINI.md - Job Application Agent Template (Tintin Edition)
 
 Dette dokument fungerer som den primære instruks for Gemini CLI i dette projekt. Det definerer roller, arkitektur og workflow for at sikre konsistent og høj kvalitet i hjælpen til brugeren.
 
@@ -31,30 +31,15 @@ Du er en **Senior Softwareudvikler og Karriererådgiver**. Din opgave er at hjæ
 ## 📝 Kodestandarder & Principper
 1. **Markdown:** Brug altid `-` til lister (aldrig `*` eller `+`). Altid en tom linje efter overskrifter.
 2. **AI Tone of Voice:** Overhold "Jysk ærlighed" princippet: Direkte, nøgternt og uden floskler (ingen "krydsfelt" eller "passioneret").
-3. **Sikkerhed:** `.env` må ALDRIG commit'es eller logges.
+3. **Sikkerhed:** `.env_ai` må ALDRIG commit'es eller logges.
 4. **Validering:** Efter ændringer i templates eller logik, skal der altid køres en "Trial Run" (prøvekørsel) for at verificere outputtet.
 5. **Versionsstyring:** Ved hver væsentlig ændring eller ny feature SKAL versionsnummeret i `VERSION` filen opdateres, så det matcher fremskridtet i journalen.
-
-## 🛡️ Gyldne Regler for Commit & Push (Uafvigelelig Rækkefølge)
-
-Før enhver `git commit` eller `push` SKAL denne liste gennemføres punkt for punkt:
-
-1.  **Journal Først:** Opdater `docs/journal.md` med dagens rettelser, tekniske detaljer og den nye version (Dette er ALTID første step).
-2.  **Docker Cleanup (VIGTIGT):** Begge projekter (MGN & Template) er nu standardiseret til **Port 3000 (Frontend)** og **Port 3002 (Backend)**. Du SKAL altid køre `docker compose down` i den aktive mappe, før du skifter til den anden for at undgå port-konflikter.
-3.  **Versionsstyring (VIGTIGT):** Opdater versionsnummeret alle steder. Websiden læser versionen direkte fra filen i roden, der hedder `VERSION`:
-    -   I filen `VERSION` (Dette opdaterer versionsnummeret på selve websiden).
-    -   I projektets `README.md`.
-    -   I denne `GEMINI.md` fil.
-4.  **Validering (Unit Tests):**
-    -   Kør backend-tests i Docker: `docker exec jaa-backend npm test`.
-    -   Kør frontend-tests: `cd frontend && npm test`.
-5.  **Commit & Push (MGN):** Gennemfør `git add`, `git commit` og `git push`.
-6.  **Synkronisering (Template):** Flyt generiske rettelser til `Job-Application-Agent-Template` og gentag udrulnings-flowet dér.
+6. **Kodestandarder:** Følg altid de arkitektoniske og tekniske regler (Modularitet, Dependency Injection, etc.) defineret i `docs/coding_standards.md`.
 
 ## 🚀 Workflows
 
 ### 1. Vedligeholdelse af Master CV
-Når brugeren har ny erfaring, skal `data/brutto_cv.md` opdateres kirurgisk. Sørg for at stamdata (Navn, Adresse, etc.) følger formatet, så header-ekstraktionen virker. Husk at klikke **👁️ Vis HTML** for at verificere layoutet.
+Når brugeren har ny erfaring, skal `data/brutto_cv.md` opdateres kirurgisk. Sørg for at stamdata (Navn, Adresse, etc.) følger formatet, så header-ekstraktionen virker.
 
 ### 2. Udvikling af AI Instruktioner
 Ved ændringer i `templates/ai_instructions.md`, skal du sikre dig at alle mærkater (`---ANSØGNING---` etc.) bevares præcis som de er, da backenden afhænger af dem.
@@ -64,8 +49,10 @@ Ved ændringer i `templates/ai_instructions.md`, skal du sikre dig at alle mærk
 - Tjek `redis` status hvis jobs ikke starter.
 - Verificer at `GEMINI_API_KEY` is korrekt i `.env`.
 
-## 🌀 Visuel Signatur (Drebin Spinner)
-- Alle loading-animationer SKAL implementeres som en **"Drebin Spinner"**: Spejlet spiral (`scaleX(-1)`) der roterer visuelt med uret for en "indadborende" effekt.
+### 4. Vedligeholdelse af Status Journal & Test
+Før hver `git commit` og `push` SKAL du:
+1. Køre de automatiske unit-tests (`cd backend && npm test` og `cd frontend && npm test`) for at sikre, at intet er sprunget i luften.
+2. Opdatere `docs/journal.md` med dagens vigtigste ændringer, tekniske detaljer og milepæle. Dette sikrer fuld sporbarhed for brugeren.
 
 ## 🧠 Meta-Engineering & Best AI Practice
 
@@ -96,5 +83,4 @@ For at sikre optimal kompatibilitet med VS Code (især "Markdown All in One" ext
 7. **Niveauer:** Spring aldrig overskriftsniveauer over (MD001).
 
 ---
-*Sidst opdateret: 1. april 2026 (v4.8.1)*
-
+*Sidst opdateret: 2. april 2026 (v5.0.0)*

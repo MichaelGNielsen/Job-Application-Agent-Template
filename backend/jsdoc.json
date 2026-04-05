@@ -1,0 +1,21 @@
+{
+    "source": {
+        "include": ["services", "controllers", "utils", "server.js", "worker.js"],
+        "includePattern": ".+\\.js$",
+        "excludePattern": "(^|\\/|\\\\)_|node_modules"
+    },
+    "opts": {
+        "destination": "shared/docs/code/backend",
+        "recurse": true,
+        "readme": "shared/README.md",
+        "template": "node_modules/docdash"
+    },
+    "plugins": ["plugins/markdown"],
+    "docdash": {
+        "sectionOrder": ["Modules", "Classes", "Interfaces", "Global"],
+        "collapse": true,
+        "typedefs": true,
+        "search": true,
+        "commonNav": true
+    }
+}

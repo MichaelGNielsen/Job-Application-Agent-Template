@@ -13,7 +13,7 @@ Eksempel:
 
 ## 🔊 Verbosity Niveauer
 
-Du styrer mængden af log-output via `VERBOSE` variablen i din `.env` fil:
+Du styrer mængden af log-output via `VERBOSE` variablen i din `.env_ai` fil:
 
 1.  **`VERBOSE=""` (INFO0):** Kun fejl (ERROR), advarsler (WARNI) og helt basale status-beskeder.
 2.  **`VERBOSE="-v"` (INFO1):** Viser data-objekter, men afkorter dem ved 500 tegn for at spare plads.

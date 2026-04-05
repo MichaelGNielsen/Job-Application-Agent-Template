@@ -20,13 +20,6 @@ Dette dokument beskriver, hvordan vi containeriserer applikationen for at gøre 
 | **Backend** | Node (Debian) | Kører Express API, Socket.io og Gemini CLI. |
 | **Redis** | Redis (Alpine) | Fungerer som Message Broker for BullMQ køen. |
 
-## Vigtige Volume Mounts
-
-| Mount | Beskrivelse |
-| :--- | :--- |
-| `.:/app/shared` | Giver containeren adgang til projektmappen, så den kan læse `brutto_cv.md` og skrive til `output/`. |
-| `/home/mgn/.gemini:/root/.gemini` | **VIGTIGT:** Mapper din lokale Gemini CLI konfiguration ind i containeren. Dette sikrer, at din login-session (f.eks. via `gemini login`) og dine præferencer følger med ind i Docker, hvilket er nødvendigt for at Gemini CLI kan køre korrekt med din betalte profil. |
-
 ## Netværksflow (Guldstandarden)
 
 1. **Frontend** sender opgave til **Backend** via Socket.io/REST.
@@ -46,8 +39,6 @@ services:
 
   backend:
     build: ./backend
-    ports:
-      - "3002:3002"
     volumes:
       - .:/app/shared # Giver adgang til dine job-mapper
       - ~/.gemini:/root/.gemini # Mapper din lokale Gemini konfiguration ind

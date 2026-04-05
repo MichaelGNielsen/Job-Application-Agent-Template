@@ -15,14 +15,16 @@ services:
       - REDIS_HOST=redis
       - PORT=3002
       - TZ=Europe/Copenhagen
+      - AI_PROVIDER=${AI_PROVIDER:-gemini}
+      - OLLAMA_URL=${OLLAMA_URL:-http://host.docker.internal:11434}
+      - OPENCODE_URL=${OPENCODE_URL:-http://host.docker.internal:4096}
     env_file:
       - .env
     volumes:
       - ./backend:/app
       - /app/node_modules
-      - .env:/app/.env
       - .:/app/shared # Adgang til alle job mapperne
-      - /home/mgn/.gemini:/root/.gemini
+      - ~/.gemini:/root/.gemini # Lån hostens Google login credentials for at undgå API rate limits
     depends_on:
       - redis
     restart: unless-stopped
@@ -39,6 +41,7 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules # Forhindrer at node_modules bliver overskrevet af den tomme lokale mappe
+      - .:/app/shared # Adgang til dokumentation og output
     depends_on:
       - backend
     restart: unless-stopped

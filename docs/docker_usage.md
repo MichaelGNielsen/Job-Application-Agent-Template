@@ -14,7 +14,7 @@ Dette dokument beskriver, hvordan du håndterer Docker-miljøet og hvad du gør,
 
 ## 🐳 Docker Kommandoer
 
-> **⚠️ Navne-konflikter:** Da `MGN` og `Template` versionerne nu deler containernavne (`jaa-backend`, `jaa-frontend`, `jaa-redis`), skal du altid stoppe den ene før du starter den anden med `docker compose down`.
+> **⚠️ Navne-konflikter:** Da `MGN` og `Template` versionerne nu deler containernavne (`jaa-backend`, `jaa-frontend`, `jaa-redis`), skal du altid stoppe den ene før du starter den anden med `docker-compose down`.
 
 Når du har lavet ændringer i koden eller Dockerfile, skal containerne genopbygges:
 
@@ -45,7 +45,18 @@ docker compose ps
 
 ```
 
-## 🛠 WSL Fejlhåndtering (Kør disse i PowerShell på Windows)
+## 📂 Struktur & Mounts
+
+### node_modules (Placeholder mapper)
+Du vil måske bemærke tomme `node_modules/` mapper i hhv. `backend/` og `frontend/`. 
+**Disse må IKKE slettes.**
+
+De fungerer som "Mount Points" for Docker. Når containeren starter, installerer den biblioteker *inde* i containeren. For at forhindre at dine lokale (tomme) mapper overskriver de installerede filer, bruger vi en Docker-teknik kaldet "Anonymous Volumes". Hvis de lokale mapper slettes, kan Docker i visse tilfælde fejle ved opstart eller skabe uforudsigelige rettighedsproblemer.
+
+---
+
+## 🛠 WSL Fejlhåndtering
+ (Kør disse i PowerShell på Windows)
 
 Hvis WSL fryser, eller du bliver smidt ud ("Connection lost"), skal du bruge disse kommandoer i en **PowerShell** (tryk Win+X og vælg Terminal/PowerShell):
 

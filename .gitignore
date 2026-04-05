@@ -1,11 +1,16 @@
 node_modules/
 dist/
 .env
-.env
+.env_ai
 output/new/
 # data/* is removed to allow tracking of the data folder
 frontend/node_modules/
 backend/node_modules/
 *.log
 data/*.html
+docs/code/
+/tmp/prompt_*
+# Layout Templates (Explicitly allowed)
 templates/*.html
+!templates/cv_layout.html
+!templates/master_layout.html

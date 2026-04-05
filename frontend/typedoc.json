@@ -1,0 +1,12 @@
+{
+  "entryPoints": ["src/main.tsx"],
+  "out": "shared/docs/code/frontend",
+  "plugin": [],
+  "includeVersion": true,
+  "excludeExternals": true,
+  "excludeInternal": true,
+  "excludePrivate": true,
+  "hideGenerator": true,
+  "name": "Job Application Agent - Frontend",
+  "readme": "shared/README.md"
+}

@@ -1,4 +1,4 @@
-# Brugervejledning: Job Application Agent MGN (v4.1.0)
+# Brugervejledning: Job Application Agent MGN (v5.6.0)
 
 Denne guide forklarer de vigtigste funktioner i systemet, og hvordan du bruger dem til at skabe den perfekte ansøgningspakke.
 
@@ -37,11 +37,9 @@ Agenten detekterer automatisk sproget i jobopslaget.
 
 ---
 
-## 5. Avanceret: API Dokumentation (Swagger)
-For tekniske brugere og udviklere findes der en komplet interaktiv API-dokumentation. Her kan du udforske alle systemets funktioner og teste dem direkte.
-
-- **Krav:** Docker skal køre (`docker compose up -d`).
-- **URL:** `http://localhost:3002/api-docs`
+## 5. Udvikling & API Test (Swagger)
+For tekniske detaljer om systemets ruter, se vores dedikerede **[API Dokumentation](api.md)**. Her finder du også link til Swagger UI og eksempler på brug via terminalen.
 
 ---
-*Tip: Husk altid at tjekke "AI Ræsonnement" (den blå boks) for at se hvilken strategi agenten har valgt for det specifikke job. Gennemlæs altid dine dokumenter manuelt før afsendelse, og brug eventuelt "Forfin alt med AI" til et ekstra tjek for stavefejl, floskler og professionel tone.*
+*Tip: Husk altid at tjekke "AI Ræsonnement"
+ (den blå boks) for at se hvilken strategi agenten har valgt for det specifikke job. Gennemlæs altid dine dokumenter manuelt før afsendelse, og brug eventuelt "Forfin alt med AI" til et ekstra tjek for stavefejl, floskler og professionel tone.*
