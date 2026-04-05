@@ -114,24 +114,19 @@ class ApplicationService {
         if (!/^[a-z]{2}$/.test(lang)) lang = 'da';
 
         this._updateStatus(jobId, 'Laver autonom research på firmaet...');
-        const infoPrompt = `Udtræk firmanavn, jobtitel og by fra dette opslag: """${jobText.substring(0, 1500)}"""\nSvar KUN JSON: {"company": "Navn", "title": "Job", "location": "By"}`;
-        const infoRaw = await this.aiManager.call(infoPrompt, jobId);
-        const infoMatch = infoRaw.match(/\{[\s\S]*\}/);
-        if (!infoMatch) throw new Error("AI returnerede ikke gyldig JSON ved firma-identifikation");
-        const info = JSON.parse(infoMatch[0]);
+        const infoPrompt = `Du er en data-ekstraktor. Udtræk firmanavn, jobtitel og by fra dette opslag: """${jobText.substring(0, 1500)}"""\n\nDu SKAL svare i dette JSON format (ingen forklaring, ingen tekst udenom):\n{"company": "Navn", "title": "Job", "location": "By"}`;
+        const info = await this.aiManager.call(infoPrompt, jobId, null, true);
         
         let foundCompanyAddress = "";
         let companyContext = "";
         if (!companyUrl) {
-            const resPrompt = `Find officiel URL og adresse for "${info.company}" i "${info.location || 'Danmark'}". Svar JSON: {"url": "...", "address": "..."}`;
-            const resRaw = await this.aiManager.call(resPrompt, jobId);
-            const resMatch = resRaw.match(/\{[\s\S]*\}/);
-            if (!resMatch) {
-                this.logger.warn("ApplicationService", "AI returnerede ikke gyldig JSON ved firma-research, bruger default.");
-                companyUrl = "N/A";
-            } else {
-                const res = JSON.parse(resMatch[0]);
+            const resPrompt = `Find officiel URL og adresse for "${info.company}" i "${info.location || 'Danmark'}".\n\nDu SKAL svare i dette JSON format (ingen forklaring, ingen tekst udenom):\n{"url": "...", "address": "..."}`;
+            try {
+                const res = await this.aiManager.call(resPrompt, jobId, null, true);
                 companyUrl = res.url; foundCompanyAddress = res.address;
+            } catch (e) {
+                this.logger.warn("ApplicationService", "AI kunne ikke finde firma-data, bruger default.");
+                companyUrl = "N/A";
             }
             if (foundCompanyAddress) companyContext += `RELEVANT ADRESSE: ${foundCompanyAddress}\n`;
         }

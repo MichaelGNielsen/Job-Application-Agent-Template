@@ -107,8 +107,7 @@ class RadarService {
         const bruttoCv = this.fs.readFileSync(bruttoPath, 'utf8');
 
         const kwPrompt = `Baseret på dette CV, giv de 3 vigtigste tekniske søgeord og jobtitel. Svar kun JSON: {"keywords": ["ord1", "ord2"], "title": "titel"}\n\nCV: ${bruttoCv.substring(0, 800)}`;
-        const aiRes = await this.aiManager.call(kwPrompt, "radar_context");
-        const aiContext = JSON.parse(aiRes.match(/\{[\s\S]*\}/)[0]);
+        const aiContext = await this.aiManager.call(kwPrompt, "radar_context", null, true);
         const query = aiContext.keywords.join(' ');
 
         const foundJobs = await this._searchJobindex(query, radarData.config.baseCity);
@@ -157,8 +156,7 @@ class RadarService {
     async _scoreJob(job, bruttoCv) {
         try {
             const scorePrompt = `Vurdér matchet (0-100) og giv 2 korte grunde. Job: ${job.title} (${job.company}) ved ${job.location}. CV: ${bruttoCv.substring(0, 800)}. Svar kun JSON: {"score": 85, "reasons": ["...", "..."]}`;
-            const aiRes = await this.aiManager.call(scorePrompt, "radar_score");
-            return JSON.parse(aiRes.match(/\{[\s\S]*\}/)[0]);
+            return await this.aiManager.call(scorePrompt, "radar_score", null, true);
         } catch (e) { return null; }
     }
 
@@ -188,8 +186,7 @@ class RadarService {
                     const response = await this.fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
                     const html = await response.text();
                     const metaPrompt = `Udtræk jobtitel og firmanavn. URL: ${url}. Tekst: ${html.substring(0, 2000)}. Svar JSON: {"title": "...", "company": "..."}`;
-                    const metaRes = await this.aiManager.call(metaPrompt, radarJobId);
-                    const metaData = JSON.parse(metaRes.match(/\{[\s\S]*\}/)[0]);
+                    const metaData = await this.aiManager.call(metaPrompt, radarJobId, null, true);
                     finalTitle = metaData.title || finalTitle;
                     finalCompany = metaData.company || finalCompany;
                 } catch (e) {}

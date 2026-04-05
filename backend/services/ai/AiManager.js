@@ -85,11 +85,15 @@ class AiManager {
     }
 
     /**
-     * Sender en prompt til AI-køen og venter på resultatet
+     * Sender en prompt til AI-køen og venter på resultatet.
+     * @param {string} prompt 
+     * @param {string} jobId 
+     * @param {string|null} provider - Valgfri overstyring af provider.
+     * @param {boolean} json - Hvis true, forsøger vi at parse svaret som JSON.
      */
-    async call(prompt, jobId = "default", provider = null) {
+    async call(prompt, jobId = "default", provider = null, json = false) {
         const providerName = provider || this.defaultProvider;
-        this.logger.info("AiManager", `Lægger AI-job i køen (${providerName})`, { jobId });
+        this.logger.info("AiManager", `Lægger AI-job i køen (${providerName})`, { jobId, expectJson: json });
         
         const job = await this.aiQueue.add('ai_call', { 
             prompt, 
@@ -101,7 +105,34 @@ class AiManager {
         });
 
         // Vent på at jobbet bliver færdigt via QueueEvents
-        return await job.waitUntilFinished(this.queueEvents);
+        const result = await job.waitUntilFinished(this.queueEvents);
+
+        if (json) {
+            try {
+                // Find JSON blok (første {..} eller [..])
+                const jsonMatch = result.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+                if (jsonMatch) {
+                    return JSON.parse(jsonMatch[0]);
+                }
+                
+                // Fallback: Hvis ingen JSON blok blev fundet, prøv at lave en nød-JSON fra den rå tekst
+                this.logger.warn("AiManager", "Ingen JSON blok fundet, forsøger nød-fallback", { raw: result.substring(0, 100) });
+                return { 
+                    error: "Format fejl", 
+                    raw: result,
+                    // Vi returnerer et tomt objekt så systemet ikke crasher
+                    company: "Ukendt",
+                    title: "Ukendt",
+                    url: "N/A",
+                    address: ""
+                };
+            } catch (e) {
+                this.logger.error("AiManager", "Kritisk fejl ved parsing af AI svar", { error: e.message });
+                return { error: e.message, raw: result };
+            }
+        }
+
+        return result;
     }
 }
 
