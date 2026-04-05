@@ -116,15 +116,23 @@ class ApplicationService {
         this._updateStatus(jobId, 'Laver autonom research på firmaet...');
         const infoPrompt = `Udtræk firmanavn, jobtitel og by fra dette opslag: """${jobText.substring(0, 1500)}"""\nSvar KUN JSON: {"company": "Navn", "title": "Job", "location": "By"}`;
         const infoRaw = await this.aiManager.call(infoPrompt, jobId);
-        const info = JSON.parse(infoRaw.match(/\{[\s\S]*\}/)[0]);
+        const infoMatch = infoRaw.match(/\{[\s\S]*\}/);
+        if (!infoMatch) throw new Error("AI returnerede ikke gyldig JSON ved firma-identifikation");
+        const info = JSON.parse(infoMatch[0]);
         
         let foundCompanyAddress = "";
         let companyContext = "";
         if (!companyUrl) {
             const resPrompt = `Find officiel URL og adresse for "${info.company}" i "${info.location || 'Danmark'}". Svar JSON: {"url": "...", "address": "..."}`;
             const resRaw = await this.aiManager.call(resPrompt, jobId);
-            const res = JSON.parse(resRaw.match(/\{[\s\S]*\}/)[0]);
-            companyUrl = res.url; foundCompanyAddress = res.address;
+            const resMatch = resRaw.match(/\{[\s\S]*\}/);
+            if (!resMatch) {
+                this.logger.warn("ApplicationService", "AI returnerede ikke gyldig JSON ved firma-research, bruger default.");
+                companyUrl = "N/A";
+            } else {
+                const res = JSON.parse(resMatch[0]);
+                companyUrl = res.url; foundCompanyAddress = res.address;
+            }
             if (foundCompanyAddress) companyContext += `RELEVANT ADRESSE: ${foundCompanyAddress}\n`;
         }
 
