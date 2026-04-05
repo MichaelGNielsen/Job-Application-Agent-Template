@@ -16,15 +16,18 @@ services:
       - PORT=3002
       - TZ=Europe/Copenhagen
       - AI_PROVIDER=${AI_PROVIDER:-gemini}
-      - OLLAMA_URL=${OLLAMA_URL:-http://host.docker.internal:11434}
-      - OPENCODE_URL=${OPENCODE_URL:-http://host.docker.internal:4096}
+      - OLLAMA_URL=${OLLAMA_URL:-http://host.docker.internal:11435}
+      - OPENCODE_URL=${OPENCODE_URL:-http://host.docker.internal:4097}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     env_file:
       - .env
     volumes:
       - ./backend:/app
       - /app/node_modules
       - .:/app/shared # Adgang til alle job mapperne
-      - ~/.gemini:/root/.gemini # Lån hostens Google login credentials for at undgå API rate limits
+      #- ~/.gemini:/root/.gemini # Lån hostens Google login credentials for at undgå API rate limits
+      - /home/mgn/.gemini:/root/.gemini
     depends_on:
       - redis
     restart: unless-stopped
