@@ -1,14 +1,14 @@
 services:
   redis:
     image: redis:alpine
-    container_name: jaa-redis
+    container_name: jaa-templat-redis
     ports:
       - "6379:6379"
     restart: always
 
   backend:
     build: ./backend
-    container_name: jaa-backend
+    container_name: jaa-template-backend
     ports:
       - "3002:3002"
     environment:
@@ -35,7 +35,7 @@ services:
 
   frontend:
     build: ./frontend
-    container_name: jaa-frontend
+    container_name: jaa-template-frontend
     ports:
       - "3000:3000"
     environment:
