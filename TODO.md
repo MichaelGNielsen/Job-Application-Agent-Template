@@ -1,31 +1,38 @@
-# TODO LIST - JOB APPLICATION AGENT
+# 🚀 TODO: Job Application Agent
 
-Dette er den aktive roadmap for videreudvikling af agenten. Opgaverne er prioriteret efter deres værdi for ansøgerens workflow.
+## 🏗️ Næste Skridt: Konsolidering & Ny Feature-fokus (v5.6.x)
 
-## ✅ Færdiggjort (v4.3.0)
-- [x] **Robusthed (v4.3.0):** Hævet `maxBuffer` til 50MB for at håndtere tunge AI-kald og logs.
-- [x] **Log-Triggers (v4.3.0):** Nye test-scripts (`test_generate.sh`, `test_cv_refine.sh`) til API-verificering.
-- [x] **Docker Autentificering (v4.3.0):** Mapper `.gemini` folder ind i containeren for fuld profil-understøttelse.
-- [x] **Miljø-fil Standardisering (.env) (v4.2.6):** Omdøbt `.env_ai` til `.env` og samlet konfiguration centralt.
-- [x] **Master CV Visualizer (v4.1.0):** Automatisk HTML/PDF generering direkte fra Brutto-CV editor.
-- [x] **AI Refine (Master) (v4.2.0):** Interaktiv optimering af Brutto-CV med AI-logbog.
-- [x] **Drebin Spinner (v4.2.1):** Spejlet, indadborende loading-animation for visuel konsistens i hele UI.
-- [x] **Brugervejledning:** Oprettet `docs/usage_guide.md` og opdateret README.
-- [x] **Internationalisering (CV):** Bedre håndtering af job-specifikke oversættelser af historik.
+### 🧹 Sidste Arkitektonisk Oprydning
+- [x] **Test Refactoring:** Split `utils.test.js` op så den matcher den nye `utils/` struktur (f.eks. `logger.test.js`, `parser.test.js`).
+  - *Vigtigt:* Fix Jest timeout og "Open Handles" fejlen i `callLocalGemini()` testen (se `docs/jest_test_failure_log.md`).
+- [x] **Socket Service:** Flyt socket.io-logikken fra `server.js` til en dedikeret `services/SocketService.js`.
+- [ ] **JSDoc Færdiggørelse:** Gennemgå alle metoder i `ApplicationService.js` og tilføj manglende `@param` og `@returns` dokumentation.
+- [ ] **Swagger CSS:** Tilpas Swagger UI med projektets farver (mørkeblå/cyan) for et gennemført look.
+- [ ] **Swagger Path Validation:** Automatisk tjek om samtlige ruter defineret i koden er dokumenteret i Swagger.
+- [ ] **API Kontrakt-test:** Implementer avancerede kontrakt-tests (f.eks. Prism eller Dredd) for at sikre at API'et svarer præcis som dokumenteret.
 
-## 🚀 Roadmap / Kommende Features (v5.0+)
-- [ ] **Job-Radar (Proaktiv Search):** 🎯
-  - **Geofencing:** Radius-baseret søgning (f.eks. 30 km fra adresse i Brutto-CV).
-  - **Auto-Matcher:** Løbende søgning på portaler (Jobindex/LinkedIn) baseret på Brutto-CV kompetencer.
-  - **"Nye Muligheder" fane:** Dashboard med AI-scorede jobopslag og direkte import-knap.
-- [ ] **E-mail Integration:** Mulighed for at sende færdige PDF-pakker direkte fra UI'et.
-- [ ] **LinkedIn Parser:** Import af erhvervserfaring direkte fra profil-URL.
-- [ ] **Firma Research v2:** Dybere analyse af virksomhedens værdier og teknologiske stack (GitHub/Medium parsing).
-
-## 🛠️ Tekniske Forbedringer
-- [ ] **Redis Monitoring:** Bedre visualisering af kø-status i frontenden.
-- [ ] **GDPR Anonymisering:** Automatisk fjernelse af følsomme data ved eksport af logs.
-- [ ] **Vite v6 Opgradering:** Modernisering af frontend build-tooling.
+### 📡 Nye Features (Roadmap)
+- [ ] **Lokal AI Optimering:**
+  - [ ] **No-Placeholder Rule:** Tilføj strikse instrukser til prompten om aldrig at bruge `[PLACEHOLDERS]`. Modellen SKAL bruge data fra Brutto-CV.
+  - [ ] **Surgical Brutto-CV:** Implementer logik til at reducere størrelsen af Brutto-CV'et (fx kun relevante erfaringer) for at give AI'en mere context-overskud.
+- [ ] **Firma-Spejder:** Gør agenten bedre til at opdage helt nye virksomheder i Nordjylland automatisk.
+- [ ] **PDF-Deep-Scan:** Gør det muligt for crawleren at læse PDF-jobopslag direkte fra firma-sider (kræver `pdf-parse` integration).
+- [ ] **Historik-panel:** En ny fane i UI'en der viser alle tidligere genererede ansøgninger med søgefunktion.
 
 ---
-*Sidst opdateret: 28. marts 2026*
+
+## ✅ Gennemført (4. april 2026 - v5.6.0) 🏗️🚀
+- [x] **Fuld Backend Refactoring:** Controllers & Services implementeret. `server.js` og `worker.js` er nu slanke.
+- [x] **Fuld Frontend Refactoring:** Hooks (`useRadar`, `useApplication`) og modulære komponenter implementeret.
+- [x] **Utils Split:** `utils.js` er splittet i et rent bibliotek under `utils/`.
+- [x] **Låst Infrastruktur:** Porte (3000, 3002, 6379) og containernavne er faste.
+- [x] **Single Source of Truth:** Al konfiguration samlet i én `.env` fil.
+- [x] **Auto-Dokumentation:** JSDoc (Doxygen-style) genereres nu automatisk asynkront ved startup.
+- [x] **Frontend Logger:** Implementeret signatur-logger i browser-konsollen med CSS-styling.
+- [x] **Swagger Færdiggørelse:** Alle ruter er dokumenteret og tilgængelige via Swagger UI.
+- [x] **Lokal AI Fallback:** Ollama integreret i separat container med automatisk fallback fra Gemini ved timeout/rate-limits.
+- [x] **Ingen Hardcoding:** Person-data fjernet fra `.env`. Branding og initialer udledes nu dynamisk fra Master CV'et, hvilket gør systemet 100% template-klart.
+- [x] **AI Test Endpoint:** `/api/ai/test` tilføjet til Swagger for hurtig verifikation af AI-forbindelser.
+
+---
+*Sidst opdateret: 4. april 2026 (Efter arkitektonisk modernisering)*

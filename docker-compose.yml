@@ -16,8 +16,9 @@ services:
       - PORT=3002
       - TZ=Europe/Copenhagen
       - AI_PROVIDER=${AI_PROVIDER:-gemini}
-      - OLLAMA_URL=${OLLAMA_URL:-http://host.docker.internal:11435}
-      - OPENCODE_URL=${OPENCODE_URL:-http://host.docker.internal:4097}
+      - OLLAMA_URL=${OLLAMA_URL:-http://host.docker.internal:11434}
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-gemma2:9b}
+      - OPENCODE_URL=${OPENCODE_URL:-http://host.docker.internal:4096}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     env_file:
