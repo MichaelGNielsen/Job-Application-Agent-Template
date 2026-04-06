@@ -13,8 +13,13 @@ const execPromise = promisify(exec);
 async function saveUrlToPdf(url, outputPath) {
     try {
         logger.info("scraper", "Arkiverer jobopslag som PDF", { url, outputPath });
-        const cmd = `chromium-browser --headless --disable-gpu --no-sandbox --no-pdf-header-footer --print-to-pdf="${outputPath}" "${url}"`;
-        await execPromise(cmd);
+        // Vi tilføjer --virtual-time-budget for at give JS tid til at loade indholdet
+        // Vi tilføjer en hård timeout på 30 sekunder for at undgå at processen hænger
+        const cmd = `chromium-browser --headless --disable-gpu --no-sandbox --no-pdf-header-footer --virtual-time-budget=5000 --print-to-pdf="${outputPath}" "${url}"`;
+        await execPromise(cmd, {
+            timeout: 30000,
+            killSignal: 'SIGKILL'
+        });
         return true;
     } catch (error) {
         logger.error("scraper", "Fejl ved arkivering af jobopslag", { url }, error);

@@ -53,7 +53,7 @@ const radarService = new RadarService({
 const radarController = new RadarController({ radarService, jobQueue });
 
 const applicationController = new ApplicationController({
-    jobQueue, aiManager, rootDir, fs, path, logger, mdToHtml, wrap, printToPdf
+    jobQueue, aiManager, rootDir, fs, path, logger, mdToHtml, wrap, printToPdf, parseCandidateInfo, extractSection
 });
 
 const configController = new ConfigController({
@@ -103,6 +103,18 @@ app.get('/api/version', (req, res) => configController.getVersion(req, res));
 
 /**
  * @openapi
+ * /api/models:
+ *   get:
+ *     summary: Hent tilgængelige AI modeller for Gemini og Ollama
+ *     tags: [Config]
+ *     responses:
+ *       200:
+ *         description: Succes
+ */
+app.get('/api/models', (req, res) => configController.getModels(req, res));
+
+/**
+ * @openapi
  * /api/config/instructions:
  *   get:
  *     summary: Hent AI instruktioner
@@ -141,6 +153,25 @@ app.post('/api/config/layout', (req, res) => configController.saveLayout(req, re
 
 /**
  * @openapi
+ * /api/config/ai-prefs:
+ *   get:
+ *     summary: Hent AI præferencer
+ *     tags: [Config]
+ *     responses:
+ *       200:
+ *         description: Succes
+ *   post:
+ *     summary: Gem AI præferencer
+ *     tags: [Config]
+ *     responses:
+ *       200:
+ *         description: Succes
+ */
+app.get('/api/config/ai-prefs', (req, res) => configController.getAiPrefs(req, res));
+app.post('/api/config/ai-prefs', (req, res) => configController.saveAiPrefs(req, res));
+
+/**
+ * @openapi
  * /api/brutto:
  *   get:
  *     summary: Hent Master CV
@@ -169,6 +200,30 @@ app.post('/api/brutto', (req, res) => configController.saveBrutto(req, res));
  *         description: Succes
  */
 app.post('/api/brutto/refine', (req, res) => configController.refineBrutto(req, res));
+
+/**
+ * @openapi
+ * /api/brutto/render:
+ *   get:
+ *     summary: Render Master CV som HTML
+ *     tags: [Config]
+ *     responses:
+ *       200:
+ *         description: HTML preview returneres
+ */
+app.get('/api/brutto/render', (req, res) => configController.renderBrutto(req, res));
+
+/**
+ * @openapi
+ * /api/brutto/pdf:
+ *   get:
+ *     summary: Hent Master CV som PDF
+ *     tags: [Config]
+ *     responses:
+ *       200:
+ *         description: PDF fil returneres
+ */
+app.get('/api/brutto/pdf', (req, res) => configController.getPdf(req, res));
 
 /**
  * @openapi

@@ -123,8 +123,17 @@ export const RadarSection: React.FC<RadarSectionProps> = ({
             return (
               <>
                 <div className="bg-white/5 p-8 border-b border-white/5">
-                  <h2 className="text-2xl font-black text-white">{job.title}</h2>
-                  <p className="text-cyan-500 font-bold">{job.company} • {job.location}</p>
+                  <div className="flex justify-between items-start gap-4">
+                    <div>
+                        <h2 className="text-2xl font-black text-white">{job.title}</h2>
+                        <p className="text-cyan-500 font-bold">{job.company} • {job.location}</p>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                        <button onClick={() => onStartAutomation(job)} className="bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-2 rounded-lg font-black uppercase text-[10px] tracking-widest">🚀 Automatisér</button>
+                        <button onClick={() => onIgnoreJob(job.id)} className="bg-amber-600/20 hover:bg-amber-600/40 text-amber-400 border border-amber-500/20 px-6 py-2 rounded-lg font-black uppercase text-[10px] text-center">📁 Arkivér</button>
+                        <a href={job.url} target="_blank" rel="noreferrer" className="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg font-black text-[10px] uppercase text-center">🔗 Link</a>
+                    </div>
+                  </div>
                   <div className="flex gap-4 mt-4">
                     <div className="text-3xl font-black text-cyan-400">{job.matchScore}% <span className="text-[10px] text-gray-500 uppercase font-mono">Match</span></div>
                   </div>
@@ -133,10 +142,6 @@ export const RadarSection: React.FC<RadarSectionProps> = ({
                   {job.reasons.map((r, i) => (
                     <div key={i} className="bg-[#0a192f] p-4 rounded-xl text-xs text-gray-300 italic border border-white/5"><span className="text-cyan-500 mr-2">▹</span>{r}</div>
                   ))}
-                </div>
-                <div className="p-8 bg-[#0a192f]/50 border-t border-white/5 flex gap-4">
-                  <button onClick={() => onStartAutomation(job)} className="flex-1 bg-cyan-600 hover:bg-cyan-500 text-white py-4 rounded-xl font-black uppercase tracking-widest">🚀 Automatisér</button>
-                  <a href={job.url} target="_blank" rel="noreferrer" className="px-6 py-4 bg-white/5 text-white rounded-xl font-black">🔗 Link</a>
                 </div>
               </>
             );

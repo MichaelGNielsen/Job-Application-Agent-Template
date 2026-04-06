@@ -18,6 +18,12 @@ export const useConfig = () => {
   const [isMasterLoading, setIsMasterLoading] = useState(false);
   const [dirtyBrutto, setDirtyBrutto] = useState(false);
   const [masterPreviewHtml, setMasterPreviewHtml] = useState<string | null>(null);
+  const [bruttoViewMode, setBruttoViewMode] = useState<'markdown' | 'html'>('markdown');
+
+  const updateBruttoCv = (val: string) => {
+    setBruttoCv(val);
+    setDirtyBrutto(true);
+  };
 
   const loadConfig = async () => {
     logger.info("useConfig", "Indlæser system-konfiguration...");
@@ -81,12 +87,16 @@ export const useConfig = () => {
     logger.info("useConfig", "Genererer HTML-preview af Master CV...");
     try {
       const data = await apiService.renderBrutto();
-      if (data.success) {
+      if (data.html) {
         setMasterPreviewHtml(data.html);
+        setBruttoViewMode('html');
         logger.info("useConfig", "Preview genereret");
+        return true;
       }
+      return false;
     } catch (e) {
       logger.error("useConfig", "Kunne ikke generere preview", undefined, e);
+      return false;
     } finally { 
       setIsLoading(false); 
     }
@@ -94,11 +104,11 @@ export const useConfig = () => {
 
   return {
     version, instanceName, initials, modelName,
-    bruttoCv, setBruttoCv,
+    bruttoCv, setBruttoCv: updateBruttoCv,
     aiInstructions, setAiInstructions,
     masterLayout, setMasterLayout,
     isMasterLoading, dirtyBrutto, setDirtyBrutto,
-    masterPreviewHtml,
+    masterPreviewHtml, bruttoViewMode, setBruttoViewMode,
     loadConfig,
     handleSave,
     handleRefineMaster,

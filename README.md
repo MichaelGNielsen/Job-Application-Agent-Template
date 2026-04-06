@@ -81,6 +81,8 @@ For mere dybdegående information, se venligst følgende dokumenter:
 - [Job-Radar (Proaktiv Søgning)](docs/job_radar.md) - Hvordan radaren finder job til dig.
 - [Testvejledning](docs/test.md) - Hvordan du installerer og kører tests.
 - [Systemarkitektur](docs/architecture.md) - Overblik over systemets opbygning.
+- [Den Strategiske Pipeline (CoT)](docs/strategiske_pipeline.md) - Hvordan AI-genereringen orkestreres i 4 trin.
+- [Feature & Test Checklist (QA)](docs/feature_liste.md) - Tjekliste til at validere systemets kernefunktioner.
 - [TODO Liste](TODO.md) - Planlagte forbedringer og roadmap.
 - [Journal & Roadmap](docs/journal.md) - Projektets historik.
 - [GEMINI.md](GEMINI.md) - Instruktioner til AI-udviklere (Gemini CLI).

@@ -1,0 +1,139 @@
+{
+  "DOC_TITLE": "Ansøgning og CV til Software Engineer hos Coolshop",
+  "REDAKTORENS_LOGBOG": "Fokus har været på at fremhæve Michael Guldbæk Nielsens solide baggrund inden for systemdesign og softwareudvikling, med særlig vægt på hans erfaring med backend-systemer, automatisering og robust systemarkitektur, som matcher Coolshops behov. AI-kompetencer er vinklet mod effektivisering og problemknusning, uden at overdrive den direkte "e-commerce" erfaring, men i stedet fokusere på overførbare principper fra hans brede virke. Jeg har nedtonet specifikke embedded-detaljer og fremhævet de mere generelle softwareingeniør-kompetencer, der er relevante for en backend-rolle, samt hans evne til at tilegne sig nye teknologier (f.eks. nævnt Python/Django). Hans omfattende erfaring er anerkendt som en styrke, der understøtter den nævnte søgen efter "skarpe backend-udviklere" og muligheden for at "sætte retning", selvom jobopslaget nævner 1-3 års erfaring, da dybden i hans kompetencer og tilgang til problemløsning er yderst relevant.",
+  "LAYOUT_METADATA": {
+    "Sign-off": "Med venlig hilsen",
+    "Location": "Nørresundby",
+    "Date-Prefix": "den",
+    "Address": "Loftbrovej 28-30, 9400 Nørresundby",
+    "Folder-Name": "coolshop_Software_Engineer",
+    "Sender-Name": "Michael Guldbæk Nielsen",
+    "Sender-Address": "Niels Lykkes Gade 30, 9400 Nørresundby",
+    "Sender-Phone": "+45 20771641",
+    "Sender-Email": "mgn@mgnielsen.dk"
+  },
+  "ANSOGNING_CONTENT": "Att.: Tanja Kaysen
+We Compare
+Loftbrovej 28-30
+9400 Nørresundby
+
+
+Nørresundby, den 5. april 2026
+
+
+Vedrørende: Software Engineer hos Coolshop
+
+
+Jeg skriver for at udtrykke min interesse for stillingen som Software Engineer hos Coolshop, som opslået af We Compare. Med 25 års erfaring inden for systemdesign og softwareudvikling i performance-kritiske miljøer, er jeg motiveret for at bidrage til et team, der værdsætter høj kodekvalitet, ejerskab og hurtig eksekvering.
+
+Min baggrund dækker bredt, fra dybdegående systemintegration og robust fejlhåndtering til automatisering af processer. Jeg har en solid forståelse for at bygge skalerbare backend-arkitekturer, hvilket inkluderer erfaring med Linux-systemer og Python. Selvom den nævnte tech stack (Python/Django, Postgres, Elasticsearch, RabbitMQ, Redis) er ny for mig i visse dele, er jeg vant til hurtigt at tilegne mig nye teknologier og omsætte dem til driftssikre løsninger. Min profil er stærkt funderet i at tænke i løsninger før teknologi og et drive til at "gøre det smartere".
+
+På tværs af min karriere har jeg arbejdet med at optimere softwareprocesser, opbygge custom logningssystemer og test-API’er, hvilket stemmer overens med jeres fokus på at automatisere interne processer og sikre effektivitet. Min nysgerrighed på AI og automatisering, herunder lokale LLM-integrationer og agent-orkestrering, supplerer jeres brug af n8n og lignende løsninger.
+
+Jeg ser frem til at blive en del af et team, hvor faglig sparring og ejerskab er centralt, og hvor mine erfaringer med at bygge og optimere systemer kan spille en direkte rolle i Coolshops vækst og innovation. Min systematiske tilgang til problemløsning og fokus på at levere værdi stemmer godt overens med de forventninger, I stiller til jeres nye kollegaer.
+
+Med venlig hilsen
+Michael Guldbæk Nielsen",
+  "CV_CONTENT": "# CV - Michael Guldbæk Nielsen
+
+## Profil
+
+Jeg er en erfaren softwareingeniør med 25 års praksis inden for design og udvikling af komplekse systemer, der kræver høj stabilitet og performance. Min ekspertise ligger i backend-udvikling, systemintegration og automatisering af processer, med en dokumenteret evne til at omsætte innovative ideer til robuste løsninger. Jeg har en proaktiv tilgang til problemløsning, trives i dynamiske miljøer og er dedikeret til høj kodekvalitet. Jeg har erfaring med Python og er vant til at hurtigt at sætte mig ind i nye teknologistakke som Python/Django, Postgres, Elasticsearch, RabbitMQ og Redis for at levere konkrete resultater.
+
+## Erhvervserfaring
+
+### SW-udviklingsingeniør | Nilfisk (2023 – 2025)
+- Udvikling af BLE-platformsoftware og firmwareopdatering, herunder design af maskineabstraktionslag.
+
+### SW-udviklingsingeniør | Cobham-Satcom (2020 – 2023)
+- Radikal optimering af signalbehandlingsalgoritmer, der reducerede CPU-belastning med over 95%.
+- Design og implementering af fejltolerante systemer med automatiske genstarts-mekanismer for kritiske tjenester.
+- Ansvarlig for Audio-path, FIR/IIR-filtre, VoIP, REST-API, MQTT og JSON.
+
+### SW-udviklingsingeniør | Teejet Systems (2018 – 2020)
+- Udvikling af kategori-styret asynkront logningssystem med realtids-konfiguration via JSON.
+- Design og implementering af Hardware-abstraktionslag (HAL) til embedded Linux-projekter.
+
+### Konsulent | Commentor (2015 – 2016)
+- Fejlfinding og debugging af omfattende C# pakkesorteringssystemer for British Telecom.
+- Optimering af bagagesorteringsanlæg for Københavns Lufthavn.
+
+### SW-udviklingsingeniør | Asetek (2012 – 2014)
+- Design af TCP/IP-baseret kølesystem med Web API til overvågning.
+- Implementering af robust filtersystem til stabilisering af varmeudtræk i et distribueret sensorsystem.
+
+### SW-udviklingsingeniør / koordinator | Thrane & Thrane (2005 – 2008)
+- Systemdesign, protokol- og applikations-SW til maritime kommunikationssystemer (NMEA 0183, Radio Telex).
+
+### SW-udviklingsingeniør | Embedit (hos Thrane & Thrane) (2003 – 2004)
+- Design af MMI- og GUI-framework i C for ressource-begrænset hardware.
+- Implementering af deterministisk hukommelsesstyring og effektivt timer-system til realtids-operativsystemer.
+
+### SW-udviklingsingeniør | Texas Instruments WTBU (1999 – 2003)
+- Integration og fejlretning af dual-band GSM/GPRS core samt multi-slot support.
+- Udvikling af RF-kalibrering og testmode til produktion.
+
+## Uddannelse
+
+### Civilingeniør (cand.polyt.) i Systemdesign
+Aalborg Universitet (1989 – 1993). Specialisering i taleteknologi og digital signalbehandling.
+
+## Kernekompetencer
+
+- **Backend & Systemintegration:** Robust systemdesign, dataflow, automatisering, fejlhåndtering, skalérbare løsninger.
+- **Programmering:** Python, C, C++, Bash, Matlab, C#.
+- **Operativsystemer:** Linux (kernel-drivere, build-systemer), RTOS.
+- **Værktøjer & Processer:** Git, Jenkins (CI/CD), Unittest, Jira, test-API’er, custom logningssystemer.
+- **Protokoller:** TCP/IP, MQTT, REST-API, CAN, SPI, I2C, BLE, HTTP, SNMP.
+- **AI & Automation:** Local LLM deployment, Prompt Engineering, AI-assisteret kodning, AI-Agent Orchestration, n8n (anerkendelse af LowCode).
+
+## Udvalgte Projekter
+
+- **Job-Application-Agent-MGN:** Udvikling af lokal AI-agent i Python til generering af ansøgningsmateriale.
+- **GlobalSentinel:** Arkitektur for markedsovervågning og analyse med integration af data fra sub-agenter.
+- **AuraThermalControl:** Fjernovervågning og styring af gulvvarmesystemer via RPI/ESP32 og MQTT.
+- **AI-Forretningsanalyse:** Værktøj til generering af strategiske anbefalinger baseret på URL-analyse og LLM-behandling.
+
+## Sprog
+
+- **Dansk:** Flydende.
+- **Engelsk:** Avanceret.
+- **Tysk:** Begynder.
+
+## Fritid & Hobby
+
+Tekniske projekter (IoT, Arduino, HiFi), AI Research (LLM-integrationer, automatiserede workflows), og dybdegående interesse for elektronik og PC-teknologi.",
+  "ICAN_CONTENT": "### I – Interest / Interesse & Motivation
+
+Min interesse for stillingen som Software Engineer hos Coolshop bunder i muligheden for at arbejde med en moderne tech stack, herunder Python/Django, Postgres og Elasticsearch, i et miljø med høj fart og fokus på kodekvalitet. Jeg motiveres af at tage ansvar for egne områder og bidrage til løsninger, der direkte påvirker kunderejsen og interne processer. At være en del af et team, hvor faglig sparring og kollegialt engagement vægtes højt, appellerer meget til mig, da jeg trives med at dele viden og lære nyt. Den brede vifte af e-commerce områder, fra ordrehåndtering til automatisering, giver desuden et spændende spektrum af udfordringer, som jeg ser frem til at dykke ned i.
+
+### C – Credentials / Kvalifikationer & Baggrund
+
+Jeg medbringer 25 års erfaring inden for softwareudvikling og systemdesign, hvor jeg har arbejdet med at bygge og optimere komplekse, performance-kritiske backend-systemer. Min baggrund omfatter dybdegående erfaring med systemintegration, robust fejlhåndtering og automatisering af processer, ofte i Linux-baserede miljøer. Jeg har arbejdet med Python i forbindelse med AI-agent-udvikling og har en veludviklet evne til hurtigt at sætte mig ind i nye teknologier og platforme. Min tilgang er kendetegnet ved at tænke i løsninger, der skaber reel værdi, og jeg er vant til at levere høj kvalitet, selv under pres.
+
+### A – Accomplishments / Konkrete resultater
+
+**1. Algoritme-optimering med målbar effekt:** Hos Cobham-Satcom radikal optimerede jeg et 240-taps FIR-filter til et høj-effektivt SMA-energi-filter. Dette blev implementeret i bit-præcis fixed-point aritmetik, hvilket eliminerede floating-point drift og reducerede CPU-belastningen med over 95%. Dette sikrede maksimal performance og stabilitet i kritiske signalbehandlingssystemer.
+
+**2. Robust log-arkitektur til kompleks debugging:** Hos Teejet Systems udviklede jeg et kategori-styret asynkront logningssystem. Systemet tillod realtids-konfiguration af log-niveauer via JSON, uden at påvirke realtidsprocesser. Denne arkitektur forbedrede markant fejlfindingsprocessen i komplekse embedded Linux-systemer, hvilket muliggjorde hurtigere identifikation og løsning af problemer.
+
+**3. Effektiviserende AI-agent-udvikling:** Jeg har udviklet en lokal AI-agent (Job-Application-Agent-MGN i Python) til målrettet generering af ansøgningsmateriale. Dette projekt demonstrerer min evne til at udnytte AI til at automatisere og optimere processer, samt min praktiske erfaring med Python og LLM-integration – færdigheder der er direkte overførbare til jeres arbejde med automatisering og eventuel LowCode-udvikling.
+
+### N – Next steps / Hvorfor mig & bidrag fremad
+
+Jeg vil bidrage til Coolshop med min omfattende erfaring i at designe og implementere robuste backend-løsninger, min evne til at optimere komplekse systemer og mit drive for at automatisere processer. Jeg er klar til at tage ejerskab for interne services og processer og sikre, at de understøtter Coolshops vækstambitioner. Jeg ser mig selv som en teamplayer, der er klar til at dele min viden og samtidig lære af teamets eksisterende ekspertise. Jeg er særligt interesseret i at bidrage til jeres e-commerce platform og arbejde med den nævnte tech stack, hvor jeg hurtigt vil opbygge specialiseret viden.
+
+### + (Det ekstra)
+
+Min dybe interesse for tekniske projekter i fritiden, herunder IoT-løsninger og AI Research med LLM-integrationer, afspejler min nysgerrighed og lyst til at "nørde" og finde smartere løsninger. Denne proaktive tilgang til teknologi sikrer, at jeg ikke blot implementerer, men også aktivt udforsker nye veje til at optimere og innovere. Jeg har desuden mangeårig erfaring med at bygge custom developer tooling, hvilket jeg tror vil være en fordel i et team, der værdsætter automatisering og effektivisering af workflows, herunder brugen af n8n.",
+  "MATCH_CONTENT": "# Match Analyse
+
+[SCORE] 85% [/SCORE]
+
+Jeg ser et stærkt match mellem min profil og kravene til stillingen som Software Engineer hos Coolshop. Jobbeskrivelsen søger en skarp backend-udvikler, der trives med høj fart og kodekvalitet, hvilket stemmer overens med mine 25 års erfaring med komplekse, performance-kritiske systemer. Min baggrund i systemdesign, robusthed og fejlhåndtering, samt en proaktiv tilgang til automatisering, er direkte relevant for opgaverne med at udvikle og vedligeholde Coolshops e-commerce platform og interne processer.
+
+Jobbet efterspørger 1-3 års professionel erfaring, hvilket jeg overgår markant. Denne dybde i erfaringen giver mig dog en solid ballast til at tage ansvar, sætte retning og bidrage med værdifuld sparring til teamet, som også nævnes i opslaget. Selvom jeg ikke har direkte erfaring med hele den specifikke tech stack (Python/Django, Postgres, Elasticsearch, RabbitMQ, Redis), har jeg solid Python-erfaring og en dokumenteret evne til hurtigt at tilegne mig nye teknologier. Dette afspejles i min konstante AI Research og IoT-projekter, som viser et drive til at "nørde" og onboarde nye teknologier.
+
+Min erfaring med at designe og udvikle løsninger, der skaber værdi, samt min evne til at samarbejde med stakeholders, passer godt til rollen. Mit fokus på procesoptimering og opbygning af custom developer tooling understøtter Coolshops ambitioner om automatisering og effektivisering, herunder brugen af LowCode-løsninger som n8n. Min tilgang er at tænke i løsninger før teknologi og aktivt bidrage til at "gøre det smartere".",
+  "MIT_NAVN": "Michael Guldbæk Nielsen"
+}

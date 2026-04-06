@@ -9,6 +9,10 @@ export const apiService = {
     const res = await fetch('/api/version');
     return res.json();
   },
+  async getModels() {
+    const res = await fetch('/api/models');
+    return res.json();
+  },
 
   // Master CV & Config
   async getBrutto() {
@@ -61,6 +65,18 @@ export const apiService = {
     });
     return res.json();
   },
+  async getAiPrefs() {
+    const res = await fetch('/api/config/ai-prefs');
+    return res.json();
+  },
+  async saveAiPrefs(prefs: any) {
+    const res = await fetch('/api/config/ai-prefs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(prefs),
+    });
+    return res.json();
+  },
 
   // Radar
   async getRadar() {
@@ -105,7 +121,7 @@ export const apiService = {
   },
 
   // Generation & Refine
-  async generate(data: { jobText: string, companyUrl: string, hint: string }) {
+  async generate(data: any) {
     const res = await fetch('/api/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -113,7 +129,7 @@ export const apiService = {
     });
     return res.json();
   },
-  async refine(data: { folder: string, type: string, markdown: string, useAi: boolean, hint: string }) {
+  async refine(data: any) {
     const res = await fetch('/api/refine', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

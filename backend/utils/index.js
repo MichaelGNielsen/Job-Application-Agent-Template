@@ -16,6 +16,7 @@ const wrapAll = require('./wrapAll');
 const fetchCompanyContent = require('./fetchCompanyContent');
 const saveUrlToPdf = require('./saveUrlToPdf');
 const generateMasterDocs = require('./generateMasterDocs');
+const { getLocalISOTime, getFileSafeTimestamp } = require('./timeUtils');
 
 module.exports = {
     logger,
@@ -29,5 +30,7 @@ module.exports = {
     wrapAll,
     fetchCompanyContent,
     saveUrlToPdf,
-    generateMasterDocs
+    generateMasterDocs,
+    getLocalISOTime,
+    getFileSafeTimestamp
 };

@@ -7,7 +7,8 @@ jest.mock('fs', () => ({
     readFileSync: jest.fn(() => '<html><body>{{CONTENT}}</body></html>'),
     existsSync: jest.fn(() => true),
     unlinkSync: jest.fn(),
-    copyFileSync: jest.fn()
+    copyFileSync: jest.fn(),
+    statSync: jest.fn(() => ({ size: 1024 }))
 }));
 
 jest.mock('child_process', () => ({

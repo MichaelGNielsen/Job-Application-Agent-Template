@@ -10,15 +10,16 @@ class OllamaProvider {
         this.model = deps.model || process.env.OLLAMA_MODEL || "llama3.2:3b";
     }
 
-    async call(prompt, jobId = "default") {
-        this.logger.info("OllamaProvider", `Sender til Ollama (${this.model})`, { url: this.baseUrl, tegn: prompt.length });
+    async call(prompt, jobId = "default", aiModel = null) {
+        const modelToUse = aiModel || this.model;
+        this.logger.info("OllamaProvider", `Sender til Ollama (${modelToUse})`, { url: this.baseUrl, tegn: prompt.length });
         
         try {
             const response = await fetch(`${this.baseUrl}/api/generate`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    model: this.model,
+                    model: modelToUse,
                     prompt: prompt,
                     stream: false
                 })

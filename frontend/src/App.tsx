@@ -18,7 +18,7 @@ import { ConfigSection } from './components/ConfigSection';
 import { ResultSection } from './components/ResultSection';
 
 // Utils
-import { getInitials, splitMarkdown } from './utils/helpers';
+import { getInitials } from './utils/helpers';
 
 const socket = io();
 
@@ -31,7 +31,7 @@ const App: React.FC = () => {
   // 2. UI States
   const [activeTab, setActiveTab] = useState<'brutto' | 'ai' | 'layout' | 'radar'>('brutto');
   const [showConfig, setShowConfig] = useState(false);
-  const [viewModes, setViewModes] = useState<{ [key: string]: 'html' | 'markdown' | 'meta' }>({
+  const [viewModes, setViewModes] = useState<{ [key: string]: 'html' | 'markdown' }>({
     ansøgning: 'html', cv: 'html', match: 'html', ican: 'html'
   });
 
@@ -68,19 +68,7 @@ const App: React.FC = () => {
   // 4. Handlers
   const handleUpdateBody = (id: string, newBody: string) => {
     if (!app.results) return;
-    const { meta, tag } = splitMarkdown(app.results.markdown[id]);
-    const finalTag = tag || id.toUpperCase();
-    const newFullMd = `---LAYOUT_METADATA---\n${meta}\n---${finalTag}---\n${newBody}`;
-    app.setResults({ ...app.results, markdown: { ...app.results.markdown, [id]: newFullMd } });
-    app.setDirtyDocs((prev: any) => ({ ...prev, [id]: true }));
-  };
-
-  const handleUpdateMetadata = (id: string, newMeta: string) => {
-    if (!app.results) return;
-    const { body, tag } = splitMarkdown(app.results.markdown[id]);
-    const finalTag = tag || id.toUpperCase();
-    const newFullMd = `---LAYOUT_METADATA---\n${newMeta}\n---${finalTag}---\n${body}`;
-    app.setResults({ ...app.results, markdown: { ...app.results.markdown, [id]: newFullMd } });
+    app.setResults({ ...app.results, markdown: { ...app.results.markdown, [id]: newBody } });
     app.setDirtyDocs((prev: any) => ({ ...prev, [id]: true }));
   };
 
@@ -99,7 +87,7 @@ const App: React.FC = () => {
                 Job Application Agent <span className="text-cyan-500">{config.instanceName}</span>
               </h1>
               <p className="text-gray-400 font-mono text-[10px] tracking-[0.2em] uppercase">
-                {config.version} | <span className="text-cyan-500/80">{config.modelName}</span> | AUTOMATION ENGINE
+                {config.version} | <span className="text-cyan-500/80">{app.aiProvider === 'default' ? config.modelName : app.aiProvider.toUpperCase()}</span> | AUTOMATION ENGINE
               </p>
             </div>
           </div>
@@ -128,8 +116,8 @@ const App: React.FC = () => {
               isMasterLoading={config.isMasterLoading}
               statusMessage={app.statusMessage}
               dirtyBrutto={config.dirtyBrutto}
-              bruttoViewMode={config.masterPreviewHtml ? 'html' : 'markdown'}
-              setBruttoViewMode={() => {}}
+              bruttoViewMode={config.bruttoViewMode}
+              setBruttoViewMode={config.setBruttoViewMode}
               masterPreviewHtml={config.masterPreviewHtml}
               onSave={(type) => config.handleSave(type, app.setIsLoading, app.setStatusMessage)}
               onRefineMaster={() => config.handleRefineMaster(app.hint, app.setStatusMessage)}
@@ -159,7 +147,8 @@ const App: React.FC = () => {
               onSaveConfig={() => radar.handleSaveConfig(app.setIsLoading, app.setStatusMessage)}
               onIgnoreJob={radar.handleIgnore}
               onStartAutomation={(job) => {
-                app.setJobText(`URL: ${job.url}\n\nStilling: ${job.title}\nFirma: ${job.company}\n\nBeskrivelse...`);
+                const reasonsHint = job.reasons.length > 0 ? `\n\nRADAR ANALYSE GRUNDE:\n- ${job.reasons.join('\n- ')}` : "";
+                app.setJobText(`URL: ${job.url}\n\nStilling: ${job.title}\nFirma: ${job.company}\n\nBeskrivelse...${reasonsHint}`);
                 app.setCompanyUrl(job.url);
                 radar.handleStatusUpdate(job.id, 'applied');
                 setShowConfig(false);
@@ -170,22 +159,71 @@ const App: React.FC = () => {
 
           {/* Input Form */}
           <section className="bg-[#112240] p-8 rounded-2xl shadow-2xl border border-white/5 relative">
+            <div className="flex justify-between items-center mb-8 border-b border-white/5 pb-6">
+              <h2 className="text-xl font-bold text-white flex items-center gap-3">
+                <span className="text-cyan-500 text-2xl">📝</span> Konfigurér Ansøgning
+              </h2>
+              {(app.results || app.jobText || app.companyUrl) && (
+                <button 
+                  onClick={app.resetSession}
+                  className="px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-all"
+                >
+                  🗑️ Ryd & Start Forfra
+                </button>
+              )}
+            </div>
+
             <div className="grid md:grid-cols-2 gap-6 mb-6">
               <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Firma URL (Valgfrit)</label>
                 <input type="text" placeholder="https://firma.dk/job" className="w-full bg-[#0a192f] border border-white/10 rounded-xl p-4 text-gray-300 focus:border-cyan-500/50 outline-none transition-all" value={app.companyUrl} onChange={(e) => app.setCompanyUrl(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Personligt Hint (Valgfrit)</label>
-                <input type="text" placeholder="F.eks. Fokus på ledelse..." className="w-full bg-[#0a192f] border border-white/10 rounded-xl p-4 text-gray-300 focus:border-cyan-500/50 outline-none transition-all" value={app.hint} onChange={(e) => app.setHint(e.target.value)} />
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">AI Model Vælger</label>
+                <div className="flex gap-2">
+                  <select 
+                    className="flex-1 bg-[#0a192f] border border-white/10 rounded-xl p-4 text-gray-300 focus:border-cyan-500/50 outline-none transition-all appearance-none cursor-pointer"
+                    value={app.aiProvider}
+                    onChange={(e) => app.setProviderAndModel(e.target.value as any)}
+                  >
+                    <option value="default">🤖 Auto (Gemini m. Fallback)</option>
+                    <option value="gemini">✨ Google Gemini</option>
+                    <option value="opencode">💻 OpenCode (Local LLM)</option>
+                    <option value="ollama">🏠 Lokal Ollama</option>
+                  </select>
+                  {app.aiProvider === 'gemini' && app.availableModels.gemini.length > 0 && (
+                    <select
+                      className="flex-1 bg-[#0a192f] border border-white/10 rounded-xl p-4 text-gray-300 focus:border-cyan-500/50 outline-none transition-all appearance-none cursor-pointer"
+                      value={app.aiModel}
+                      onChange={(e) => app.setAiModel(e.target.value)}
+                    >
+                      <option value="">-- Vælg specifik model --</option>
+                      {app.availableModels.gemini.map(m => <option key={m} value={m}>{m}</option>)}
+                    </select>
+                  )}
+                  {app.aiProvider === 'ollama' && app.availableModels.ollama.length > 0 && (
+                    <select
+                      className="flex-1 bg-[#0a192f] border border-white/10 rounded-xl p-4 text-gray-300 focus:border-cyan-500/50 outline-none transition-all appearance-none cursor-pointer"
+                      value={app.aiModel}
+                      onChange={(e) => app.setAiModel(e.target.value)}
+                    >
+                      <option value="">-- Vælg specifik model --</option>
+                      {app.availableModels.ollama.map(m => <option key={m} value={m}>{m}</option>)}
+                    </select>
+                  )}
+                </div>
               </div>
+            </div>
+            <div className="space-y-2 mb-6">
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Personligt Hint (Valgfrit)</label>
+              <input type="text" placeholder="F.eks. Fokus på ledelse..." className="w-full bg-[#0a192f] border border-white/10 rounded-xl p-4 text-gray-300 focus:border-cyan-500/50 outline-none transition-all" value={app.hint} onChange={(e) => app.setHint(e.target.value)} />
             </div>
             <div className="space-y-2 mb-8">
               <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Jobopslag (Indsæt tekst)</label>
               <textarea className="w-full h-64 bg-[#0a192f] border border-white/10 rounded-2xl p-6 text-gray-300 focus:border-cyan-500/50 outline-none transition-all resize-none" value={app.jobText} onChange={(e) => app.setJobText(e.target.value)} />
             </div>
             <button 
-              onClick={app.results ? () => app.handleRefine('all', true) : app.handleGenerate} 
+              onClick={(app.results && app.jobText === app.results.jobText) ? () => app.handleRefine('all', true) : app.handleGenerate} 
               disabled={app.isLoading} 
               className={`w-full py-5 rounded-2xl font-black uppercase tracking-[0.2em] transition-all text-sm ${app.isLoading ? 'bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-xl shadow-cyan-500/20'}`}
             >
@@ -195,7 +233,7 @@ const App: React.FC = () => {
                     <span className="inline-block animate-spin [animation-direction:reverse] text-xl">🌀</span>
                   </span> {app.statusMessage}
                 </span>
-              ) : (app.results ? '✨ Forfin alt med AI' : '🚀 Start Automatisering')}
+              ) : ((app.results && app.jobText === app.results.jobText) ? '✨ Forfin alt med AI' : '🚀 Start Automatisering')}
             </button>
           </section>
 
@@ -206,10 +244,9 @@ const App: React.FC = () => {
               viewModes={viewModes}
               setViewMode={(id, mode) => setViewModes(p => ({...p, [id]: mode}))}
               dirtyDocs={app.dirtyDocs}
-              onRefine={app.handleRefine}
+              onRefine={(id, useAi, h) => app.handleRefine(id, useAi, h)}
               onUpdateBody={handleUpdateBody}
-              onUpdateMetadata={handleUpdateMetadata}
-              splitMarkdown={splitMarkdown}
+              isLoading={app.isLoading}
             />
           )}
         </main>

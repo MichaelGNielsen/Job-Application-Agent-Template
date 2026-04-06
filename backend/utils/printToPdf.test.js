@@ -5,7 +5,8 @@ const fs = require('fs');
 jest.mock('fs', () => ({
     copyFileSync: jest.fn(),
     existsSync: jest.fn(() => true),
-    unlinkSync: jest.fn()
+    unlinkSync: jest.fn(),
+    statSync: jest.fn(() => ({ size: 1024 }))
 }));
 
 jest.mock('child_process', () => ({

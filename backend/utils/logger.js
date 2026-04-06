@@ -4,6 +4,7 @@
  */
 
 const path = require('path');
+const { getLocalISOTime } = require('./timeUtils');
 
 const chalk = {
     red: (msg) => `\x1b[31m${msg}\x1b[0m`,
@@ -43,7 +44,7 @@ const logger = {
     },
     format: (type, funcName, msg, data, levelOverride) => {
         const v = levelOverride !== undefined ? levelOverride : logger.getLevel();
-        const ts = new Date().toISOString();
+        const ts = getLocalISOTime() + 'Z'; // Tilføjer Z for at matche log-formatet visuelt, men med lokal tid
         const caller = logger.getCaller();
         let levelLabel = 'INFO0';
         if (type === 'warn')  levelLabel = 'WARNI';

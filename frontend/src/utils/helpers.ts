@@ -17,7 +17,7 @@ export const splitMarkdown = (fullMd: string) => {
   
   for (let i = 1; i < sections.length; i += 2) {
     const tag = sections[i];
-    const content = (sections[i+1] || "").replace(/^(\r\n|\n)/, "").replace(/(\r\n|\n)$/, "");
+    const content = (sections[i+1] || "").trim();
     if (tag === 'LAYOUT_METADATA') {
       meta = content;
     } else if (['ANSØGNING', 'CV', 'MATCH', 'MATCH_ANALYSE', 'ICAN', 'ICAN+_PITCH'].includes(tag.toUpperCase())) {

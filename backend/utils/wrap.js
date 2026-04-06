@@ -58,8 +58,6 @@ const wrap = (t, c, type = 'ansøgning', meta = {}, candidate = {}, lang = 'da',
     }
 
     let cleanContent = c;
-    cleanContent = cleanContent.replace(/---LAYOUT_METADATA---[\s\S]*?(?=---[A-ZÆØÅ_]+---|$)/gi, '');
-    cleanContent = cleanContent.replace(/---[A-ZÆØÅ_]+---/gi, '');
     
     let scoreHtml = "";
     const scoreMatch = cleanContent.match(/\[SCORE\]\s*(.*?)\s*\[\/SCORE\]/i);

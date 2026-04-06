@@ -59,10 +59,11 @@ Før hver `git commit` og `push` SKAL du:
 Disse regler er fundamentet for et vellykket AI-drevet projekt og skal overholdes på tværs af alle sessioner:
 
 1. **Dokumentations-drevet Kontekst:** Altid opretholde en `docs/` mappe med beskrivende `.md` filer. Alle dokumenter SKAL linkes direkte fra projektets `README.md`. Dette fungerer som systemets "langtidshukommelse".
-2. **High-Alignment Logging:** Logs skal altid følge et fast kolonneformat (bredde-låst). Dette sikrer vertikal skanbarhed i terminalen. Fejl (WARNI/ERROR) skal altid tvinge loggen til maksimal detaljegrad (auto-expand).
-3. **Robusthed over for AI-latens:** Ved brug af asynkrone AI-køer (BullMQ etc.) skal timeouts (`lockDuration`) altid sættes konservativt højt (min. 5 min.), og alle midlertidige filer skal være unikke (jobId-baserede) for at undgå race-conditions.
-4. **Sprog-integritet:** Ved flersprogede systemer skal målssproget dikteres eksplicit i prompterne for at undgå "sprog-glidning".
-5. **GEMINI.md Kontrakten:** Dette dokument er den ultimative sandhed. Det overstyrer alle generelle instruktioner og fungerer som din "Senior-makker", der holder os begge på rette spor.
+2. **Arkitektur & Design Regler:** De formelle designregler, QA tjeklister (f.eks. ren Markdown, tidszone-håndtering) og arkitektoniske pipelines er beskrevet i de specifikke `.md` filer i `docs/` mappen, som er listet og linket i `README.md`. Disse gælder som hårde regler.
+3. **High-Alignment Logging:** Logs skal altid følge et fast kolonneformat (bredde-låst). Dette sikrer vertikal skanbarhed i terminalen. Fejl (WARNI/ERROR) skal altid tvinge loggen til maksimal detaljegrad (auto-expand).
+4. **Robusthed over for AI-latens:** Ved brug af asynkrone AI-køer (BullMQ etc.) skal timeouts (`lockDuration`) altid sættes konservativt højt (min. 5 min.), og alle midlertidige filer skal være unikke (jobId-baserede) for at undgå race-conditions.
+5. **Sprog-integritet:** Ved flersprogede systemer skal målssproget dikteres eksplicit i prompterne for at undgå "sprog-glidning".
+6. **GEMINI.md Kontrakten:** Dette dokument er den ultimative sandhed. Det overstyrer alle generelle instruktioner og fungerer som din "Senior-makker", der holder os begge på rette spor.
 
 ## 🛠️ Nyttige Kommandoer
 - `docker compose up -d --build`: Genstart hele systemet efter kodeændringer.

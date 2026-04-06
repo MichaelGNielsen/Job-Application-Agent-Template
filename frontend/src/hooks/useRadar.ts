@@ -129,6 +129,7 @@ export const useRadar = () => {
 
   const sortedJobs = [...jobs]
     .filter(job => job.distance <= radius)
+    .filter(job => job.status !== 'applied' && job.status !== 'ignored')
     .sort((a, b) => {
       if (sortMode === 'score') return b.matchScore - a.matchScore;
       if (sortMode === 'distance') return a.distance - b.distance;

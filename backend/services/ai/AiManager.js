@@ -30,29 +30,32 @@ class AiManager {
 
         // Opret Worker (Concurrency = 1 sikrer at vi aldrig kalder to gange samtidigt)
         this.worker = new Worker('ai_call_queue', async (job) => {
-            const { prompt, jobId, providerName } = job.data;
-            let primaryProviderName = providerName || this.defaultProvider;
+            const { prompt, jobId, providerName, aiModel } = job.data;
+            let currentProvider = providerName || this.defaultProvider;
             
-            try {
-                // 1. Forsøg med primær provider
-                return await this._executeWithTimeout(primaryProviderName, prompt, jobId);
-            } catch (error) {
-                this.logger.warn("AiManager", `Primær AI (${primaryProviderName}) fejlede. Tjekker for fallback...`, { error: error.message });
+            const fallbackChain = {
+                'gemini': 'opencode',
+                'opencode': 'ollama',
+                'ollama': null
+            };
 
-                // 2. Hvis Gemini fejler, forsøg automatisk fallback til Ollama
-                if (primaryProviderName === 'gemini') {
-                    this.logger.info("AiManager", "Starter automatisk fallback til lokal Ollama...", { jobId });
-                    try {
-                        return await this._executeWithTimeout('ollama', prompt, jobId);
-                    } catch (fallbackError) {
-                        this.logger.error("AiManager", "Både Gemini og Ollama (fallback) fejlede.", undefined, fallbackError);
-                        throw fallbackError;
+            let attempts = 0;
+            const maxAttempts = 3;
+
+            while (currentProvider && attempts < maxAttempts) {
+                try {
+                    return await this._executeWithTimeout(currentProvider, prompt, jobId, aiModel);
+                } catch (error) {
+                    this.logger.warn("AiManager", `Provider (${currentProvider}) fejlede.`, { error: error.message });
+                    currentProvider = fallbackChain[currentProvider];
+                    attempts++;
+                    if (currentProvider) {
+                        this.logger.info("AiManager", `Prøver fallback til ${currentProvider}...`, { jobId });
                     }
                 }
-                
-                // Hvis det ikke var Gemini der fejlede, kaster vi fejlen videre
-                throw error;
             }
+            
+            throw new Error("Alle AI providers fejlede.");
         }, { 
             connection: this.redisConnection,
             concurrency: 1, // VIGTIGST: Kun ét kald ad gangen i hele systemet!
@@ -64,16 +67,18 @@ class AiManager {
     /**
      * Hjælpefunktion til at udføre selve kaldet med timeout og cooldown
      */
-    async _executeWithTimeout(providerName, prompt, jobId) {
-        const provider = this.providers[providerName];
-        if (!provider) throw new Error(`Provider ${providerName} ikke fundet`);
+    async _executeWithTimeout(providerName, prompt, jobId, aiModel) {
+        let actualProviderName = providerName === 'default' ? this.defaultProvider : providerName;
+        const provider = this.providers[actualProviderName];
+        if (!provider) throw new Error(`Provider ${actualProviderName} ikke fundet`);
 
+        // Hævet timeout til 5 minutter (300.000 ms) for tunge generationer
         const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error(`AI Timeout efter 90s (${providerName})`)), 90000)
+            setTimeout(() => reject(new Error(`AI Timeout efter 5 min (${providerName})`)), 300000)
         );
 
         const result = await Promise.race([
-            provider.call(prompt, jobId),
+            provider.call(prompt, jobId, aiModel),
             timeoutPromise
         ]);
 
@@ -90,29 +95,60 @@ class AiManager {
      * @param {string} jobId 
      * @param {string|null} provider - Valgfri overstyring af provider.
      * @param {boolean} json - Hvis true, forsøger vi at parse svaret som JSON.
+     * @param {string|null} aiModel - Specifik model der skal bruges for provideren.
      */
-    async call(prompt, jobId = "default", provider = null, json = false) {
+    async call(prompt, jobId = "default", provider = null, json = false, aiModel = null) {
         const providerName = provider || this.defaultProvider;
-        this.logger.info("AiManager", `Lægger AI-job i køen (${providerName})`, { jobId, expectJson: json });
+        this.logger.info("AiManager", `Lægger AI-job i køen (${providerName})`, { jobId, expectJson: json, aiModel });
         
         const job = await this.aiQueue.add('ai_call', { 
             prompt, 
             jobId, 
-            providerName 
+            providerName,
+            aiModel
         }, {
             removeOnComplete: true,
             removeOnFail: false
         });
 
         // Vent på at jobbet bliver færdigt via QueueEvents
-        const result = await job.waitUntilFinished(this.queueEvents);
+        let result = (await job.waitUntilFinished(this.queueEvents)) || "";
+
+        // Rens resultatet for eventuelle Markdown kode-hegn (ofte set hos mindre modeller)
+        if (result.includes('```')) {
+            result = result.replace(/^```[a-z]*\n/im, '').replace(/\n```$/m, '').trim();
+        }
+
+        // Log det fulde svar hvis verbose er sat til -vv
+        if (process.env.VERBOSE === '-vv') {
+            this.logger.info("AiManager", "Råt AI svar modtaget", { response: result });
+        }
 
         if (json) {
             try {
-                // Find JSON blok (første {..} eller [..])
-                const jsonMatch = result.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+                // Find JSON blok - Vi leder efter den første { eller [ og den sidste matchende } eller ]
+                const startBrace = result.indexOf('{');
+                const startBracket = result.indexOf('[');
+                let start = -1;
+                let end = -1;
+
+                if (startBrace !== -1 && (startBracket === -1 || startBrace < startBracket)) {
+                    start = startBrace;
+                    end = result.lastIndexOf('}');
+                } else if (startBracket !== -1) {
+                    start = startBracket;
+                    end = result.lastIndexOf(']');
+                }
+
+                if (start !== -1 && end !== -1 && end > start) {
+                    const jsonContent = result.substring(start, end + 1).trim();
+                    return JSON.parse(jsonContent);
+                }
+                
+                // Fallback til regex
+                const jsonMatch = result.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
                 if (jsonMatch) {
-                    return JSON.parse(jsonMatch[0]);
+                    return JSON.parse(jsonMatch[0].trim());
                 }
                 
                 // Fallback: Hvis ingen JSON blok blev fundet, prøv at lave en nød-JSON fra den rå tekst

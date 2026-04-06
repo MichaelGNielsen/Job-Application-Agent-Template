@@ -14,7 +14,24 @@ class ApplicationController {
         this.utils = {
             mdToHtml: deps.mdToHtml,
             wrap: deps.wrap,
-            printToPdf: deps.printToPdf
+            printToPdf: deps.printToPdf,
+            parseCandidateInfo: deps.parseCandidateInfo,
+            extractSection: deps.extractSection
+        };
+    }
+
+    _parseMetadata(raw, lang) {
+        const get = (key) => raw.match(new RegExp(`^${key}:\\s*(.*?)(?=\\s*(?:Sign-off:|Location:|Date-Prefix:|Address:|Sender-Name:|Sender-Address:|Sender-Phone:|Sender-Email:|Folder-Name:)|$)`, 'im'))?.[1]?.trim() || "";
+        return { 
+            signOff: get('Sign-off') || (lang === 'en' ? "Sincerely," : "Med venlig hilsen,"), 
+            location: get('Location'), 
+            datePrefix: get('Date-Prefix') || (lang === 'da' ? "den" : ""), 
+            address: get('Address'), 
+            senderName: get('Sender-Name'), 
+            senderAddress: get('Sender-Address'), 
+            senderPhone: get('Sender-Phone'), 
+            senderEmail: get('Sender-Email'), 
+            folderName: get('Folder-Name') 
         };
     }
 
@@ -45,7 +62,16 @@ class ApplicationController {
     async generate(req, res) {
         try {
             const jobId = Date.now().toString();
-            await this.jobQueue.add('generate_job', { jobId, ...req.body, type: 'full_generation' });
+            const { jobText, companyUrl, hint, aiProvider, aiModel } = req.body;
+            await this.jobQueue.add('generate_job', { 
+                jobId, 
+                jobText, 
+                companyUrl, 
+                hint, 
+                aiProvider, 
+                aiModel,
+                type: 'full_generation' 
+            });
             res.json({ jobId });
         } catch (err) {
             res.status(500).json({ error: err.message });
@@ -62,11 +88,19 @@ class ApplicationController {
      */
     async refine(req, res) {
         try {
-            const { folder, type, markdown, useAi, hint } = req.body;
+            const { folder, type, markdown, useAi, hint, aiProvider, aiModel } = req.body;
             if (useAi) {
                 const jobId = Date.now().toString();
                 await this.jobQueue.add('generate_job', { 
-                    jobId, folder, type, markdown, useAi: true, hint, type: 'refine_with_ai' 
+                    jobId, 
+                    folder, 
+                    docType: type, // Omdøbt fra 'type' for at undgå overwrite
+                    markdown, 
+                    useAi: true, 
+                    hint, 
+                    aiProvider,
+                    aiModel,
+                    type: 'refine_with_ai' 
                 });
                 res.json({ jobId });
             } else {
@@ -98,8 +132,13 @@ class ApplicationController {
             const folderPath = this.path.join(this.rootDir, 'output', folder);
             if (!this.fs.existsSync(folderPath)) return res.status(404).json({ error: "Mappe ikke fundet" });
             
-            const results = { folder, markdown: {}, html: {}, links: {}, aiNotes: "" };
+            const results = { folder, markdown: {}, html: {}, links: {}, aiNotes: "", jobText: "" };
             
+            const jobMdPath = this.path.join(folderPath, 'job.md');
+            if (this.fs.existsSync(jobMdPath)) {
+                results.jobText = this.fs.readFileSync(jobMdPath, 'utf8');
+            }
+
             const sessionPath = this.path.join(folderPath, 'session.md');
             if (this.fs.existsSync(sessionPath)) {
                 const content = this.fs.readFileSync(sessionPath, 'utf8');
@@ -143,6 +182,13 @@ class ApplicationController {
             this.logger.info("ApplicationController", "Manuel AI test-kald startet", { provider: provider || 'default' });
             
             const result = await this.aiManager.call(prompt, "health_check", provider);
+            
+            // NYT: Log selve svaret så det kan ses i terminalen
+            this.logger.info("ApplicationController", "AI test-kald færdiggjort", { 
+                provider: provider || 'default', 
+                answer: result.trim() 
+            });
+
             res.json({ 
                 success: true, 
                 provider: provider || process.env.AI_PROVIDER || 'gemini',
@@ -159,17 +205,60 @@ class ApplicationController {
         const folderPath = this.path.join(this.rootDir, 'output', folder);
         const title = type === 'ansøgning' ? 'Ansøgning' : type === 'cv' ? 'CV' : type === 'match' ? 'Match_Analyse' : 'ICAN+_Pitch';
         const mdFile = this.fs.readdirSync(folderPath).find(f => f.startsWith(title) && f.endsWith('.md'));
+        if (!mdFile) throw new Error(`Markdown fil for ${title} ikke fundet i mappen ${folder}`);
         const mdPath = this.path.join(folderPath, mdFile);
         
-        this.fs.writeFileSync(mdPath, markdown);
-        const html = await this.utils.mdToHtml(markdown, mdPath, mdFile.replace('.md', '_body.html'));
+        // Sørg for at rense teksten for gamle/stray mærkater inden vi gemmer (hvis brugeren f.eks. redigerer en fil fra før v6.0)
+        let cleanMarkdown = markdown;
+        cleanMarkdown = cleanMarkdown.replace(/-{3,}\s*LAYOUT_METADATA\s*-*[\s\S]*?(?=-{3,}\s*[A-ZÆØÅ_]+\s*-*|$)/gi, '');
+        cleanMarkdown = cleanMarkdown.replace(/-{3,}\s*[A-ZÆØÅ_]+\s*-*/gi, '');
+        cleanMarkdown = cleanMarkdown.trim();
+
+        // 1. Gem den rene markdown brødtekst
+        this.fs.writeFileSync(mdPath, cleanMarkdown);
+
+        // 2. Læs data fra job_data.json
+        const jobDataPath = this.path.join(folderPath, 'job_data.json');
+        let layoutMeta = {};
+        let candidate = {};
+        let lang = 'da';
+        let companyName = "";
+        let jobTitleRaw = "";
+        
+        if (this.fs.existsSync(jobDataPath)) {
+            const savedData = JSON.parse(this.fs.readFileSync(jobDataPath, 'utf8'));
+            layoutMeta = savedData.layoutMeta || {};
+            candidate = savedData.candidate || {};
+            lang = savedData.lang || 'da';
+            companyName = savedData.companyName || "";
+            jobTitleRaw = savedData.jobTitleRaw || "";
+        } else {
+            // Fallback for gamle mapper
+            const bruttoPath = this.path.join(this.rootDir, 'data', 'brutto_cv.md');
+            if (this.fs.existsSync(bruttoPath)) {
+                const bruttoCv = this.fs.readFileSync(bruttoPath, 'utf8');
+                candidate = this.utils.parseCandidateInfo(bruttoCv);
+            }
+            lang = cleanMarkdown.toLowerCase().includes('dear') || cleanMarkdown.toLowerCase().includes('sincerely') ? 'en' : 'da';
+        }
+
+        // 4. Konverter body til HTML
+        const htmlBody = await this.utils.mdToHtml(cleanMarkdown, mdPath, mdFile.replace('.md', '_body.html'));
+        
+        // 5. Wrap i layout
+        const fullHtml = this.utils.wrap(title.replace(/_/g, ' '), htmlBody, type, { company: companyName, position: jobTitleRaw }, candidate, lang, layoutMeta);
+        
         const htmlFile = mdFile.replace('.md', '.html');
-        this.fs.writeFileSync(this.path.join(folderPath, htmlFile), html);
+        const fullHtmlPath = this.path.join(folderPath, htmlFile);
+        this.fs.writeFileSync(fullHtmlPath, fullHtml);
         
         const pdfFile = mdFile.replace('.md', '.pdf');
-        await this.utils.printToPdf(html, this.path.join(folderPath, pdfFile));
+        const fullPdfPath = this.path.join(folderPath, pdfFile);
         
-        return { html };
+        // VIGTIGT: Vi sender stien til HTML filen, ikke selve HTML indholdet
+        await this.utils.printToPdf(fullHtmlPath, fullPdfPath);
+        
+        return { html: fullHtml };
     }
 }
 
