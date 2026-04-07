@@ -8,7 +8,7 @@
   Brug af softwaren sker på eget ansvar.
 -->
 
-# Data & Fil-workflow (v5.6.8)
+# Data & Fil-workflow (v6.0.0)
 
 Dette dokument beskriver den præcise proces, der sker fra det øjeblik en bruger trykker "🚀 Start Automatisering", til de færdige dokumenter ligger klar.
 
@@ -40,4 +40,4 @@ For hvert af de fire dokumenter kører følgende proces:
 *   **AI Forfin:** Hvis brugeren giver et nyt hint, køres den relevante del af pipelinen igen, og filerne opdateres med de nye AI-forbedringer.
 
 ---
-*Sidst opdateret: 7. april 2026 (v5.6.8)*
+*Sidst opdateret: 7. april 2026 (v6.0.0)*

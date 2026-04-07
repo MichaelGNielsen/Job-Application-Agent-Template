@@ -34,4 +34,4 @@ Alle indstillinger styres i `data/radar.json`:
 Radaren bruger altid den AI-model, du har valgt i **AI Model Vælger** i interfacet. Dette sikrer ensartet kvalitet og mulighed for at køre søgninger via lokale modeller (OpenCode/Ollama) for at undgå rate-limits på Gemini.
 
 ---
-*Sidst opdateret: 7. april 2026 (v5.6.8)*
+*Sidst opdateret: 7. april 2026 (v6.0.0)*

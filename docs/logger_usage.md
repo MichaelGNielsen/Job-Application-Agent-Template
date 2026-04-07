@@ -42,4 +42,4 @@ try {
 ```
 
 ---
-*Sidst opdateret: 7. april 2026 (v5.6.8)*
+*Sidst opdateret: 7. april 2026 (v6.0.0)*

@@ -8,7 +8,7 @@
   Brug af softwaren sker på eget ansvar.
 -->
 
-# Systemarkitektur: Job Application Agent MGN (v5.6.8)
+# Systemarkitektur: Job Application Agent MGN (v6.0.0)
 
 Dette dokument beskriver den overordnede arkitektur og tekniske opbygning af Job Application Agenten.
 
@@ -105,4 +105,4 @@ Dette afsnit beskriver brugerrejsen og systemets logik fra start til slut.
 3. **`chromium-browser`:** Bruges både til PDF-generering og til scraping (via `--dump-dom`).
 
 ---
-*Sidst opdateret: 7. april 2026 (v5.6.8)*
+*Sidst opdateret: 7. april 2026 (v6.0.0)*

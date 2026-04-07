@@ -1,4 +1,4 @@
-# Den Strategiske Pipeline (Arkitektur v5.6.8+)
+# Den Strategiske Pipeline (Arkitektur v6.0.0+)
 
 Dette dokument beskriver den underliggende AI-arkitektur for Job Application Agenten, specifikt hvordan systemet opdeler og orkestrerer genereringen af ansøgningsmateriale for at sikre maksimal kvalitet, konsistens og en stærk "rød tråd".
 

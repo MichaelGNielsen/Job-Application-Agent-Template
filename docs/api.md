@@ -59,4 +59,4 @@ Systemet bruger WebSockets til real-tids statusopdateringer under AI-generering.
   - `job_status_update`: Modtag løbende status fra worker-processen.
 
 ---
-*Sidst opdateret: 7. april 2026 (v5.6.8)*
+*Sidst opdateret: 7. april 2026 (v6.0.0)*

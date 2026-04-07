@@ -26,7 +26,7 @@
 
 ---
 
-## ✅ Gennemført (4. april 2026 - v5.6.0) 🏗️🚀
+## ✅ Gennemført (4. april 2026 - v6.0.0) 🏗️🚀
 - [x] **Fuld Backend Refactoring:** Controllers & Services implementeret. `server.js` og `worker.js` er nu slanke.
 - [x] **Fuld Frontend Refactoring:** Hooks (`useRadar`, `useApplication`) og modulære komponenter implementeret.
 - [x] **Utils Split:** `utils.js` er splittet i et rent bibliotek under `utils/`.

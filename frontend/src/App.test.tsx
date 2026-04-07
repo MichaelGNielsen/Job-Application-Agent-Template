@@ -20,7 +20,7 @@ vi.mock('socket.io-client', () => ({
 
 // Mock fetch for initial data loading
 vi.stubGlobal('fetch', vi.fn().mockImplementation((url) => {
-    if (url === '/api/version') return Promise.resolve({ json: () => Promise.resolve({ version: '5.6.0', instance: 'MGN' }) });
+    if (url === '/api/version') return Promise.resolve({ json: () => Promise.resolve({ version: '6.0.0', instance: 'MGN' }) });
     if (url === '/api/brutto') return Promise.resolve({ json: () => Promise.resolve({ content: '' }) });
     if (url === '/api/config/instructions') return Promise.resolve({ json: () => Promise.resolve({ content: '' }) });
     if (url === '/api/config/layout') return Promise.resolve({ json: () => Promise.resolve({ content: '' }) });

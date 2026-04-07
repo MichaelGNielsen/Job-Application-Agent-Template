@@ -1,4 +1,4 @@
-# Feature & Test Checklist (v5.6.8)
+# Feature & Test Checklist (v6.0.0)
 
 Dette dokument bruges til at validere og kvalitetssikre (QA) funktionerne i Job Application Agenten. Brug dette som en tjekliste for at sikre, at systemet opfører sig som forventet.
 

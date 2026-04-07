@@ -121,7 +121,7 @@ For at sikre konsistens på tværs af instanser bruges altid disse navne:
 ### 2. Tags
 - Brug formatet `v[VERSION]-[beskrivelse]` i små bogstaver (kebab-case).
 - Tags bruges til at markere vigtige milepæle eller tilstande før store ændringer.
-- Eksempel: `v5.6.0-before-refactor`.
+- Eksempel: `v6.0.0-before-refactor`.
 
 ---
-*Sidst opdateret: 7. april 2026 (v5.6.8)*
+*Sidst opdateret: 7. april 2026 (v6.0.0)*

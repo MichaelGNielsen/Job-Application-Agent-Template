@@ -8,7 +8,7 @@ import { apiService } from '../services/apiService';
 import { logger } from '../utils/logger';
 
 export const useConfig = () => {
-  const [version, setVersion] = useState('v5.6.0');
+  const [version, setVersion] = useState('v6.0.0');
   const [instanceName, setInstanceName] = useState('');
   const [initials, setInitials] = useState('');
   const [modelName, setModelName] = useState('');

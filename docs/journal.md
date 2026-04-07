@@ -2,7 +2,7 @@
 
 Dette dokument fungerer som projektets tekniske hukommelse og strategiske roadmap. Det opdateres før hver væsentlig ændring eller commit.
 
-## 🏁 Status 7. April 2026 - Arkitektur & UI/UX Optimering (v5.6.8) 🧭🏗️
+## 🏁 Status 7. April 2026 - Major Release: Arkitektur & UI/UX Optimering (v6.0.0) 🧭🏗️🚀
 
 Fokus på at bringe dokumentationen (architecture.md) up-to-date med den faktiske implementering og forberede UI'en til hover-tekst.
 
@@ -18,7 +18,7 @@ Fokus på at bringe dokumentationen (architecture.md) up-to-date med den faktisk
 - **Prioritet 2:** Reducere mængden af redundant tekst i `docs/` mapperne.
 
 ---
-*Sidst opdateret: 7. april 2026 (v5.6.8)*
+*Sidst opdateret: 7. april 2026 (v6.0.0)*
 
 
 ## 🏁 Status 5. April 2026 (Aften) - Fuld Formatering & Oprydning (v5.6.7) 🧹✨

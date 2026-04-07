@@ -44,4 +44,4 @@ TypeDoc læser automatisk dine TypeScript-typer og interfaces. Du kan tilføje e
 - **Type-sikkerhed:** Giver bedre IntelliSense i din editor.
 
 ---
-*Sidst opdateret: 7. april 2026 (v5.6.8)*
+*Sidst opdateret: 7. april 2026 (v6.0.0)*

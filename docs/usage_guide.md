@@ -1,4 +1,4 @@
-# Brugervejledning: Job Application Agent MGN (v5.6.8)
+# Brugervejledning: Job Application Agent MGN (v6.0.0)
 
 Denne guide forklarer de vigtigste funktioner i systemet, og hvordan du bruger dem til at skabe den perfekte ansøgningspakke.
 

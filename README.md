@@ -4,7 +4,7 @@
   Copyright (c) 2026 MGN. All rights reserved.
 -->
 
-# Job Application Agent MGN (v5.6.8)
+# Job Application Agent MGN (v6.0.0)
 
 Dette projekt automatiserer processen med at skræddersy ansøgninger og CV'er ved hjælp af AI. Systemet er designet til at skabe en stærk "rød tråd" gennem dit ansøgningsmateriale via en avanceret strategisk pipeline.
 
@@ -53,4 +53,4 @@ For detaljeret information, se venligst:
 - [Alle docs/](docs/) - Komplet liste over systemdokumentation.
 
 ---
-*Sidst opdateret: 7. april 2026 (v5.6.8)*
+*Sidst opdateret: 7. april 2026 (v6.0.0)*

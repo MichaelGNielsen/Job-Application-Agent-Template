@@ -71,7 +71,7 @@ const swaggerSpec = swaggerJsdoc({
         openapi: '3.0.0',
         info: { 
             title: 'Job Application Agent API', 
-            version: '5.6.0',
+            version: '6.0.0',
             description: 'API til automatisering af jobansøgninger og CV-skræddersyning.'
         },
         servers: [{ url: 'http://localhost:3002' }],
