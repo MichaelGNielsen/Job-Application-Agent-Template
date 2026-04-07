@@ -56,7 +56,13 @@ export const RadarSection: React.FC<RadarSectionProps> = ({
             disabled={isLoading}
             className={`bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-lg text-[10px] font-bold uppercase shadow-lg flex items-center gap-2 transition-all ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            {isLoading && statusMessage.includes('radar') ? '🌀 Gemmer...' : 'Gem'}
+            {isLoading && statusMessage.includes('radar') ? (
+              <span className="flex items-center gap-2">
+                <span className="inline-block [transform:scaleX(-1)]">
+                  <span className="inline-block animate-spin [animation-direction:reverse]">🌀</span>
+                </span> Gemmer...
+              </span>
+            ) : 'Gem'}
           </button>
           <div className="w-px h-8 bg-white/10 mx-2"></div>
           <div className="flex-1 flex items-center gap-2">
@@ -73,7 +79,13 @@ export const RadarSection: React.FC<RadarSectionProps> = ({
               disabled={isLoading || !manualUrl}
               className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase transition-all flex items-center gap-2 ${isLoading || !manualUrl ? 'bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-cyan-600/20 hover:bg-cyan-600 text-cyan-400 hover:text-white border border-cyan-500/20'}`}
             >
-              {isLoading && statusMessage.includes('Analyserer') ? '🌀 Analyserer...' : 'Tilføj'}
+              {isLoading && statusMessage.includes('Analyserer') ? (
+                <span className="flex items-center gap-2">
+                  <span className="inline-block [transform:scaleX(-1)]">
+                    <span className="inline-block animate-spin [animation-direction:reverse]">🌀</span>
+                  </span> Analyserer...
+                </span>
+              ) : 'Tilføj'}
             </button>
           </div>
           <button 
@@ -88,7 +100,13 @@ export const RadarSection: React.FC<RadarSectionProps> = ({
             disabled={isLoading}
             className={`px-6 py-2 rounded-lg text-[10px] font-bold uppercase border transition-all whitespace-nowrap flex items-center gap-3 ${isLoading ? 'bg-gray-800 border-gray-700 text-gray-500 cursor-not-allowed' : 'bg-cyan-600/20 hover:bg-cyan-600/40 text-cyan-400 border-cyan-500/20'}`}
           >
-            {isLoading ? '🌀 Søger...' : '🚀 Søg nye job'}
+            {isLoading ? (
+              <span className="flex items-center gap-2">
+                <span className="inline-block [transform:scaleX(-1)]">
+                  <span className="inline-block animate-spin [animation-direction:reverse]">🌀</span>
+                </span> Søger...
+              </span>
+            ) : '🚀 Søg nye job'}
           </button>
         </div>
       </div>

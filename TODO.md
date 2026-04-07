@@ -12,6 +12,9 @@
 - [ ] **API Kontrakt-test:** Implementer avancerede kontrakt-tests (f.eks. Prism eller Dredd) for at sikre at API'et svarer præcis som dokumenteret.
 
 ### 📡 Nye Features (Roadmap)
+- [ ] **UI/UX Optimering:**
+  - [ ] **Hover-text (Tooltips):** Implementer hover-text/tooltips over alle knapper og funktioner på websiden for bedre brugervejledning.
+  - [ ] **Docs Reduktion:** Skru ned for mængden af beskrivelser i `docs/` og flyt vejledningen direkte ind i UI'en (via hover-text).
 - [ ] **Lokal AI Optimering:**
   - [ ] **No-Placeholder Rule:** Tilføj strikse instrukser til prompten om aldrig at bruge `[PLACEHOLDERS]`. Modellen SKAL bruge data fra Brutto-CV.
   - [ ] **Surgical Brutto-CV:** Implementer logik til at reducere størrelsen af Brutto-CV'et (fx kun relevante erfaringer) for at give AI'en mere context-overskud.

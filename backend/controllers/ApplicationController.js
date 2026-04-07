@@ -63,6 +63,7 @@ class ApplicationController {
         try {
             const jobId = Date.now().toString();
             const { jobText, companyUrl, hint, aiProvider, aiModel } = req.body;
+            this.logger.info("ApplicationController", `Start fuld generering for job: ${jobId}`, { aiProvider, aiModel, companyUrl });
             await this.jobQueue.add('generate_job', { 
                 jobId, 
                 jobText, 
@@ -74,6 +75,7 @@ class ApplicationController {
             });
             res.json({ jobId });
         } catch (err) {
+            this.logger.error("ApplicationController", "Fejl ved start af generering", { error: err.message });
             res.status(500).json({ error: err.message });
         }
     }
@@ -91,6 +93,7 @@ class ApplicationController {
             const { folder, type, markdown, useAi, hint, aiProvider, aiModel } = req.body;
             if (useAi) {
                 const jobId = Date.now().toString();
+                this.logger.info("ApplicationController", `Start AI forfinelse for ${type} i ${folder}`, { aiProvider, aiModel });
                 await this.jobQueue.add('generate_job', { 
                     jobId, 
                     folder, 
@@ -104,10 +107,12 @@ class ApplicationController {
                 });
                 res.json({ jobId });
             } else {
+                this.logger.info("ApplicationController", `Gemmer manuel rettelse for ${type} i ${folder}`);
                 const result = await this._handleManualEdit(folder, type, markdown);
                 res.json({ success: true, html: result.html });
             }
         } catch (err) {
+            this.logger.error("ApplicationController", "Fejl ved forfinelse/gemning", { error: err.message });
             res.status(500).json({ error: err.message });
         }
     }

@@ -198,12 +198,12 @@ ${strictFormatInstruction}`;
 
     async _handleInitialFlow({ jobId, jobText, companyUrl, hint, bruttoCv, icanDef, candidate, aiProvider }) {
         this._updateStatus(jobId, 'Analyserer jobopslag...');
-        const langPrompt = `Hvilket sprog er dette jobopslag? Svar KUN ISO-kode (da/en): """${jobText.substring(0, 1000)}"""`;
+        const langPrompt = `Hvilket sprog er dette jobopslag? Svar KUN ISO-kode (da/en): """${jobText}"""`;
         let lang = (await this.aiManager.call(langPrompt, jobId, aiProvider)).trim().toLowerCase().substring(0, 2);
-        if (!/^[a-z]{2}$/.test(lang)) lang = 'da';
+        if (lang !== 'da' && lang !== 'en') lang = 'da';
 
         this._updateStatus(jobId, 'Laver autonom research på firmaet...');
-        const infoPrompt = `Du er en data-ekstraktor. Udtræk firmanavn, jobtitel, by og eventuel web-adresse (URL) fra dette opslag. Hvis informationen mangler, lad feltet være tomt.\nOpslag: """${jobText.substring(0, 1500)}"""\n\nDu SKAL svare i dette JSON format (ingen forklaring, ingen tekst udenom):\n{"company": "Navn", "title": "Job", "location": "By", "url": "..."}`;
+        const infoPrompt = `Du er en data-ekstraktor. Udtræk firmanavn, jobtitel, by og eventuel web-adresse (URL) fra dette opslag. Hvis informationen mangler, lad feltet være tomt.\nOpslag: """${jobText}"""\n\nDu SKAL svare i dette JSON format (ingen forklaring, ingen tekst udenom):\n{"company": "Navn", "title": "Job", "location": "By", "url": "..."}`;
         const info = await this.aiManager.call(infoPrompt, jobId, aiProvider, true);
         
         let foundCompanyAddress = "";

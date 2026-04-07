@@ -49,9 +49,12 @@ class RadarController {
      */
     async refresh(req, res) {
         try {
+            this.radarService.logger.info("RadarController", "Modtaget anmodning om manuel radar refresh");
             const count = await this.radarService.refresh();
             res.json({ success: true, count });
+            this.radarService.logger.info("RadarController", `Manuel radar refresh færdig. Fandt ${count} nye jobs.`);
         } catch (err) {
+            this.radarService.logger.error("RadarController", "Fejl ved manuel radar refresh", { error: err.message });
             res.status(500).json({ error: err.message });
         }
     }

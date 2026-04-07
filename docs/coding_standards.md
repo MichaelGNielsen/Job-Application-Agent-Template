@@ -36,9 +36,33 @@ Dette dokument definerer de tekniske og arkitektoniske retningslinjer for **Job 
 ### 3. Asynkronitet
 - Brug altid `async/await` frem for `.then()` kæder for bedre læsbarhed.
 
-## ⚙️ Operationelle Standarder
+## 🛡️ Operationelle Standarder & Logging (VIGTIGT)
 
-### 1. Eksekvering & Test
+### 1. Centraliseret Log-filtrering (Det Gyldne Princip)
+Dette princip er afgørende for systemets gennemsigtighed og fejlsøgning:
+- **INGEN MANUELLE BEGRÆNSNINGER:** Der må **ALDRIG** bruges `substring()`, `slice()` eller lignende til at forkorte data (AI-svar, HTML-indhold, CV-tekst) *før* det sendes til systemets logger (`utils/logger.js`).
+- **Gennemsigtighed:** Hele objektet/teksten skal altid sendes råt til loggeren. Hvis vi begrænser data 100-vis af steder i koden, mister vi muligheden for nogensinde at se det fulde output ved fejlsøgning.
+- **Single Point of Control:** Filtrering og trunkering må **KUN** ske centralt i `utils/logger.js`. Her styres visningen dynamisk baseret på verbose-niveau:
+  - `(tom)`: Viser kun overordnede status-beskeder.
+  - `-v`: Viser et kort resumé af data (typisk 500 tegn).
+  - `-vv`: Viser den **FULDE** rå data uden nogen form for begrænsning.
+- **Konklusion:** Hvis du ikke kan se hele AI-svaret, skal du ændre dit verbose-flag, **IKKE** ændre koden. Ved at overholde dette princip kan vi rette log-adfærd ét centralt sted frem for 117 steder i koden.
+
+### 2. Standardiseret AI-Abstraktion & Data-kontrakt (Afkobling)
+For at holde koden ren og minimal, skal vi altid tilstræbe fuld afkobling mellem AI-logik og resten af systemet (især Frontend):
+- **AI-laget som "Oversætter":** Backenden (specifikt `AiManager` og de enkelte providers) har ansvaret for at tage råt og ofte "støjende" output fra forskellige AI-modeller og transformere det til et fast, sundt JSON-format.
+- **Frontend-uafhængighed:** Frontend (FE) må aldrig kende til de specifikke detaljer om hvilken AI-model eller provider, der er brugt. FE skal blot modtage data i det aftalte format. Dette sikrer, at vi kan skifte eller tilføje nye AI-modeller uden at skulle rette én eneste linje i frontend-koden.
+- **Minimalisme:** Ved at placere oversættelseslogikken centralt i AI-laget, undgår vi at "forurene" resten af forretningslogikken med særregler for specifikke AI-udbydere.
+- **Konklusion:** "Sund data ind, sund data ud". Hvis en AI-model svarer skævt, rettes det i AI-lagets transformering – aldrig i modtager-enden (FE).
+
+### 3. Fuld Sporbarhed (Traceability) - Inputs & Outputs
+For at eliminere "black boxes" i systemet skal vi altid kunne se datastrømmen:
+- **Input Logging:** Alle vigtige funktioner skal logge deres indgangsparametre (`args`) som det første, når de kaldes.
+- **Output Logging:** Før en funktion returnerer, skal den logge resultatet (`return value`).
+- **Variadic Logging:** Brug systemets variadic logger (`logger.info(func, msg, ...data)`) til at sende flere argumenter på én gang (f.eks. `logger.info("minFunktion", "Kaldt med:", { arg1, arg2 })`).
+- **Konklusion:** En log uden data er kun en halv log. Vi skal altid kunne rekonstruere et hændelsesforløb blot ved at kigge på loggen.
+
+### 4. Eksekvering & Test
 - **ALT** skal køres via Docker. Dette inkluderer tests, database-migreringer og selve applikationen.
 - Brug altid `docker compose` til at styre miljøet.
 - Backend tests: `docker exec jaa-backend npm test`.
@@ -100,4 +124,4 @@ For at sikre konsistens på tværs af instanser bruges altid disse navne:
 - Eksempel: `v5.6.0-before-refactor`.
 
 ---
-*Sidst opdateret: 4. april 2026*
+*Sidst opdateret: 7. april 2026 (v5.6.8)*

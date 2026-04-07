@@ -1,6 +1,11 @@
 /**
  * @module Utils/Logger
  * @description Avanceret logger til backend med ANSI farver og kolonneformat.
+ * 
+ * 🛡️ DET GYLDNE PRINCIP FOR LOGGING (MGN STANDARD):
+ * 1. Der må ALDRIG bruges substring/slice/truncation på data FØR det sendes til denne logger.
+ * 2. Al filtrering og begrænsning SKAL ske centralt HER.
+ * 3. Formål: Sikre at man altid kan se det fulde rå output ved brug af -vv uden at skulle rette i koden 117 steder.
  */
 
 const path = require('path');
@@ -42,9 +47,9 @@ const logger = {
         if (str.length > len) return str.substring(0, len);
         return str.padEnd(len, char);
     },
-    format: (type, funcName, msg, data, levelOverride) => {
-        const v = levelOverride !== undefined ? levelOverride : logger.getLevel();
-        const ts = getLocalISOTime() + 'Z'; // Tilføjer Z for at matche log-formatet visuelt, men med lokal tid
+    format: (type, funcName, msg, ...dataArgs) => {
+        const v = logger.getLevel();
+        const ts = getLocalISOTime() + 'Z';
         const caller = logger.getCaller();
         let levelLabel = 'INFO0';
         if (type === 'warn')  levelLabel = 'WARNI';
@@ -60,25 +65,36 @@ const logger = {
         const fFunc = `[${logger.pad(funcName, 15)}]`;
         const fFile = `[${logger.pad(caller.file, 12)}]`;
         let output = `${fTS}${fLVL}${fLine}${fFunc}${fFile} - ${msg}`;
-        if (v >= 1 && data !== undefined) {
-            const dataStr = typeof data === 'object' ? JSON.stringify(data) : String(data);
-            if (v === 1 && dataStr.length > 500) output += ` | DATA: ${dataStr.substring(0, 500)}... (truncated)`;
-            else output += ` | DATA: ${dataStr}`;
+        
+        if (v >= 1 && dataArgs.length > 0) {
+            const combinedData = dataArgs.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+            ).join(' | ');
+            
+            // CENTRALISERET FILTRERINGS-LOGIK:
+            if (v === 1 && combinedData.length > 500) {
+                output += ` | DATA: ${combinedData.substring(0, 500)}... (truncated)`;
+            } else {
+                output += ` | DATA: ${combinedData}`;
+            }
         }
         return output;
     },
-    info: (func, msg, data) => {
-        const level = logger.getLevel();
-        let colorFunc = chalk.white;
-        console.log(colorFunc(logger.format('info', func, msg, data)));
+    info: (func, msg, ...data) => {
+        console.log(chalk.white(logger.format('info', func, msg, ...data)));
     },
-    warn: (func, msg, data) => {
-        console.warn(chalk.yellow(logger.format('warn', func, msg, data, 2)));
+    warn: (func, msg, ...data) => {
+        console.warn(chalk.yellow(logger.format('warn', func, msg, ...data)));
     },
-    error: (func, msg, data, err) => {
-        let line = logger.format('error', func, msg, data, 2);
-        if (err) line += ` | ERROR: ${err.message || err}`;
-        console.error(chalk.red(line));
+    error: (func, msg, ...data) => {
+        // Hvis det sidste argument er et Error objekt, behandles det specielt
+        const lastArg = data[data.length - 1];
+        let errStr = "";
+        if (lastArg instanceof Error) {
+            errStr = ` | ERROR: ${lastArg.message}`;
+            data.pop(); // Fjern den fra dataArgs så den ikke stringifies dobbelt
+        }
+        console.error(chalk.red(logger.format('error', func, msg, ...data) + errStr));
     },
     assert: (cond, func, msg, data) => {
         if (!cond) {

@@ -14,7 +14,7 @@ Backenden følger en **Controller/Service** arkitektur:
 - **Services:** Indeholder selve forretningslogikken (placeret i `backend/services/`).
 
 ### Hovedkategorier
-1. **Radar (`/api/radar`):** Håndtering af job-søgning, crawling og match-scoring.
+1. **Radar (`/api/radar`):** Håndtering af job-søgning, crawling (Chromium) og match-scoring.
 2. **Applications (`/api/generate`):** Orkestrering af AI-generering af ansøgninger og CV'er.
 3. **Config (`/api/version`, `/api/brutto`):** Håndtering af Master CV og system-indstillinger.
 
@@ -26,18 +26,29 @@ Du kan også tale med API'et direkte fra din terminal.
 curl -s http://localhost:3002/api/version
 ```
 
-### Tilføj et job til radaren
+### Start generering med AI-valg
 ```bash
 curl -X POST -H "Content-Type: application/json" \
-  -d '{"url": "https://link-til-job.dk"}' \
-  http://localhost:3002/api/radar/job
+  -d '{
+    "jobText": "...",
+    "companyUrl": "...",
+    "hint": "...",
+    "aiProvider": "opencode",
+    "aiModel": "agent"
+  }' \
+  http://localhost:3002/api/generate
 ```
 
-### Start generering af ansøgning
+### Manuel forfinelse (Refine)
 ```bash
 curl -X POST -H "Content-Type: application/json" \
-  -d '{"jobText": "...", "companyUrl": "...", "hint": "..."}' \
-  http://localhost:3002/api/generate
+  -d '{
+    "folder": "2026-04-07...",
+    "type": "ansøgning",
+    "useAi": true,
+    "hint": "Gør kortere"
+  }' \
+  http://localhost:3002/api/refine
 ```
 
 ## 📡 WebSockets (Socket.io)
@@ -48,4 +59,4 @@ Systemet bruger WebSockets til real-tids statusopdateringer under AI-generering.
   - `job_status_update`: Modtag løbende status fra worker-processen.
 
 ---
-*Sidst opdateret: 4. april 2026 (v5.6.0)*
+*Sidst opdateret: 7. april 2026 (v5.6.8)*

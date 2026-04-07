@@ -119,12 +119,11 @@ class AiManager {
             result = result.replace(/^```[a-z]*\n/im, '').replace(/\n```$/m, '').trim();
         }
 
-        // Log det fulde svar hvis verbose er sat til -vv
-        if (process.env.VERBOSE === '-vv') {
-            this.logger.info("AiManager", "Råt AI svar modtaget", { response: result });
-        }
+        // Send det rå svar til loggeren (loggeren håndterer selv trunkering ved -v vs -vv)
+        this.logger.info("AiManager", "AI svar modtaget", { response: result });
 
         if (json) {
+            let jsonContent = "";
             try {
                 // Find JSON blok - Vi leder efter den første { eller [ og den sidste matchende } eller ]
                 const startBrace = result.indexOf('{');
@@ -141,34 +140,53 @@ class AiManager {
                 }
 
                 if (start !== -1 && end !== -1 && end > start) {
-                    const jsonContent = result.substring(start, end + 1).trim();
-                    return JSON.parse(jsonContent);
+                    jsonContent = result.substring(start, end + 1).trim();
+                } else {
+                    // Fallback til regex
+                    const jsonMatch = result.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
+                    if (jsonMatch) jsonContent = jsonMatch[0].trim();
                 }
-                
-                // Fallback til regex
-                const jsonMatch = result.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
-                if (jsonMatch) {
-                    return JSON.parse(jsonMatch[0].trim());
+
+                if (jsonContent) {
+                    // RESILIENT PARSING: Prøv at fikse småfejl før vi giver op
+                    try {
+                        return JSON.parse(jsonContent);
+                    } catch (e) {
+                        this.logger.warn("AiManager", "Standard JSON.parse fejlede, prøver at rense indholdet...", { error: e.message });
+                        const cleaned = this._cleanJson(jsonContent);
+                        return JSON.parse(cleaned);
+                    }
                 }
                 
                 // Fallback: Hvis ingen JSON blok blev fundet, prøv at lave en nød-JSON fra den rå tekst
-                this.logger.warn("AiManager", "Ingen JSON blok fundet, forsøger nød-fallback", { raw: result.substring(0, 100) });
+                this.logger.warn("AiManager", "Ingen JSON blok fundet, forsøger nød-fallback", { raw: result });
                 return { 
                     error: "Format fejl", 
                     raw: result,
-                    // Vi returnerer et tomt objekt så systemet ikke crasher
                     company: "Ukendt",
                     title: "Ukendt",
                     url: "N/A",
                     address: ""
                 };
             } catch (e) {
-                this.logger.error("AiManager", "Kritisk fejl ved parsing af AI svar", { error: e.message });
+                this.logger.error("AiManager", "Kritisk fejl ved parsing af AI svar", { error: e.message, jsonContent });
                 return { error: e.message, raw: result };
             }
         }
 
         return result;
+    }
+
+    /**
+     * Forsøger at fikse gængse JSON-fejl fra AI-modeller
+     */
+    _cleanJson(str) {
+        return str
+            .replace(/,\s*([\]}])/g, '$1') // Fjern trailing commas: [1,2,] -> [1,2]
+            .replace(/([^{[,])\s*\n\s*"/g, '$1,\n"') // Tilføj manglende kommaer mellem linjer: "a":1 \n "b":2 -> "a":1, \n "b":2
+            .replace(/\n/g, ' ') // Erstat newlines med mellemrum (JSON tillader ikke rå newlines i strenge)
+            .replace(/\r/g, '')
+            .trim();
     }
 }
 

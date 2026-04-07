@@ -10,8 +10,9 @@ class OpenCodeProvider {
         this.baseUrl = process.env.OPENCODE_URL || "http://localhost:4096";
     }
 
-    async call(prompt, jobId = "default") {
-        this.logger.info("OpenCodeProvider", `Starter OpenCode session`, { url: this.baseUrl, tegn: prompt.length });
+    async call(prompt, jobId = "default", aiModel = null) {
+        const modelToUse = aiModel || "default-agent";
+        this.logger.info("OpenCodeProvider", `Starter OpenCode session (${modelToUse})`, { url: this.baseUrl, tegn: prompt.length });
         
         try {
             // 1. Opret en session

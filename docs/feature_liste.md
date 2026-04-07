@@ -1,39 +1,39 @@
-# Feature & Test Checklist (v6.0+)
+# Feature & Test Checklist (v5.6.8)
 
-Dette dokument bruges til at validere og kvalitetssikre (QA) funktionerne i Job Application Agenten. Brug dette som en tjekliste for at sikre, at systemet opfører sig som forventet under forskellige scenarier.
+Dette dokument bruges til at validere og kvalitetssikre (QA) funktionerne i Job Application Agenten. Brug dette som en tjekliste for at sikre, at systemet opfører sig som forventet.
 
-## 🟢 Kernefunktionalitet (The Strategic Pipeline)
-- [x] **Ny Job-Generering (4-Trins Pipeline):** Systemet eksekverer Match -> CV -> Ansøgning -> ICAN+ sekventielt. Resultatet hænger logisk sammen ("Den Røde Tråd").
-- [x] **Hastighed:** De 4 mindre AI-jobs afvikles hurtigt (ofte hurtigere samlet set end det gamle monolit-job).
-- [x] **Web-Scraping (Chromium):** Agenten kan hente indhold fra komplekse sider (f.eks. GomSpace) udenom cookie-mure via `--dump-dom`.
-- [x] **Data Separation:** Brødtekst gemmes som rene `.md` filer. Metadata (navn, adresse, sprog, layout-præferencer) gemmes i `job_data.json`.
-- [x] **Lokal Tidszone (TS):** Filnavne og log-tidsstempler respekterer lokal dansk tid (CEST/CET) via `timeUtils.js`.
+## 🟢 Kernefunktionalitet
+- [x] **Ny Job-Generering:** Systemet eksekverer Match -> CV -> Ansøgning -> ICAN+ sekventielt. Resultatet hænger logisk sammen ("Den Røde Tråd").
+- [x] **Web-Scraping (Chromium):** Agenten henter indhold udenom cookie-mure via `chromium-browser --dump-dom`.
+- [x] **Lokal Tidszone (TS):** Filnavne og log-tidsstempler respekterer lokal dansk tid (CEST/CET).
+- [x] **Resilient JSON Parsing:** AI-Manager kan håndtere og selv-rette småfejl i AI'ens JSON-svar (manglende kommaer etc.).
 
-## 🛡️ Kode & Arkitektur Regler (Må aldrig brydes)
-- [x] **Brug ALTID timeUtils.js:** For at undgå forkerte UTC-tidsstempler (TS), skal `new Date().toISOString()` ALDRIG bruges direkte. Brug i stedet `getLocalISOTime()` eller `getFileSafeTimestamp()` fra `utils/timeUtils.js`.
-- [x] **Rene Markdown Filer:** `.md` filer i output-mapperne må KUN indeholde brødtekst. System-tags (`---LAYOUT_METADATA---` osv.) tilhører fortiden og må ikke genindføres.
-- [x] **Bevar Mellemrum:** Regex-regler i backend (`wrap.js`) må aldrig trimme eller spise bevidste linjeskift eller mellemrum (som f.eks. før en signatur).
+## 🛡️ Kode & Arkitektur Regler
+- [x] **Det Gyldne Princip for Logging:** Ingen manuelle begrænsninger før logning. Al filtrering sker centralt i `logger.js`.
+- [x] **AI-Abstraktion:** Frontend er blind over for hvilken AI-provider der bruges. Alt normaliseres i backenden.
+- [x] **Variadic Logging:** Systemet understøtter fuld sporbarhed af alle inputs og outputs.
+- [x] **timeUtils.js:** Der bruges aldrig native `toISOString()` (UTC), kun lokale tidsstempler.
 
-## 🟢 UI & Redigering
-- [x] **Manuel Redigering (Ren Markdown):** Tekst i editoren indeholder *ikke* skjulte system-tags (som `---LAYOUT_METADATA---`).
-- [x] **Mellemrum og Linjeskift Bevares:** Bevidste formateringer (f.eks. et mellemrum før "bob" i bunden af et dokument) respekteres og overføres korrekt til PDF'en, da regex tag-stripping er fjernet fra `wrap.js`.
-- [x] **Gem Rettelser (HTML/PDF):** Tryk på "Gem ændringer" genererer en fejl-fri PDF, hvor brødteksten flettes perfekt sammen med layout-skabelonen.
-- [x] **Visuel Feedback:** Alle knapper der starter en længerevarende proces (f.eks. "Start Automatisering" og "AI Forfin") viser en "snurretop" (Drebin Spinner), så brugeren ved, at systemet arbejder.
+## 🟢 UI & Oplevelse
+- [x] **AI Model Vælger:** Dynamisk valg mellem Gemini, OpenCode og Ollama direkte i interfacet.
+- [x] **Drebin Spinner:** Alle knapper der arbejder (Gem, Tilføj, Søg, Optimér) viser den animerede spiral-spinner.
+- [x] **Live Preview:** Master CV kan redigeres i Markdown og ses live som færdigt HTML-layout.
+- [x] **Status Beskeder:** Brugeren får realtids-opdateringer om hvad systemet laver ("Analyserer...", "Genererer CV..." etc.).
+
+## 🟢 Job-Radar (Proaktiv)
+- [x] **Chromium Search:** Radaren bruger Chromium til at hente resultater fra Jobindex stabilt.
+- [x] **Individuel Keyword Søgning:** Radaren søger på hvert søgeord individuelt for at maksimere bredden af fundne jobs.
+- [x] **Target Company Tracking:** Radaren søger specifikt på din personlige liste over favorit-firmaer.
+- [x] **Smart Deduplikering:** Systemet genkender eksisterende jobs via URL og opdaterer dem hvis de findes igen.
+- [x] **Match Scoring:** Hvert job scores (0-100) baseret på dit Master CV med konfigurerbar tærskelværdi (`minScore`).
 
 ## 🟢 AI-Forfinelse (Refine)
-- [x] **Dokument-Specifik Hinting:** Der findes en individuel hint-boks til hvert dokument (Ansøgning, CV, Match, ICAN+).
-- [x] **Partiel Refine (Enkelt-dokument):** Når der trykkes på "AI Forfin" for ét dokument, bevarer AI'en sproget, overholder de generelle `ai_instructions.md` og ødelægger ikke dokumentets layout eller metadata.
-- [x] **Metadata-Sikring under Refine:** AI'ens svar "støvsuges" for utilsigtede tags, før brødteksten gemmes, hvilket forhindrer "spøgelses-tags" i PDF'en.
-- [x] **AI Præferencer:** Systemet husker automatisk den valgte AI-model pr. provider og gemmer dem i `data/ai_preferences.json`.
-
-## 🟡 Job-Radar & Automation
-- [x] **Arkivér Knap:** Job-radaren har en "Arkivér"-knap i UI'et.
-- [x] **Auto-Skjul:** Jobs markeret som 'applied' (Søgt) skjules automatisk fra radarens hovedvisning.
-- [x] **Direkte Automatisering:** Start af et job direkte fra radaren sætter automatisk jobbet til 'applied'.
-- [ ] **Job-Radar Cron:** Radaren kører stabilt i baggrunden hver 6. time uden at crashe systemet.
+- [x] **Dokument-Specifik Hinting:** Individuel AI-hjælp til hver del af pakken.
+- [x] **Partiel Refine:** AI'en kan forfine ét dokument uden at ødelægge de andre.
+- [x] **Model Hukommelse:** Systemet gemmer din foretrukne AI-model for hver provider.
 
 ---
 **Status-ikoner:**
-- [x] Pass
-- [ ] Fail / Mangler test
+- [x] Gennemført & Testet
+- [ ] Mangler / Fejler
 - [~] Under observation

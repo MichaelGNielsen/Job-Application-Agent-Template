@@ -2,38 +2,15 @@
 
 Dette dokument beskriver, hvordan du interagerer med de forskellige AI-tjenester i systemet.
 
-## 1. Ollama (Lokal AI)
+## 1. Oversigt over AI Modeller
 
-Ollama kører i en isoleret container på port **11435** (forskudt fra standardport 11434 for at undgå konflikt med din egen WSL installation).
+Systemet understøtter tre primære AI-udbydere, som kan vælges dynamisk i interfacet via **AI Model Vælger**.
 
-### Test via CURL (WSL/Host)
-Du kan teste forbindelsen direkte med følgende kald:
-
-```bash
-curl http://localhost:11435/api/generate -d '{
-  "model": "llama3.2:3b",
-  "prompt": "Hvad er 2+2? Svar kun med tallet.",
-  "stream": false
-}'
-```
-
-**Eksempel på svar:**
-```json
-{
-  "model": "llama3.2:3b",
-  "created_at": "2026-04-04T17:25:23.158948042Z",
-  "response": "4",
-  "done": true,
-  "done_reason": "stop",
-  "context": [...],
-  "total_duration": 6425673911,
-  "load_duration": 4690778010,
-  "prompt_eval_count": 41,
-  "prompt_eval_duration": 1621481228,
-  "eval_count": 2,
-  "eval_duration": 104676381
-}
-```
+| Provider | Type | Forbindelse | Primær Model |
+| :--- | :--- | :--- | :--- |
+| **Google Gemini** | Cloud | `gemini` CLI | `gemini-2.5-flash` |
+| **OpenCode** | Lokal / LAN | HTTP API | `agent` |
+| **Ollama** | Lokal | HTTP API | `llama3.2` |
 
 ---
 
@@ -45,73 +22,79 @@ Gemini kaldes via `gemini` CLI-værktøjet, som er præinstalleret i backend-con
 For at teste Gemini direkte fra backend-containeren:
 
 ```bash
-docker exec -it jaa-backend bash -c 'echo "Hvad er 2+2?" | gemini --model gemini-3-flash-preview'
+docker exec -e GEMINI_TELEMETRY_ENABLED=false -it jaa-backend bash -c 'echo "Hvad er 2+2? Svar kun med tallet." | gemini --model gemini-2.5-flash-lite'
 ```
 
-### VIGTIGT: Konfiguration & API Rate Limits (GDPR / OAuth)
-Gemini CLI kan køre på to måder, og dette har **stor** betydning for stabiliteten (Rate Limits):
-
-1. **API-Nøgle (Standard):** Sættes via `GEMINI_API_KEY` i `.env`. 
-   * *Problem:* I EU (pga. GDPR) er gratis API-nøgler ofte ekstremt begrænsede, og du vil hurtigt opleve `RATE_LIMIT_EXCEEDED` (selv på betalte konti, hvis de ikke er sat op som Pay-As-You-Go i Google Cloud).
-2. **OAuth Login (Anbefalet Workaround):** Hvis du har logget ind på Gemini CLI lokalt på din maskine (via browser), ligger der en skjult mappe med login-credentials (`~/.gemini`). Denne token repræsenterer din faktiske brugerprofil og har langt højere kvoter.
-
-**For at bruge OAuth (undgå Rate Limits) i Docker:**
-Sørg for at din lokale `.gemini` mappe er mountet ind i backend-containeren i `docker-compose.yml`:
-```yaml
-    volumes:
-      - ./backend:/app
-      - ~/.gemini:/root/.gemini # Giver containeren adgang til dine lokale browser-credentials
-```
-*(Husk: For nye brugere af templaten: Kør `gemini login` lokalt på jeres host-maskine én gang, før I starter Docker-containeren, for at generere denne mappe).*
+### API Rate Limits & OAuth (VIGTIGT)
+For at undgå Rate Limits i EU (GDPR begrænsninger på gratis nøgler), anbefales det at bruge **OAuth Login**:
+1. Kør `gemini login` lokalt på din maskine.
+2. Sørg for at `~/.gemini` mappen er mountet ind i Docker (allerede sat op i `docker-compose.yml`).
+3. Dette giver langt højere kvoter end en standard API-nøgle.
 
 ---
 
-## 3. OpenCode (Eksperimentel AI Agent)
+## 3. OpenCode AI Server
 
-OpenCode har sit eget indbyggede HTTP-server API (`/session`), som `jaa-backend` forstår at tale med. For at sikre stabilitet og isolation er OpenCode flyttet ud i sin egen mappe (`opencode-server`) ved siden af projektet, ligesom Ollama.
+OpenCode fungerer som en centraliseret AI-backend for det lokale netværk. Den bruger et session-baseret API.
 
-### Kørsel via det officielle Docker Image (Anbefalet)
-Vi har oprettet et samlet start-script i roden af din arbejdsmappe, der automatisk starter både Ollama og OpenCode op i baggrunden (`restart: unless-stopped`):
+### Test via CURL (2 skridt)
+
+- 1 Opret en session
 
 ```bash
-# Kør dette script fra rodbiblioteket:
-./start_ai_servers.sh
+# get session_id
+curl -X POST http://localhost:4096/session
+
+# Returnerer: {"id": "ses_298d6b436ffel6jV25M4XINmXf"}
+{"id":"ses_298d6b436ffel6jV25M4XINmXf","slug":"neon-eagle","version":"1.3.15","projectID":"global","directory":"/","title":"New session - 2026-04-07T08:57:32.873Z","time":{"created":1775552252873,"updated":1775552252873}}
 ```
 
-Dette script starter det officielle `ghcr.io/anomalyco/opencode` image på port **4097** (forskudt fra 4096 for at undgå konflikt med WSL) og giver det adgang til din host-maskine. OpenCode-serveren lytter nu korrekt på `0.0.0.0` (alle netværk), så din backend i Docker kan ramme den via `http://host.docker.internal:4097`.
+- 2 Send besked (erstat ID)
 
-### Nativ kørsel i WSL (Alternativ)
-Hvis du hellere vil køre OpenCode nativt i WSL uden om Docker:
 ```bash
-opencode serve --port 4096 --hostname 0.0.0.0
+# send spørgsmål med session_id fra forrige kald
+curl -X POST http://localhost:4096/session/ses_298d6b436ffel6jV25M4XINmXf/message -H "Content-Type: application/json" -d '{ "parts": [{ "type": "text", "text": "Hvad er 2+2? Svar kun med tallet." }] }'
+
+# svar fra opencode
+{"info":{"parentID":"msg_d672b7427001acTSW7j2mpg4hY","role":"assistant","mode":"build","agent":"build","path":{"cwd":"/","root":"/"},"cost":0,"tokens":{"total":11197,"input":65,"output":28,"reasoning":0,"cache":{"write":10594,"read":510}},"modelID":"big-pickle","providerID":"opencode","time":{"created":1775552394283,"completed":1775552402412},"finish":"stop","id":"msg_d672b742b001tOQeoDhKlzvIqA","sessionID":"ses_298d6b436ffel6jV25M4XINmXf"},"parts":[{"type":"step-start","id":"prt_d672b91280015YPIXZUKAo027A","sessionID":"ses_298d6b436ffel6jV25M4XINmXf","messageID":"msg_d672b742b001tOQeoDhKlzvIqA"},{"type":"reasoning","text":"The user is asking \"What is 2+2?\" in Danish and wants only the number as the answer.","time":{"start":1775552401707,"end":1775552402310},"metadata":{"anthropic":{"signature":"395c9e87e846b1884de8c9676fe7e4ab42016d7ba4aa39b7248a6b864803f9d9"}},"id":"prt_d672b912b001lDenaYbq6R9Vr6","sessionID":"ses_298d6b436ffel6jV25M4XINmXf","messageID":"msg_d672b742b001tOQeoDhKlzvIqA"},{"type":"text","text":"4","time":{"start":1775552402319,"end":1775552402319},"id":"prt_d672b9386002jZ7uzkqWWWGqdc","sessionID":"ses_298d6b436ffel6jV25M4XINmXf","messageID":"msg_d672b742b001tOQeoDhKlzvIqA"},{"reason":"stop","type":"step-finish","tokens":{"total":11197,"input":65,"output":28,"reasoning":0,"cache":{"write":10594,"read":510}},"cost":0,"id":"prt_d672b93e6001VJE2dDqoceW2x2","sessionID":"ses_298d6b436ffel6jV25M4XINmXf","messageID":"msg_d672b742b001tOQeoDhKlzvIqA"}]}
 ```
-*(Husk: `--hostname 0.0.0.0` er nødvendig for at Docker-containere kan ramme den).*
 
 ---
 
-## 4. Skift af AI Provider
+## 4. Ollama (Lokal AI)
 
-Du kan skifte mellem motorerne i din `.env` fil:
+Ollama bruges til kørsel af open-source modeller som Llama 3 eller Mistral.
 
-```env
-# Brug Ollama (Lokal)
-AI_PROVIDER=ollama
+### Test via CURL
 
-# Brug Gemini (Cloud)
-AI_PROVIDER=gemini
+```bash
+# ai curl kald
+ curl http://localhost:11434/api/generate -d '{"model": "gemma3:4b", "prompt": "Hvad er 2+2? Svar kun med tallet.", "stream": false }'
 
-# Brug OpenCode
-AI_PROVIDER=opencode
+# ai svar
+{"model":"gemma3:4b","created_at":"2026-04-07T08:21:44.503172224Z","response":"4\n","done":true,"done_reason":"stop","context":[105,2364,107,236814,38023,2087,236743,236778,236862,236778,236881,555,1967,11993,1470,5883,1184,236761,106,107,105,4368,107,236812,107],"total_duration":3130194052,"load_duration":2946774945,"prompt_eval_count":24,"prompt_eval_duration":79152168,"eval_count":3,"eval_duration":74516519}
 ```
-
-Husk at genstarte backenden efter ændringer: `docker restart jaa-backend`.
 
 ---
 
-## 5. Backend Test Endpoint
+## 5. Dynamisk AI Valg & Fallback
 
-Systemet har en indbygget test-rute, der kan bruges via Swagger eller direkte URL:
+Du behøver ikke længere rette i `.env` for at skifte AI. Brug dropdown-menuen i interfacet:
+- **Auto Mode:** Systemet starter med Gemini. Hvis den fejler (rate limit), prøver den automatisk **OpenCode**, og derefter **Ollama**.
+- **Model Hukommelse:** Systemet husker din valgte model pr. provider (gemt i `data/ai_preferences.json`).
 
-- **Ollama:** `http://localhost:3002/api/ai/test?provider=ollama`
-- **Gemini:** `http://localhost:3002/api/ai/test?provider=gemini`
-- **OpenCode:** `http://localhost:3002/api/ai/test?provider=opencode`
+---
+
+## 6. Overvågning af AI Svar
+
+For at se præcis hvad AI'en svarer (fejlsøgning af JSON-format etc.), kan du bruge systemets variadic logging:
+
+```bash
+# Se resume af AI svar
+# Se FULDE rå AI svar (kræver VERBOSE=-vv i .env)
+docker compose logs -f backend
+# Se FULDE rå AI svar (kræver VERBOSE=-vv i .env)
+docker compose logs -f backend
+```
+
+*Bemærk: Se **[coding_standards.md](coding_standards.md)** for mere info om det gyldne princip for logging.*

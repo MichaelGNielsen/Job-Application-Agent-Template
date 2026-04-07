@@ -51,7 +51,13 @@ export const ConfigSection: React.FC<ConfigSectionProps> = ({
             </button>
             <a href="/api/brutto/pdf" target="_blank" rel="noreferrer" className="bg-[#112240] hover:bg-[#1d355e] text-white px-4 py-2.5 rounded-lg text-[10px] font-bold uppercase border border-cyan-500/30">📄 PDF</a>
             <button onClick={onRefineMaster} disabled={isMasterLoading} className="bg-cyan-900/40 hover:bg-cyan-600/40 text-cyan-400 px-4 py-2.5 rounded-lg text-[10px] font-bold uppercase border border-cyan-500/20">
-              {isMasterLoading ? '🌀 Optimering...' : '✨ AI Optimér'}
+              {isMasterLoading ? (
+                <span className="flex items-center gap-2">
+                  <span className="inline-block [transform:scaleX(-1)]">
+                    <span className="inline-block animate-spin [animation-direction:reverse]">🌀</span>
+                  </span> Optimering...
+                </span>
+              ) : '✨ AI Optimér'}
             </button>
             <div className="flex gap-1 bg-[#0a192f] p-1 rounded-lg ml-auto border border-white/10">
               <button onClick={() => setBruttoViewMode('markdown')} className={`px-4 py-1.5 rounded-md text-[9px] font-bold uppercase ${bruttoViewMode === 'markdown' ? 'bg-cyan-600 text-white' : 'text-gray-500'}`}>REDIGÉR MD</button>

@@ -8,48 +8,36 @@
   Brug af softwaren sker på eget ansvar.
 -->
 
-# Data & Fil-workflow (Processing Flow)
+# Data & Fil-workflow (v5.6.8)
 
-Dette dokument beskriver den præcise proces, der sker fra det øjeblik en bruger trykker "Generér", til de færdige PDF-filer ligger klar.
+Dette dokument beskriver den præcise proces, der sker fra det øjeblik en bruger trykker "🚀 Start Automatisering", til de færdige dokumenter ligger klar.
 
-## 1. Job-Initialisering & Midlertidig Mappe
+## 1. Initialisering & Sprogdetektering
+Når et nyt job modtages i backenden:
+*   **Mappeoprettelse:** Der oprettes en unik mappe i `output/` med tidsstempel.
+*   **Sprogdetektering:** Systemet analyserer den fulde jobtekst via AI for at identificere sproget (da/en). Dette sikrer, at Ansøgning og CV skrives på det korrekte sprog.
 
-Når et nyt job modtages i backenden, oprettes der øjeblikkeligt en unik mappe i `output/`.
+## 2. Den Strategiske Pipeline (4 AI-Jobs)
+I stedet for ét stort AI-kald, kører systemet nu en sekventiel pipeline for at sikre højere kvalitet og "Den Røde Tråd":
+1.  **Match Analyse:** AI'en vurderer matchet og lægger strategien for resten af pakken.
+2.  **Målrettet CV:** CV'et optimeres specifikt til denne stilling baseret på Match-analysen.
+3.  **Ansøgning:** Skrives med afsæt i strategien og det opdaterede CV.
+4.  **ICAN+ Pitch:** En elevatortale/pitch baseret på hele forløbet.
 
-*   **Navngivning:** Mappen får et midlertidigt navn baseret på tidsstempel og de første informationer systemet har (f.eks. `2026-03-18_08_firma_stilling`).
-*   **Sprogdetektering:** Systemet analyserer de første 500 tegn af jobopslaget for at identificere sproget (Dansk, Engelsk, Tysk, Fransk osv.) via AI. Dette sikrer, at svar-tonen matcher opslaget.
+## 3. Dokument-generering (MD -> HTML -> PDF)
+For hvert af de fire dokumenter kører følgende proces:
+1.  **Markdown (.md):** Brødteksten gemmes som en ren Markdown-fil uden system-tags.
+2.  **HTML-Body:** Genereres via `pandoc` (GFM format).
+3.  **Master Layout:** Body-teksten flettes ind i `templates/master_layout.html`, hvor CSS og kandidat-højdepunkter (billeder) påføres.
+4.  **PDF:** En pixel-perfekt PDF genereres via en headless `chromium-browser`.
 
-## 2. AI-Generering & Intelligent Omdøbning
+## 4. Omdøbning & Quick Access
+*   **Intelligent Rename:** Når AI'en har udtrukket firma og stilling, omdøbes mappen automatisk til et læsbart format (f.eks. `2026-04-07_solution_architect_itm8`).
+*   **output/new/:** Alle genererede PDF'er kopieres til denne mappe for lynhurtig adgang til de seneste resultater.
 
-Worker-processen sender jobopslaget og brugerens CV til AI'en. AI'en bliver bedt om at foreslå et optimalt mappenavn baseret på den faktiske stillingsbetegnelse og virksomhed.
-
-*   **Rename Flow:** Så snart AI'en returnerer det første udkast, omdøbes mappen (f.eks. fra det generiske `..._stilling` til `2026-03-18_08_senior_investigator_interpol`).
-*  **Sektionsopdeling:** AI-outputtet splittes automatisk op i de fire kerne-dokumenter:
-    1.  **Ansøgning** (`Ansøgning_Kandidat_...`)
-    2.  **CV** (`CV_Kandidat_...`)
-    3.  **Match Analyse** (`Match_Analyse_Kandidat_...`)
-    4.  **ICAN+ Pitch** (`ICAN+_Pitch_Kandidat_...`)
-
-## 3. Konvertering (MD -> HTML -> PDF)
-
-For hvert af de fire dokumenter kører følgende kæde:
-1.  **Markdown (.md):** Gemmes som kilde-fil.
-2.  **HTML-Body:** Genereres via `pandoc` (GitHub Flavored Markdown).
-3.  **Full HTML:** Body-teksten indsættes i `templates/master_layout.html`, hvor CSS og design påføres.
-4.  **PDF:** En "pixel-perfekt" PDF genereres via en headless `chromium-browser`.
-
-## 4. Opsamling i `output/new/` (Quick Access)
-
-Som en ekstra service til brugeren, bliver alle færdiggenererede PDF-filer kopieret til en central opsamlingsmappe:
-
-*   **Sti:** `output/new/`
-*   **Formål:** At give hurtig adgang til de absolut nyeste filer uden at skulle navigere i de datostemplede undermapper.
-*   **Rydning:** Denne mappe fungerer som en "buffer" af de seneste resultater.
-
-## 5. Manuel vs. AI Refinement
-
-*   **Manuel Ret:** Hvis brugeren retter i editoren, opdateres MD, HTML og PDF i den specifikke job-mappe øjeblikkeligt (uden at bruge AI-tokens).
-*   **AI Refinement:** Hvis brugeren giver et nyt "hint", køres loopet igen, og de eksisterende filer overskrives med de opdaterede versioner fra AI'en.
+## 5. Iterativ Forfinelse (Refine)
+*   **Manuel polering:** Rettelser i interfacet opdaterer MD, HTML og PDF øjeblikkeligt (uden AI-kald).
+*   **AI Forfin:** Hvis brugeren giver et nyt hint, køres den relevante del af pipelinen igen, og filerne opdateres med de nye AI-forbedringer.
 
 ---
-*Sidst opdateret: 18. marts 2026*
+*Sidst opdateret: 7. april 2026 (v5.6.8)*
