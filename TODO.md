@@ -18,7 +18,9 @@
 - [ ] **Lokal AI Optimering:**
   - [ ] **No-Placeholder Rule:** Tilføj strikse instrukser til prompten om aldrig at bruge `[PLACEHOLDERS]`. Modellen SKAL bruge data fra Brutto-CV.
   - [ ] **Surgical Brutto-CV:** Implementer logik til at reducere størrelsen af Brutto-CV'et (fx kun relevante erfaringer) for at give AI'en mere context-overskud.
-- [ ] **Firma-Spejder:** Gør agenten bedre til at opdage helt nye virksomheder i Nordjylland automatisk.
+- [ ] **Radar & Job-Radar:**
+  - [ ] **Auto-Config Setup:** Implementer logik i `RadarService`, der automatisk kopierer `data/radar.json_template` til `data/radar.json`, hvis filen ikke findes ved opstart.
+  - [ ] **Firma-Spejder:** Gør agenten bedre til at opdage helt nye virksomheder i Nordjylland automatisk.
 - [ ] **PDF-Deep-Scan:** Gør det muligt for crawleren at læse PDF-jobopslag direkte fra firma-sider (kræver `pdf-parse` integration).
 - [ ] **Historik-panel:** En ny fane i UI'en der viser alle tidligere genererede ansøgninger med søgefunktion.
 
