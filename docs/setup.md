@@ -1,35 +1,40 @@
-# Setup Guide - Job Application Agent
+# Setup Guide: Job Application Agent MGN (v5.6.8)
 
-Denne guide hjælper dig med at sætte din personlige Job Application Agent op på få minutter.
+Denne guide hjælper dig med at sætte din personlige Job Application Agent op fra bunden.
 
-## 1. Identitet & Hemmeligheder
-Alt hvad der gør agenten til "din", bor i filen `.env_ai`. 
+## 1. Identitet & Konfiguration (.env)
+Alt hvad der gør agenten til "din", bor i filen `.env`. 
 
-1.  Kopiér filen `.env_ai_template` til en ny fil med navnet `.env_ai`.
-2.  Åbn `.env_ai` og ret den allerøverste linje:
-    -   `# IDENTITY_DINE_INITIALER` -> f.eks. `# IDENTITY_KHL`
-3.  Indsæt din Google Gemini API nøgle ved `GEMINI_API_KEY=`.
+1.  Kopiér filen `.env_template` til en ny fil med navnet `.env`.
+2.  Indsæt din Google Gemini API nøgle ved `GEMINI_API_KEY=`.
+3.  (Valgfrit) Ret porte eller AI-præferencer i filen.
 
-## 2. Din Erfaring (Brutto-CV)
+## 2. Din Erfaring (Master CV)
 Agenten har brug for at kende din baggrund for at kunne skrive dine ansøgninger.
 
 1.  Gå til mappen `data/`.
 2.  Åbn `brutto_cv.md`.
 3.  Erstat indholdet med din egen erhvervserfaring, kurser og profil. 
-    -   *Tip:* Du kan blot "dumpe" din LinkedIn-profil eller dit gamle Word-CV herind – AI'en finder selv ud af resten, så længe du bruger almindelige overskrifter.
+    -   *Tip:* Sørg for at stamdata (navn, adresse, etc.) i toppen af filen er korrekte, da systemet bruger dem i ansøgnings-layoutet.
 
-## 3. Start Agenten
-Når du har rettet de to filer, er du klar:
+## 3. Start Agenten med Docker
+Systemet er fuldt containeriseret for at sikre stabilitet.
 
 1.  Åbn din terminal i projektets rodmappe.
-2.  Kør kommandoen: `docker-compose up -d --build`
-3.  Åbn din browser på: `http://localhost:3000`
+2.  Kør kommandoen: `docker compose up -d --build`
+3.  Åbn din browser på: **http://localhost:3000** (Frontend)
+4.  Backend og Swagger findes på: **http://localhost:3002/api-docs**
 
-## 4. Sådan virker det i browseren
-Når du åbner web-siden, vil du se dine initialer (fra din Identity øverst i `.env_ai`) i toppen af siden. Nu skal du blot:
-1.  Indsætte et jobopslag.
-2.  Trykke på "Generér".
-3.  Agenten klarer resten og præsenterer dig for en komplet pakke (Ansøgning, CV, Match-analyse og ICAN+ Pitch).
+## 4. AI-Servere (Valgfrit)
+Hvis du vil bruge lokale modeller (OpenCode/Ollama), skal de startes separat:
+1. Gå til rodmappen i dit workspace.
+2. Kør `./start_ai_servers.sh` (kræver at du har clonet `opencode-server` og `ollama-server`).
+
+## 5. Fejlfinding & Logs
+Hvis noget ikke virker:
+- Tjek logs: `docker compose logs -f backend`
+- Kør AI test: `http://localhost:3002/api/ai/test?provider=gemini`
+- Se **[docker_usage.md](docker_usage.md)** for WSL-specifik hjælp.
 
 ---
-*God jagt!*
+*God jagt på drømmejobbet! 🚀*

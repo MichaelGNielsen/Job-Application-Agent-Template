@@ -1,36 +1,45 @@
-# Logger Anvendelse
+# Logger Anvendelse (Variadic & Traceable)
 
-Dette dokument beskriver det avancerede lognings-system (High-Alignment Logger) introduceret for at sikre sporbarhed og nem debugging.
+Dette dokument beskriver det avancerede lognings-system, der sikrer fuld sporbarhed og nem debugging gennem hele applikationen.
+
+## 🛡️ Det Gyldne Princip for Logging
+For at sikre 100% gennemsigtighed følger vi MGN-standarden for logging:
+1. **Ingen manuel begrænsning:** Der må aldrig bruges `substring()` eller `slice()` på data (AI-svar, prompts etc.) *før* det sendes til loggeren.
+2. **Centraliseret kontrol:** Alt filtrering og trunkering sker udelukkende i `utils/logger.js`.
+3. **Fuld Sporbarhed:** Alle vigtige funktioner bør logge deres indgangsparametre (Inputs) og deres returværdier (Outputs).
 
 ## 📊 Log-format
-
 Alle logs følger et fast kolonneformat for maksimal vertikal skanbarhed:
 
-`[Tidsstempel][Niveau][Linje][Funktion][Filnavn] - Besked | DATA: {ekstra info}`
-
-Eksempel:
-`[2026-03-23T14:20:01.123Z][INFO1][00142][printToPdf     ][utils.js    ] - Genererer PDF | DATA: {"jobId": "job_123"}`
+`[Tidsstempel][Niveau][Linje][Funktion][Filnavn] - Besked | DATA: arg1 | arg2 | ...`
 
 ## 🔊 Verbosity Niveauer
+Du styrer mængden af log-output via `VERBOSE` miljøvariablen:
 
-Du styrer mængden af log-output via `VERBOSE` variablen i din `.env_ai` fil:
+1.  **`VERBOSE=""` (INFO0):** Kun fejl (ERROR), advarsler (WARNI) og basale status-beskeder. Ingen data-argumenter vises.
+2.  **`VERBOSE="-v"` (INFO1):** Viser data-argumenter, men afkorter den samlede datastreng ved 500 tegn for læsbarhed i terminalen.
+3.  **`VERBOSE="-vv"` (INFO2):** **Fuldstændig logning.** Viser ALT råt og uafkortet (fulde prompts, rå AI-svar, hele HTML-sider).
 
-1.  **`VERBOSE=""` (INFO0):** Kun fejl (ERROR), advarsler (WARNI) og helt basale status-beskeder.
-2.  **`VERBOSE="-v"` (INFO1):** Viser data-objekter, men afkorter dem ved 500 tegn for at spare plads.
-3.  **`VERBOSE="-vv"` (INFO2):** Fuldstændig logning. Viser ALT (fulde prompts, rå AI svar osv.).
-
-**Vigtigt:** Fejl (`WARNI`, `ERROR`, `FATAL`) tvinger altid loggen til maksimal detaljegrad (INFO2 format), så du ikke behøver at genstarte for at finde fejlen.
-
-## 🛠 For udviklere
-
-Loggeren er implementeret i `backend/utils.js` og kan importeres i alle backend-moduler:
+## 🛠 For udviklere (Variadic API)
+Loggeren understøtter et ukendt antal argumenter (variadic), hvilket gør det nemt at logge alle relevante variabler på én gang:
 
 ```javascript
-const { logger } = require('./utils');
+const logger = require('./utils/logger');
 
-logger.info("minFunktion", "Alt kører som det skal");
-logger.error("minFunktion", "Noget gik galt", { id: 123 }, error);
+// Logning af input
+logger.info("beregnSkat", "Beregner for bruger", brugerId, indkomst, { aar: 2026 });
+
+// Logning af output
+const resultat = { skat: 5000, moms: 1000 };
+logger.info("beregnSkat", "Beregning færdig", resultat);
+
+// Fejlhåndtering (Error objekter behandles specielt)
+try {
+    throw new Error("Forbindelse tabt");
+} catch (e) {
+    logger.error("minFunktion", "Kritisk fejl opstået", { id: 123 }, e);
+}
 ```
 
 ---
-*Se `VERSION` filen for aktuel systemstatus.*
+*Sidst opdateret: 7. april 2026 (v5.6.8)*

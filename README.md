@@ -4,86 +4,53 @@
   Copyright (c) 2026 MGN. All rights reserved.
 -->
 
-# Job Application Agent - Template (Tintin Edition)
+# Job Application Agent MGN (v5.6.8)
 
-Dette projekt er den officielle **Template** udgave af Job Application Agent, illustreret med den ikoniske reporter **Tintin** som case-studie.
-
+Dette projekt automatiserer processen med at skræddersy ansøgninger og CV'er ved hjælp af AI. Systemet er designet til at skabe en stærk "rød tråd" gennem dit ansøgningsmateriale via en avanceret strategisk pipeline.
 
 ## 🚀 Hurtig opstart
-Hvis det er første gang du bruger agenten, så følg vores **[Brugervejledning (How-to)](docs/usage_guide.md)** for at få overblik over alle funktioner.
+Hvis det er første gang du bruger agenten, så følg vores **[Setup Guide](docs/setup.md)** og **[Brugervejledning](docs/usage_guide.md)**.
 
-> **⚠️ VIGTIGT (Multi-instans):** Da både `Job-Application-Agent-MGN` og `Job-Application-Agent-Template` nu benytter de samme containernavne (for nemmere synkronisering), kan de ikke køre samtidigt. Husk altid at køre `docker compose down` i den aktive mappe, før du starter den anden.
+> **⚠️ VIGTIGT (Multi-instans):** Da både `MGN` og `Template` versionerne benytter de samme containernavne, kan de ikke køre samtidigt. Husk altid at køre `docker compose down` før du skifter projekt.
 
-# Job Application Agent MGN (v5.6.0)
-
-> **Bemærk:** Hele dette projekt – herunder kode, arkitektur, dokumentation og PUML-figurer – er genereret 100% af AI (Gemini CLI) udelukkende baseret på prompts.
-
-Dette er den officielle version af Job Application Agent Template, optimeret til rigtige ansøgere. Systemet automatiserer processen med at skræddersy ansøgninger og CV'er ved hjælp af AI.
-
-### Sproghåndtering
-
-Systemet er designet til at håndtere internationale jobopslag automatisk:
-- **Ansøgning & CV:** Genereres på samme sprog som jobopslaget (Dansk, Engelsk, Tysk, Fransk, Spansk).
-- **Match Analyse & ICAN+ Pitch:** Genereres altid på **dansk**.
-
-## 🚀 Kom i gang
-
-1. **Konfiguration:** Kopier `.env_template` til `.env`.
-   * *Ollama (Lokal AI):* Kører automatisk (standard).
-   * *Gemini (Cloud AI):* Indsæt din Gemini API-nøgle i `.env`.
-2. **Master CV:** Opdater `data/brutto_cv.md` med din erhvervserfaring. Systemet udleder automatisk dit navn og dine initialer herfra.
-3. **Google Gemini OAuth (Vigtigt for EU-brugere):** 
-   For at undgå stramme API Rate Limits (GDPR), bruger systemet dine personlige browser-credentials.
-   * Åbn din terminal (host-maskinen) og kør: `npm install -g @google/gemini-cli && gemini login`
-   * Docker låner automatisk din `~/.gemini` mappe ved opstart.
-4. **Start systemet:**
-   ```bash
-   docker compose up -d --build
-   ```
-5. **Adgang:** Åbn `http://localhost:3000` i din browser.
+## 🛠️ Kerne-teknologier
+- **Backend:** Node.js (Express), BullMQ (Redis).
+- **Frontend:** React (Vite, TypeScript, Tailwind CSS).
+- **AI-Motor:** Google Gemini, OpenCode AI, Lokal Ollama.
+- **Dokument-motor:** Pandoc (HTML) & Chromium Headless (PDF).
 
 ## 📄 Dokumenter & Features
-
-Systemet genererer 4 centrale dokumenter:
-1. **Ansøgning (PDF):** Målrettet og professionelt.
-2. **CV (PDF):** Skræddersyet til jobbet.
-3. **Match Analyse (PDF):** AI-vurdering af din profil.
-4. **ICAN+ Pitch (PDF):** Guide til jobsamtalen.
+Systemet genererer 4 centrale dokumenter i hver pakke:
+1. **Ansøgning:** Målrettet og professionelt skrevet.
+2. **CV:** Skræddersyet til at matche jobopslagets krav.
+3. **Match Analyse:** En dyb AI-vurdering af din profil mod jobbet.
+4. **ICAN+ Pitch:** Din elevatortale og samtaleguide.
 
 ### Særlige funktioner
-
-* **🎯 Job-Radar:** Proaktiv søgeagent der automatisk finder og scorer relevante job fra Jobindex og Jobnet baseret på dit CV.
-* **📦 Arkivering:** Gemmer automatisk det originale jobopslag som PDF sammen med dine genererede dokumenter.
-* **🎨 Live Design:** Øjeblikkelig opdatering af previews når du retter i dit layout.
-
-## 🛠️ Teknologier
-
-* **Backend:** Node.js (Express), BullMQ, Redis.
-* **Frontend:** React (Vite, TypeScript, Tailwind CSS).
-* **AI:** Google Gemini via Gemini CLI.
-* **Layout:** HTML/CSS konverteret til PDF via Chromium Headless.
-
----
-
-*Sidst opdateret: 4. april 2026 (v5.6.0)*
-
-## 🛠️ Udvikling & API
-Systemet er født med indbygget API-dokumentation via Swagger. Dette gør det let at teste alle funktioner manuelt.
-
-- **API Dokumentation (Swagger UI):** [http://localhost:3002/api-docs](http://localhost:3002/api-docs)
+* **🎯 Job-Radar:** Autonom søgeagent der finder og scorer job fra Jobindex via Chromium scraping.
+* **🧠 AI Abstraktion:** Skift lynhurtigt mellem Cloud (Gemini) og Lokale modeller (OpenCode/Ollama).
+* **🛡️ Full Traceability:** Avanceret variadic logging sikrer at du altid kan se hvad AI'en "tænker".
+* **🎨 Live Preview:** Se dine ændringer i Master CV'et øjeblikkeligt i browseren.
 
 ## 📚 Dokumentation
+For detaljeret information, se venligst:
+- [Brugervejledning](docs/usage_guide.md) - Komplet guide til funktioner.
+- [Setup Guide](docs/setup.md) - Installation og konfiguration.
+- [AI Guide: Google Gemini (Cloud)](docs/ai_gemini.md)
+- [AI Guide: OpenCode AI (LAN)](docs/ai_opencode.md)
+- [AI Guide: Ollama (Lokal)](docs/ai_ollama.md)
+- [Job-Radar](docs/job_radar.md) - Hvordan radaren finder job til dig.
+- [Systemarkitektur](docs/architecture.md) - Teknisk overblik.
+- [Coding Standards](docs/coding_standards.md) - Arkitektoniske retningslinjer.
+- [API Dokumentation](docs/api.md) - Swagger UI og CLI brug.
+- [Feature Checklist (QA)](docs/feature_liste.md) - Validering af systemet.
+- [Testvejledning](docs/test.md) - Hvordan du kører unit og integrationstests.
+- [Journal & Roadmap](docs/journal.md) - Projektets historik og daglige rettelser.
 
-For mere dybdegående information, se venligst følgende dokumenter:
-- [Brugervejledning (How-to)](docs/usage_guide.md) - Komplet guide til alle agentens funktioner.
-- [API Dokumentation](docs/api.md) - Teknisk guide til endpoints og Swagger.
-- [Intern Kodedokumentation](docs/code_documentation.md) - Hvordan man genererer teknisk reference via JSDoc.
-- [Job-Radar (Proaktiv Søgning)](docs/job_radar.md) - Hvordan radaren finder job til dig.
-- [Testvejledning](docs/test.md) - Hvordan du installerer og kører tests.
-- [Systemarkitektur](docs/architecture.md) - Overblik over systemets opbygning.
-- [Den Strategiske Pipeline (CoT)](docs/strategiske_pipeline.md) - Hvordan AI-genereringen orkestreres i 4 trin.
-- [Feature & Test Checklist (QA)](docs/feature_liste.md) - Tjekliste til at validere systemets kernefunktioner.
-- [TODO Liste](TODO.md) - Planlagte forbedringer og roadmap.
-- [Journal & Roadmap](docs/journal.md) - Projektets historik.
-- [GEMINI.md](GEMINI.md) - Instruktioner til AI-udviklere (Gemini CLI).
-- [Coding Standards & Arkitektur](docs/coding_standards.md) - Tekniske og arkitektoniske retningslinjer.
+### Udvikler-dokumentation
+- [AGENTS.md](AGENTS.md) - Instrukser til AI-agenter (kodekonventioner, test, build).
+- [GEMINI.md](GEMINI.md) - Primær instruks for Gemini CLI og AI-workflow.
+- [Alle docs/](docs/) - Komplet liste over systemdokumentation.
+
+---
+*Sidst opdateret: 7. april 2026 (v5.6.8)*

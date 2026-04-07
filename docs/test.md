@@ -35,9 +35,9 @@ docker exec jaa-frontend npm test
 ```
 
 ## ✅ Hvad testes der?
-- **Backend:** Test af `utils.js` (Markdown parsing, HTML-wrapping, PDF-generering og AI-integration).
-- **API:** Verificering af endpoints for CV, AI-regler og versionsstyring.
-- **Frontend:** Grundlæggende React rendering og UI-komponenter med det nye tredelte layout.
+- **Backend:** Test af `utils.js` (Markdown, PDF, AI) og `RadarService.js` (Job-søgning, AI-model valg, konfiguration).
+- **API:** Verificering af endpoints for CV, AI-regler, Radar og versionsstyring.
+- **Frontend:** Grundlæggende React rendering, UI-komponenter og Job-Radar interfacet.
 
 ---
 *Se `VERSION` filen for aktuel versions-historik.*

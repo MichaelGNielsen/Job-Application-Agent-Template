@@ -1,4 +1,4 @@
-# Brugervejledning: Job Application Agent MGN (v5.6.0)
+# Brugervejledning: Job Application Agent MGN (v5.6.8)
 
 Denne guide forklarer de vigtigste funktioner i systemet, og hvordan du bruger dem til at skabe den perfekte ansøgningspakke.
 
@@ -7,39 +7,48 @@ Denne guide forklarer de vigtigste funktioner i systemet, og hvordan du bruger d
 ## 1. Vedligeholdelse af Master CV (Brutto-CV)
 Dit Master CV er fundamentet for alt. Det findes under fanen **📜 Master CV** i System Kartoteket.
 
-- **💾 Gem konfiguration:** Gemmer dine rettelser og opdaterer automatisk HTML og PDF visningen i `data/` mappen.
-- **👁️ Vis HTML:** Åbner en preview af dit CV i en ny fane, så du kan tjekke layoutet.
-- **📄 Åben PDF:** Viser den professionelle PDF-version, som den vil se ud for en modtager.
-- **✨ Optimér med AI:** Bruger Gemini til at fjerne fyldord og floskler efter "Jysk ærlighed" princippet.
-- **🌐 Oversæt CV:** Oversætter dit fulde CV til engelsk (bevarer Markdown-formatering).
+- **💾 Gem Master CV:** Gemmer dine rettelser og opdaterer automatisk HTML og PDF visningen.
+- **👁️ Vis Preview:** Viser en live HTML-visning af dit CV direkte i interfacet.
+- **📄 PDF:** Åbner den professionelle PDF-version i en ny fane.
+- **✨ AI Optimér:** Bruger AI til at optimere dit CV efter "Jysk ærlighed" princippet (fjerner floskler og gør det skarpt).
 
-## 2. Generering af ny Ansøgningspakke
+## 2. Proaktiv Job-Radar
+Job-Radaren overvåger Jobindex og finder relevante stillinger automatisk. Findes under fanen **🎯 Job-Radar**.
+
+- **Hjemby & Radius:** Konfigurér hvor du søger fra, og hvor langt du vil pendle.
+- **Søgeord:** Radaren bruger dine tekniske søgeord (fra `radar.json`) og kombinerer dem med dit CV for at finde det bedste match.
+- **Match Score:** AI'en scorer hvert fundet job (0-100%) og forklarer *hvorfor* det er et godt eller dårligt match.
+- **🚀 Automatisér:** Ved ét klik overføres alle job-detaljer til hovedformularen, så du kan generere ansøgningen med det samme.
+
+## 3. Generering af ny Ansøgningspakke
 Brug hovedformularen på forsiden til at starte en ny proces.
 
-- **Firma URL:** Indsæt link til firmaets hjemmeside. Agenten vil selv scrape siden for at finde kontekst og adresser.
-- **Personligt Hint:** Giv AI'en instrukser, f.eks. "Læg vægt på min erfaring med RTOS" eller "Skriv på et formelt sprog".
+- **Firma URL:** (Valgfrit) Agenten scraper firmaets side for kontekst og adresse.
+- **AI Model Vælger:** Vælg mellem Google Gemini, OpenCode eller lokal Ollama. Systemet husker din favorit.
+- **Personligt Hint:** Giv AI'en instrukser, f.eks. "Læg vægt på min erfaring med RTOS".
 - **Jobopslag:** Indsæt den fulde tekst fra jobopslaget.
-- **🚀 Start Automatisering:** Agenten analyserer sprog, laver research og genererer Ansøgning, CV, Match-analyse og ICAN+ Pitch.
+- **🚀 Start Automatisering:** Agenten genererer Ansøgning, CV, Match-analyse og ICAN+ Pitch i én arbejdsgang.
 
-## 3. Forfinelse (Refine Loop)
-Når dokumenterne er genereret, kan du finpudse dem.
+## 4. Forfinelse (Refine Loop)
+Når dokumenterne er genereret, kan du finpudse dem under **Resultater**.
 
 - **PREVIEW:** Se dokumentet i dets endelige layout.
-- **RET INDHOLD:** Ret direkte i Markdown-teksten.
-- **KONTAKT (META):** Ret i metadata som f.eks. modtagerens adresse eller din egen signatur.
-- **✨ Forfin alt med AI:** Brug hint-boksen til at give AI'en rettelser til hele pakken (f.eks. "Gør ansøgningen kortere").
+- **RET INDHOLD:** Ret direkte i Markdown-teksten. Gemmer automatisk dine rettelser.
+- **✨ AI Forfin:** Brug hint-feltet ved det enkelte dokument til at bede om specifikke rettelser (f.eks. "Gør mere formel").
+- **✨ Forfin alt med AI:** (Den store knap) Opdaterer hele pakken baseret på et nyt hint eller rettelser i jobteksten.
 
-## 4. Internationalisering
+## 5. Internationalisering
 Agenten detekterer automatisk sproget i jobopslaget.
 
-- Hvis opslaget er på **Engelsk**, vil Ansøgning og CV automatisk blive skrevet på Engelsk.
-- Redaktørens Logbog, Match og ICAN+ skrives altid på **Dansk**, så du let kan læse AI'ens overvejelser.
+- Hvis opslaget er på **Engelsk**, skrives Ansøgning og CV automatisk på engelsk.
+- Redaktørens noter, Match-analyse og ICAN+ skrives altid på **Dansk** for hurtigt overblik.
 
 ---
 
-## 5. Udvikling & API Test (Swagger)
-For tekniske detaljer om systemets ruter, se vores dedikerede **[API Dokumentation](api.md)**. Her finder du også link til Swagger UI og eksempler på brug via terminalen.
+## 6. Overvågning & Logs
+Hvis du vil se hvad agenten "tænker" eller fejlsøge:
+- **Status Journal:** Se de seneste tekniske ændringer i **[journal.md](journal.md)**.
+- **Terminal Logs:** Kør Docker med `-v` eller `-vv` for at se AI-svar og systemets variadic logs i realtid.
 
 ---
-*Tip: Husk altid at tjekke "AI Ræsonnement"
- (den blå boks) for at se hvilken strategi agenten har valgt for det specifikke job. Gennemlæs altid dine dokumenter manuelt før afsendelse, og brug eventuelt "Forfin alt med AI" til et ekstra tjek for stavefejl, floskler og professionel tone.*
+*Tip: Tjek altid "AI Ræsonnement" (den blå boks) før du retter. Det giver dig indsigt i AI'ens strategi for det pågældende job.*
