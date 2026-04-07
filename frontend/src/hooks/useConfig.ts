@@ -39,7 +39,7 @@ export const useConfig = () => {
       setMasterLayout(layout.content);
       setVersion(ver.version);
       setModelName(ver.model || 'Auto-detecting...');
-      setInstanceName(ver.instance || 'MGN');
+      setInstanceName(ver.instance || 'Template');
       setInitials(ver.initials || 'JAA');
       logger.info("useConfig", "Konfiguration indlæst", { version: ver.version, instance: ver.instance, model: ver.model });
     } catch (e) {

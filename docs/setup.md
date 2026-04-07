@@ -1,4 +1,4 @@
-# Setup Guide: Job Application Agent MGN (v6.0.0)
+# Setup Guide: Job Application Agent Template (v6.0.0)
 
 Denne guide hjælper dig med at sætte din personlige Job Application Agent op fra bunden.
 

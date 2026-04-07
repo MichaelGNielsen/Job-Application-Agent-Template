@@ -1,8 +1,6 @@
 /**
  * Job Application Agent Template
  * 
- * Designer: MGN (mgn@mgnielsen.dk)
- * Copyright (c) 2026 MGN. All rights reserved.
  * 
  * BEM�RK: Denne kode anvender AI til generering og behandling.
  * Brugeren skal selv verificere, at resultatet er som forventet.

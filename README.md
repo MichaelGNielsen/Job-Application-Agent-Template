@@ -1,17 +1,16 @@
 <!--
-  Job Application Agent Template
-  Designer: MGN (mgn@mgnielsen.dk)
-  Copyright (c) 2026 MGN. All rights reserved.
+  Job Application Agent - Template Edition
+  Softwaren leveres "som den er", uden nogen form for garanti.
+  Brug af softwaren sker på eget ansvar.
 -->
 
-# Job Application Agent MGN (v6.0.0)
+
+# Job Application Agent Template (v6.0.0)
 
 Dette projekt automatiserer processen med at skræddersy ansøgninger og CV'er ved hjælp af AI. Systemet er designet til at skabe en stærk "rød tråd" gennem dit ansøgningsmateriale via en avanceret strategisk pipeline.
 
 ## 🚀 Hurtig opstart
 Hvis det er første gang du bruger agenten, så følg vores **[Setup Guide](docs/setup.md)** og **[Brugervejledning](docs/usage_guide.md)**.
-
-> **⚠️ VIGTIGT (Multi-instans):** Da både `MGN` og `Template` versionerne benytter de samme containernavne, kan de ikke køre samtidigt. Husk altid at køre `docker compose down` før du skifter projekt.
 
 ## 🛠️ Kerne-teknologier
 - **Backend:** Node.js (Express), BullMQ (Redis).

@@ -1,8 +1,6 @@
 /**
  * Job Application Agent Template
  * 
- * Designer: MGN (mgn@mgnielsen.dk)
- * Copyright (c) 2026 MGN. All rights reserved.
  */
 
 import { render, screen, fireEvent } from '@testing-library/react';

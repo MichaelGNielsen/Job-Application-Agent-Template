@@ -86,3 +86,7 @@ Fokus på at bringe dokumentationen (architecture.md) up-to-date med den faktisk
 ### 2026-04-07 (JSON Fix)
 - Implementeret resilient JSON-parsing i AiManager.js.
 - Tilføjet automatisk rensning af trailing commas, manglende kommaer og ulovlige newlines i AI-svar.
+- Oprydning af personlige MGN/Michael referencer og rebranding til Job-Application-Agent-Template.
+- Gendannelse af Tintin test-data i CV-filer.
+- Neutralisering af dokumentations-headers.
+- Opdatering af stier til relative stier i scripts.

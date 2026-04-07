@@ -45,7 +45,7 @@ echo " OK!"
 # 3. Verificer filer i output
 echo "3. Verificerer genererede filer i output-mappen..."
 FOLDER_NAME=$(echo $STATUS_RES | grep -oP '(?<="folderName":")[^"]+')
-OUTPUT_BASE="/mnt/e/src/test/Job-Application-Agent-MGN/output/$FOLDER_NAME"
+OUTPUT_BASE="./output/$FOLDER_NAME"
 
 FILES=(
     "Ansøgning"

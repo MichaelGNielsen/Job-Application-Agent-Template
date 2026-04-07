@@ -252,7 +252,7 @@ const App: React.FC = () => {
         </main>
 
         <footer className="mt-24 pb-16 border-t border-white/5 pt-12 text-center">
-          <p className="text-[10px] text-gray-500 uppercase tracking-[0.4em] font-bold mb-4">Job Application Agent MGN &copy; 2026 | <span className="text-cyan-600/60">{config.modelName}</span></p>
+          <p className="text-[10px] text-gray-500 uppercase tracking-[0.4em] font-bold mb-4">Job Application Agent &copy; 2026 | <span className="text-cyan-600/60">{config.modelName}</span></p>
           <p className="text-[9px] text-gray-600 italic max-w-lg mx-auto leading-loose">Lande dit drømmejob med AI. Husk at verificere alt. Held og lykke! 🚀</p>
         </footer>
       </div>
