@@ -2,6 +2,23 @@
 
 Dette dokument fungerer som projektets tekniske hukommelse og strategiske roadmap. Det opdateres før hver væsentlig ændring eller commit.
 
+## 🏁 Status 8. April 2026 (Aften) - Fix: Dokumentations-links & Statisk Servering (v6.1.1) 🛠️📚✨
+
+Fokus på at gøre den tekniske kodedokumentation (JSDoc/TypeDoc) tilgængelig og funktionel direkte via backenden.
+
+### 🛠️ Tekniske Milepæle
+- **Statisk Servering af Docs:** Tilføjet en ny route i `server.js` (`app.use('/docs', ...)`), der gør det muligt for backenden at servere dokumentations-mappen. Dette løser problemer med CORS-blokering af menu-indlæsning, når man åbnede filerne direkte fra filsystemet.
+- **Link-reparation i Oversigt:** Opdateret `docs/oversigt.md` til at pege på den korrekte web-URL (`http://localhost:3002/docs/code/index.html`) i stedet for det relative filsystem-link.
+- **Backend Robusthed:** Verificeret at statisk servering fungerer korrekt sammen med eksisterende `/api/applications` route.
+
+### 🧠 Strategisk Roadmap
+- **Prioritet 1:** Gennemføre "Trial Run" med den nye logning for at finjustere søgeords-generering.
+- **Prioritet 2:** Implementere tooltips (hover-tekst) som planlagt i v6.0.0.
+
+---
+*Sidst opdateret: 8. april 2026 (v6.1.1)*
+
+
 ## 🏁 Status 8. April 2026 - Major Update: Selvheling & Robusthed (v6.1.0) 🛡️🩹🚀
 
 Fokus på at gøre systemet "skudsikkert" ved opstart og første kørsel gennem automatisk fil-generering og forbedret UI-konfiguration.

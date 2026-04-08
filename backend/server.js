@@ -382,7 +382,9 @@ app.post('/api/refine', (req, res) => applicationController.refine(req, res));
  */
 app.get('/api/results/:folder', (req, res) => applicationController.getResults(req, res));
 
-// Statiske filer fra output
+// Statiske filer fra output og dokumentation
+app.use('/docs', express.static(path.join(rootDir, 'docs')));
+
 app.use('/api/applications', (req, res, next) => {
     req.url = decodeURIComponent(req.url);
     express.static(path.join(rootDir, 'output'))(req, res, next);

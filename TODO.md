@@ -1,43 +1,24 @@
-# 🚀 TODO: Job Application Agent
+# TODO - Job Application Agent (Template)
 
-## 🏗️ Næste Skridt: Konsolidering & Ny Feature-fokus (v5.6.x)
+Dette dokument indeholder planlagte forbedringer og rettelser til den videre udvikling af Template-repoet.
 
-### 🧹 Sidste Arkitektonisk Oprydning
-- [x] **Test Refactoring:** Split `utils.test.js` op så den matcher den nye `utils/` struktur (f.eks. `logger.test.js`, `parser.test.js`).
-  - *Vigtigt:* Fix Jest timeout og "Open Handles" fejlen i `callLocalGemini()` testen (se `docs/jest_test_failure_log.md`).
-- [x] **Socket Service:** Flyt socket.io-logikken fra `server.js` til en dedikeret `services/SocketService.js`.
-- [ ] **JSDoc Færdiggørelse:** Gennemgå alle metoder i `ApplicationService.js` og tilføj manglende `@param` og `@returns` dokumentation.
-- [ ] **Swagger CSS:** Tilpas Swagger UI med projektets farver (mørkeblå/cyan) for et gennemført look.
-- [ ] **Swagger Path Validation:** Automatisk tjek om samtlige ruter defineret i koden er dokumenteret i Swagger.
-- [ ] **API Kontrakt-test:** Implementer avancerede kontrakt-tests (f.eks. Prism eller Dredd) for at sikre at API'et svarer præcis som dokumenteret.
+## 🔴 Høj Prioritet (Fejlrettelser & Robusthed)
 
-### 📡 Nye Features (Roadmap)
-- [ ] **UI/UX Optimering:**
-  - [ ] **Hover-text (Tooltips):** Implementer hover-text/tooltips over alle knapper og funktioner på websiden for bedre brugervejledning.
-  - [ ] **Docs Reduktion:** Skru ned for mængden af beskrivelser i `docs/` og flyt vejledningen direkte ind i UI'en (via hover-text).
-- [ ] **Lokal AI Optimering:**
-  - [ ] **No-Placeholder Rule:** Tilføj strikse instrukser til prompten om aldrig at bruge `[PLACEHOLDERS]`. Modellen SKAL bruge data fra Brutto-CV.
-  - [ ] **Surgical Brutto-CV:** Implementer logik til at reducere størrelsen af Brutto-CV'et (fx kun relevante erfaringer) for at give AI'en mere context-overskud.
-- [ ] **Radar & Job-Radar:**
-  - [ ] **Auto-Config Setup:** Implementer logik i `RadarService`, der automatisk kopierer `data/radar.json_template` til `data/radar.json`, hvis filen ikke findes ved opstart.
-  - [ ] **Firma-Spejder:** Gør agenten bedre til at opdage helt nye virksomheder i Nordjylland automatisk.
-- [ ] **PDF-Deep-Scan:** Gør det muligt for crawleren at læse PDF-jobopslag direkte fra firma-sider (kræver `pdf-parse` integration).
-- [ ] **Historik-panel:** En ny fane i UI'en der viser alle tidligere genererede ansøgninger med søgefunktion.
+- **Docker .env Startup Fix:** Docker Compose fejler under opstart hvis `.env` filen mangler pga. `env_file` direktivet. Vores kode-baserede "selvheling" når aldrig at køre.
+  - *Løsning:* Opret et `start.sh` script eller tilføj shell-logik der tjekker/kopierer `.env` *før* `docker-compose up -d`.
+- **API Nøgle Validering:** Udvid `keyStatus` logikken til også at tjekke om nøglen er teknisk valid (f.eks. ved et hurtigt test-kald til Gemini API) i stedet for kun at tjekke længde/dummy-tekst.
+
+## 🟡 Medium Prioritet (UI/UX & Funktioner)
+
+- **Frontend Tooltips:** Implementer hover-tekst (tooltips) på alle handlingsknapper i frontend for at gøre systemet mere intuitivt.
+- **Log Fine-tuning:** Gennemfør en række "Trial Runs" med den nye variadic logging (`-vv`) for at optimere prompts til søgeords-generering i `RadarService`.
+- **Resultat Visning:** Forbedre visningen af ICAN+ Pitch i frontend, så den præsenteres som "talepunkter" fremfor blot en tekstblok.
+
+## 🟢 Lav Prioritet (Vedligeholdelse & Docs)
+
+- **Unit Tests:** Tilføj specifikke unit tests for `envHelper.js` og den nye logik i `ConfigController.js`.
+- **Dokumentations-rens:** Gennemgå alle `.md` filer i `docs/` og fjern eventuelle forældede referencer til `radar.json_template`.
+- **Swagger Cleanup:** Udvid Swagger-dokumentationen til at dække de nye felter i `/api/version` svaret.
 
 ---
-
-## ✅ Gennemført (4. april 2026 - v6.0.0) 🏗️🚀
-- [x] **Fuld Backend Refactoring:** Controllers & Services implementeret. `server.js` og `worker.js` er nu slanke.
-- [x] **Fuld Frontend Refactoring:** Hooks (`useRadar`, `useApplication`) og modulære komponenter implementeret.
-- [x] **Utils Split:** `utils.js` er splittet i et rent bibliotek under `utils/`.
-- [x] **Låst Infrastruktur:** Porte (3000, 3002, 6379) og containernavne er faste.
-- [x] **Single Source of Truth:** Al konfiguration samlet i én `.env` fil.
-- [x] **Auto-Dokumentation:** JSDoc (Doxygen-style) genereres nu automatisk asynkront ved startup.
-- [x] **Frontend Logger:** Implementeret signatur-logger i browser-konsollen med CSS-styling.
-- [x] **Swagger Færdiggørelse:** Alle ruter er dokumenteret og tilgængelige via Swagger UI.
-- [x] **Lokal AI Fallback:** Ollama integreret i separat container med automatisk fallback fra Gemini ved timeout/rate-limits.
-- [x] **Ingen Hardcoding:** Person-data fjernet fra `.env`. Branding og initialer udledes nu dynamisk fra Master CV'et, hvilket gør systemet 100% template-klart.
-- [x] **AI Test Endpoint:** `/api/ai/test` tilføjet til Swagger for hurtig verifikation af AI-forbindelser.
-
----
-*Sidst opdateret: 4. april 2026 (Efter arkitektonisk modernisering)*
+*Sidst opdateret: 8. april 2026*

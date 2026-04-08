@@ -47,7 +47,7 @@ docker exec -it jaa-backend node ai_syre_test.js
 | :--- | :--- | :--- |
 | **Systemarkitektur** | [docs/architecture.md](architecture.md) | Mermaid diagram og teknisk overblik. |
 | **API (Swagger)** | `http://localhost:3002/api-docs` | Interaktiv REST API dokumentation. |
-| **Kode-dokumentation** | [docs/code/index.html](code/index.html) | Auto-genereret JSDoc (Backend) og TypeDoc (Frontend). |
+| **Kode-dokumentation** | `http://localhost:3002/docs/code/index.html` | Auto-genereret JSDoc (Backend) og TypeDoc (Frontend). |
 | **Feature QA** | [docs/feature_liste.md](feature_liste.md) | Checklist til manuel test og QA. |
 
 ## 🛠 Generering af ny kode-dokumentation

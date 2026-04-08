@@ -5,7 +5,7 @@
 -->
 
 
-# Job Application Agent Template (v6.1.0)
+# Job Application Agent Template (v6.1.1)
 
 Dette projekt automatiserer processen med at skræddersy ansøgninger og CV'er ved hjælp af AI. Systemet er designet til at skabe en stærk "rød tråd" gennem dit ansøgningsmateriale via en avanceret strategisk pipeline.
 
@@ -53,4 +53,4 @@ For detaljeret information, se venligst:
 - [Alle docs/](docs/) - Komplet liste over systemdokumentation.
 
 ---
-*Sidst opdateret: 8. april 2026 (v6.1.0)*
+*Sidst opdateret: 8. april 2026 (v6.1.1)*
