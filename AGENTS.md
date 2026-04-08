@@ -3,9 +3,7 @@
   Softwaren leveres "som den er", uden nogen form for garanti.
   Brug af softwaren sker på eget ansvar.
 -->
-<!--
-  Job Application Agent Template
--->
+
 
 # AGENTS.md - Job Application Agent Template
 

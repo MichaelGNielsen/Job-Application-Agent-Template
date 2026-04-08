@@ -2,6 +2,26 @@
 
 Dette dokument fungerer som projektets tekniske hukommelse og strategiske roadmap. Det opdateres før hver væsentlig ændring eller commit.
 
+## 🏁 Status 8. April 2026 - Major Update: Selvheling & Robusthed (v6.1.0) 🛡️🩹🚀
+
+Fokus på at gøre systemet "skudsikkert" ved opstart og første kørsel gennem automatisk fil-generering og forbedret UI-konfiguration.
+
+### 🛠️ Tekniske Milepæle
+- **Selvhelende Data-radar:** `RadarService` kan nu selv generere en korrekt `radar.json` fil hvis den mangler, og overlever korrupt JSON via dyb merging af standard-værdier.
+- **Selvhelende Environment:** Implementeret `ensureEnvExists` utility der automatisk opretter en `.env` fra `.env_template` ved opstart af server eller worker.
+- **API Nøgle Management:** Tilføjet ny fane 'Indstillinger' i frontend, hvor brugeren kan indtaste sin Gemini API nøgle. Denne gemmes i `ai_preferences.json` og overstyrer dummy-værdier i .env.
+- **UI Advarselssystem:** Implementeret pulsende advarsel i toppen af applikationen hvis API-nøglen mangler eller er ugyldig.
+- **Logging Opgradering:** Gennemført totalrenovering af logging-systemet. Nu logges fulde prompts, rå AI-svar, rensede svar og præcis eksekveringstid (ms) for alle AI-kald.
+- **Robusthedstests:** Oprettet og kørt `integration_robustness.test.js` (sikker tilstand) for at verificere selvheling uden at røre ved aktive filer.
+
+### 🧠 Strategisk Roadmap
+- **Prioritet 1:** Gennemføre "Trial Run" med den nye logning for at finjustere søgeords-generering.
+- **Prioritet 2:** Implementere tooltips (hover-tekst) som planlagt i v6.0.0.
+
+---
+*Sidst opdateret: 8. april 2026 (v6.1.0)*
+
+
 ## 🏁 Status 7. April 2026 - Major Release: Arkitektur & UI/UX Optimering (v6.0.0) 🧭🏗️🚀
 
 Fokus på at bringe dokumentationen (architecture.md) up-to-date med den faktiske implementering og forberede UI'en til hover-tekst.
@@ -19,74 +39,3 @@ Fokus på at bringe dokumentationen (architecture.md) up-to-date med den faktisk
 
 ---
 *Sidst opdateret: 7. april 2026 (v6.0.0)*
-
-
-## 🏁 Status 5. April 2026 (Aften) - Fuld Formatering & Oprydning (v5.6.7) 🧹✨
-... rest of file ...
-
-### 2026-04-06
-- Rettet PDF-generering (printToPdf.js) med bedre validering og fejlhåndtering.
-- Implementeret fallback-kæde: Gemini -> OpenCode -> Ollama i AiManager.
-- Opdateret .env til gemini-3.1-flash-lite-preview.
-
-### 2026-04-07 (Senere)
-- Integreret AI Model Vælger i `RadarService`. Job-radar bruger nu automatisk den AI-model, som brugeren har valgt i interfacet via `data/ai_preferences.json`.
-- Refaktoreret `RadarService` til at læse bruger-præferencer centralt før alle AI-kald (`refresh`, `_scoreJob`, `analyzeJob`).
-
-### 2026-04-07
-- Tilføjet `searchKeywords` konfiguration til `radar.json` for at forbedre søgekvaliteten i 'Søg nye job'.
-- Opdateret `RadarService.js` til at inkludere disse søgeord i AI-prompten ved generering af søgeforespørgsler.
-- Verificeret med backend/frontend tests.
-
-
-- Rettet manual edit PDF-generering: Sender nu fil-sti i stedet for HTML-indhold.
-- Forbedret sektions-ekstraktion med tolerance overfor AI-mærkat variationer.
-- Implementeret intelligent 'Start Automatisering' knap der tjekker for tekst-ændringer.
-- Rettet unit tests (printToPdf og generateMasterDocs) til at matche ny robustheds-logik.
-
-### 2026-04-06
-- Implementeret 'Den Strategiske Pipeline' (Arkitektur v6.0+): 4-trins sekventiel AI-generering (Match -> CV -> Ansøgning -> ICAN+) for at sikre stærk 'rød tråd'.
-- Dokumenteret pipelinen i docs/strategiske_pipeline.md.
-- Adskilt job data og brødtekst fuldstændig: Metadata gemmes nu i job_data.json, og .md filer er 100% ren tekst.
-- Forenklet frontend editoren (fjernet meta-view) da AI'en ikke længere forvirres over metadata tags ved manuelle rettelser eller AI-forfinelser.
-
-### 2026-04-06
-- Oprettet timeUtils.js til at håndtere korrekt lokal tidszone (CEST/CET) i stedet for UTC.
-- Opdateret system-logger og mappe-navngivning til at bruge den korrekte, lokale tid.
-
-### 2026-04-06
-- Oprettet Feature & Test Checklist (QA) i docs/feature_liste.md.
-- Implementeret 'Drebin Spinner' (visuel feedback) på 'AI Forfin' knappen i ResultSection.
-
-### 2026-04-06
-- Tilføjet 'Kode & Arkitektur Regler' til feature_liste.md for at beskytte 'Lokal Tidszone (TS) via timeUtils.js' og 'Rene Markdown Filer' principperne fremadrettet.
-
-### 2026-04-06
-- Opdateret rækkefølgen af AI-modeller i 'AI model vælger' dropdown til Gemini -> OpenCode -> Ollama.
-
-### 2026-04-06
-- Implementeret persistent lagring af AI-præferencer (provider + model) i data/ai_preferences.json.
-- Frontend husker nu automatisk det sidst valgte model-valg pr. provider.
-
-### 2026-04-07 (Senere)
-- Implementeret unit testing for RadarService (RadarService.test.js).
-- Verificeret fuld funktionalitet af AI-model valg og søgeords-logik via test-suite.
-
-### 2026-04-07 (Fix)
-- Rettet fejl i RadarService hvor hele præference-objektet blev sendt til AiManager i stedet for provider-navnet.
-- Opdateret RadarService til korrekt at overføre 'activeProvider' og 'activeModel' fra data/ai_preferences.json.
-
-### 2026-04-07 (Test Fix)
-- Rettet timeout fejl i RadarService unit test ved at mocke søge-funktionen, så Chromium ikke startes under test-afvikling.
-
-### 2026-04-07 (Senere endnu)
-- Gjorde score-tærsklen konfigurerbar via 'minScore' i radar.json.
-- Opdateret RadarService til at bruge denne tærskel i stedet for en hårdkodet værdi på 80.
-
-### 2026-04-07 (JSON Fix)
-- Implementeret resilient JSON-parsing i AiManager.js.
-- Tilføjet automatisk rensning af trailing commas, manglende kommaer og ulovlige newlines i AI-svar.
-- Oprydning af personlige MGN/Michael referencer og rebranding til Job-Application-Agent-Template.
-- Gendannelse af Tintin test-data i CV-filer.
-- Neutralisering af dokumentations-headers.
-- Opdatering af stier til relative stier i scripts.

@@ -52,7 +52,31 @@ class ConfigController {
 
             const provider = process.env.AI_PROVIDER || 'gemini';
             let model = '';
+            let keyStatus = 'ok';
             
+            // Tjek om API nøgle mangler eller er en placeholder
+            if (provider === 'gemini' || provider === 'default') {
+                const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+                const isDummy = !apiKey || 
+                                apiKey.includes('din-nøgle-her') || 
+                                apiKey.includes('YOUR_API_KEY_HERE') || 
+                                apiKey.includes('DIN_API_NØGLE_HER') ||
+                                apiKey.length < 10;
+                
+                if (isDummy) {
+                    // Tjek om den måske ligger i ai_preferences.json i stedet
+                    const prefsPath = this.path.join(this.rootDir, 'data', 'ai_preferences.json');
+                    let hasKeyInPrefs = false;
+                    if (this.fs.existsSync(prefsPath)) {
+                        const prefs = JSON.parse(this.fs.readFileSync(prefsPath, 'utf8'));
+                        if (prefs.providers?.gemini?.apiKey && prefs.providers.gemini.apiKey.length > 20) {
+                            hasKeyInPrefs = true;
+                        }
+                    }
+                    if (!hasKeyInPrefs) keyStatus = 'missing';
+                }
+            }
+
             if (provider === 'ollama') {
                 model = `ollama:${process.env.OLLAMA_MODEL || "llama3.2"}`;
             } else if (provider === 'opencode') {
@@ -69,7 +93,8 @@ class ConfigController {
                     instance: instanceName, 
                     initials: this.utils.getInitials(instanceName),
                     provider: provider,
-                    model: model 
+                    model: model,
+                    keyStatus: keyStatus
                 });
             } else {
                 res.json({ 
@@ -77,7 +102,8 @@ class ConfigController {
                     instance: instanceName, 
                     initials: this.utils.getInitials(instanceName),
                     provider, 
-                    model 
+                    model,
+                    keyStatus: keyStatus
                 });
             }
         } catch (e) { res.status(500).json({ version: "error" }); }

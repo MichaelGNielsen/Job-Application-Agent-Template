@@ -29,7 +29,7 @@ const App: React.FC = () => {
   const app = useApplication(socket as any);
 
   // 2. UI States
-  const [activeTab, setActiveTab] = useState<'brutto' | 'ai' | 'layout' | 'radar'>('brutto');
+  const [activeTab, setActiveTab] = useState<'brutto' | 'ai' | 'layout' | 'radar' | 'settings'>('brutto');
   const [showConfig, setShowConfig] = useState(false);
   const [viewModes, setViewModes] = useState<{ [key: string]: 'html' | 'markdown' }>({
     ansøgning: 'html', cv: 'html', match: 'html', ican: 'html'
@@ -65,6 +65,14 @@ const App: React.FC = () => {
     return () => { socket.off('job_status_update'); };
   }, []);
 
+  // Åben automatisk indstillinger hvis nøgle mangler
+  useEffect(() => {
+    if (config.keyStatus === 'missing') {
+      setShowConfig(true);
+      setActiveTab('settings');
+    }
+  }, [config.keyStatus]);
+
   // 4. Handlers
   const handleUpdateBody = (id: string, newBody: string) => {
     if (!app.results) return;
@@ -76,6 +84,25 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-[#0a192f] text-gray-100 font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
       <div className="max-w-6xl mx-auto px-4 py-12">
         
+        {/* API Key Warning */}
+        {config.keyStatus === 'missing' && (
+          <div className="mb-8 bg-orange-500/10 border border-orange-500/30 p-4 rounded-xl flex items-center justify-between gap-4 animate-pulse">
+            <div className="flex items-center gap-3 text-orange-400">
+              <span className="text-2xl">⚠️</span>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest">Systemet er ikke klar</p>
+                <p className="text-[10px] opacity-80">Google Gemini API nøglen mangler. Gå til 'Indstillinger' for at konfigurere den.</p>
+              </div>
+            </div>
+            <button 
+              onClick={() => { setShowConfig(true); setActiveTab('settings'); }}
+              className="px-4 py-2 bg-orange-600 text-white text-[10px] font-bold uppercase rounded-lg hover:bg-orange-500 transition-all shadow-lg"
+            >
+              Fix det nu
+            </button>
+          </div>
+        )}
+
         {/* Header */}
         <header className="mb-16 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-5">
@@ -112,6 +139,9 @@ const App: React.FC = () => {
               setAiInstructions={config.setAiInstructions}
               masterLayout={config.masterLayout}
               setMasterLayout={config.setMasterLayout}
+              aiPrefs={config.aiPrefs}
+              setAiPrefs={config.setAiPrefs}
+              keyStatus={config.keyStatus}
               isLoading={app.isLoading}
               isMasterLoading={config.isMasterLoading}
               statusMessage={app.statusMessage}

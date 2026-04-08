@@ -12,13 +12,16 @@ const path = require('path');
 const dotenv = require('dotenv');
 const { io } = require('socket.io-client');
 const cheerio = require('cheerio');
-const { mdToHtml, wrap, wrapAll, fetchCompanyContent, logger, printToPdf, parseCandidateInfo, extractSection, saveUrlToPdf } = require('./utils');
+const { mdToHtml, wrap, wrapAll, fetchCompanyContent, logger, printToPdf, parseCandidateInfo, extractSection, saveUrlToPdf, ensureEnvExists } = require('./utils');
 const RadarService = require('./services/RadarService');
 const ApplicationService = require('./services/ApplicationService');
 const AiManager = require('./services/ai/AiManager');
 
 const execPromise = promisify(exec);
 const rootDir = '/app/shared';
+
+// SIKRER AT .env FINDES (Self-healing)
+ensureEnvExists(rootDir, logger);
 
 // Indlæs .env filen
 dotenv.config({ path: path.join(rootDir, '.env') });

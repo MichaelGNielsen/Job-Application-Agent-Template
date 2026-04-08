@@ -11,8 +11,9 @@ class OpenCodeProvider {
     }
 
     async call(prompt, jobId = "default", aiModel = null) {
+        const startTime = Date.now();
         const modelToUse = aiModel || "default-agent";
-        this.logger.info("OpenCodeProvider", `Starter OpenCode session (${modelToUse})`, { url: this.baseUrl, tegn: prompt.length });
+        this.logger.info("OpenCodeProvider", `Starter OpenCode session (${modelToUse})`, { url: this.baseUrl, tegn: prompt.length, prompt });
         
         try {
             // 1. Opret en session
@@ -47,6 +48,8 @@ class OpenCodeProvider {
             }
             
             const data = await messageRes.json();
+            const duration = Date.now() - startTime;
+            this.logger.info("OpenCodeProvider", `Rå svar modtaget fra OpenCode`, { durationMs: duration, rawResponse: data });
             
             // Find tekst-delen af svaret i parts-arrayet
             let answer = "";

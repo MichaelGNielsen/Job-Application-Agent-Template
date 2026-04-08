@@ -1,12 +1,28 @@
 {
-  "active": true,
-  "searchKeywords": [
-    "Software Developer",
-    "Node.js",
-    "React",
-    "TypeScript",
-    "Cloud Architect"
+  "config": {
+    "radius": 30,
+    "baseCity": "aalborg",
+    "minScore": 80,
+    "searchKeywords": [
+      "Investigative Reporter",
+      "Journalism",
+      "Adventure Travel",
+      "Global Affairs",
+      "Mystery Solving",
+      "Foreign Cultures"
+    ]
+  },
+  "targetCompanies": [
+    {
+      "name": "Politiet",
+      "url": "https://politi.dk",
+      "careerUrl": "https://politi.dk/karriere"
+    },
+    {
+      "name": "Aalborg Stiftstidende",
+      "url": "https://vastly.dk/avis/aalborg-stiftstidende/",
+      "careerUrl": "https://vastly.dk/karriere"
+    }
   ],
-  "minScore": 80,
   "jobs": []
 }

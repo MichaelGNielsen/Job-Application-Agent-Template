@@ -16,11 +16,47 @@ class RadarService {
 
     async getRadarData() {
         const radarPath = this.path.join(this.rootDir, 'data', 'radar.json');
-        let radarData = { config: { radius: 30, baseCity: 'Aalborg' }, jobs: [] };
-        if (this.fs.existsSync(radarPath)) {
-            radarData = JSON.parse(this.fs.readFileSync(radarPath, 'utf8'));
+        const defaultData = {
+            config: {
+                radius: 30,
+                baseCity: 'Aalborg',
+                minScore: 80,
+                searchKeywords: []
+            },
+            targetCompanies: [],
+            jobs: []
+        };
+
+        try {
+            if (!this.fs.existsSync(radarPath)) {
+                this.logger.info("RadarService", "radar.json findes ikke. Opretter standard-fil.");
+                await this.saveRadarData(defaultData);
+                return defaultData;
+            }
+
+            const content = this.fs.readFileSync(radarPath, 'utf8');
+            if (!content || content.trim() === "") {
+                this.logger.warn("RadarService", "radar.json er tom eller beskadiget. Bruger standard-data.");
+                return defaultData;
+            }
+
+            const data = JSON.parse(content);
+            
+            // Sikre at alle nødvendige top-level nøgler og config-felter findes via dyb merging
+            return {
+                ...defaultData,
+                ...data,
+                config: { 
+                    ...defaultData.config, 
+                    ...(data.config || {}) 
+                },
+                targetCompanies: data.targetCompanies || [],
+                jobs: data.jobs || []
+            };
+        } catch (e) {
+            this.logger.error("RadarService", "Fejl ved indlæsning af radar.json. Bruger standard-data.", { error: e.message });
+            return defaultData;
         }
-        return radarData;
     }
 
     async saveRadarData(data) {

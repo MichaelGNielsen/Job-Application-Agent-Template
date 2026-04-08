@@ -199,12 +199,16 @@ ${strictFormatInstruction}`;
     async _handleInitialFlow({ jobId, jobText, companyUrl, hint, bruttoCv, icanDef, candidate, aiProvider }) {
         this._updateStatus(jobId, 'Analyserer jobopslag...');
         const langPrompt = `Hvilket sprog er dette jobopslag? Svar KUN ISO-kode (da/en): """${jobText}"""`;
+        this.logger.info("ApplicationService", "Detekterer sprog", { prompt: langPrompt });
         let lang = (await this.aiManager.call(langPrompt, jobId, aiProvider)).trim().toLowerCase().substring(0, 2);
         if (lang !== 'da' && lang !== 'en') lang = 'da';
+        this.logger.info("ApplicationService", `Sprog detekteret: ${lang}`);
 
         this._updateStatus(jobId, 'Laver autonom research på firmaet...');
         const infoPrompt = `Du er en data-ekstraktor. Udtræk firmanavn, jobtitel, by og eventuel web-adresse (URL) fra dette opslag. Hvis informationen mangler, lad feltet være tomt.\nOpslag: """${jobText}"""\n\nDu SKAL svare i dette JSON format (ingen forklaring, ingen tekst udenom):\n{"company": "Navn", "title": "Job", "location": "By", "url": "..."}`;
+        this.logger.info("ApplicationService", "Ekstraherer firma-info", { prompt: infoPrompt });
         const info = await this.aiManager.call(infoPrompt, jobId, aiProvider, true);
+        this.logger.info("ApplicationService", "Firma-info udtrukket", { info });
         
         let foundCompanyAddress = "";
         let companyContext = "";
@@ -212,14 +216,17 @@ ${strictFormatInstruction}`;
         // Brug URL fra opslaget hvis vi ikke allerede har fået en, og opslaget indeholdt en
         if (!companyUrl && info.url && info.url.startsWith('http')) {
             companyUrl = info.url;
+            this.logger.info("ApplicationService", `Bruger URL fra opslaget: ${companyUrl}`);
         }
 
         // Kør kun Google søgning (resPrompt) hvis vi faktisk kender firmanavnet, men mangler en URL/Adresse
         if (!companyUrl && info.company) {
             const resPrompt = `Find officiel URL og adresse for "${info.company}" i "${info.location || 'Danmark'}".\n\nDu SKAL svare i dette JSON format (ingen forklaring, ingen tekst udenom):\n{"url": "...", "address": "..."}`;
+            this.logger.info("ApplicationService", `Søger efter firma-data for ${info.company}`, { prompt: resPrompt });
             try {
                 const res = await this.aiManager.call(resPrompt, jobId, aiProvider, true);
                 companyUrl = res.url; foundCompanyAddress = res.address;
+                this.logger.info("ApplicationService", "Firma-data fundet via AI søgning", { companyUrl, foundCompanyAddress });
             } catch (e) {
                 this.logger.warn("ApplicationService", "AI kunne ikke finde firma-data via søgning, bruger default.");
                 companyUrl = "N/A";
@@ -228,8 +235,12 @@ ${strictFormatInstruction}`;
         }
 
         if (companyUrl && companyUrl.startsWith('http')) {
+            this.logger.info("ApplicationService", `Henter indhold fra firma-hjemmeside: ${companyUrl}`);
             const webContent = await this.utils.fetchCompanyContent(companyUrl);
-            if (webContent) companyContext += `\nBAGGRUNDSVIDEN:\n${webContent}`;
+            if (webContent) {
+                companyContext += `\nBAGGRUNDSVIDEN:\n${webContent}`;
+                this.logger.info("ApplicationService", "Web-indhold hentet succesfuldt", { length: webContent.length });
+            }
         }
 
         const now = new Date();
@@ -260,28 +271,36 @@ ${strictFormatInstruction}`;
         // TRIN 1: Match Analyse (Hjernen) + Metadata
         this._updateStatus(jobId, 'Trin 1/4: Analyserer Match og lægger strategi...');
         const prompt1 = `${baseContext}\n### BRUTTO_CV\n"""\n${bruttoCv}\n"""\n\n### DIN OPGAVE (TRIN 1)\nDu skal analysere jobbet og lægge strategien for ansøgningen.\nStart dit svar DIREKTE med de 3 mærkater: ---REDAKTØRENS_LOGBOG---, ---LAYOUT_METADATA--- og ---MATCH---.\n1. Skriv REDAKTØRENS_LOGBOG med din overordnede salgsstrategi.\n2. Skriv LAYOUT_METADATA (baseret på MASTER_LAYOUT: ${masterLayout}).\n3. Skriv den komplette MATCH_ANALYSE baseret på Brutto-CV'et.`;
+        this.logger.info("ApplicationService", "Starter TRIN 1: Match Analyse", { prompt: prompt1 });
         const result1 = await this.aiManager.call(prompt1, jobId, aiProvider) || "";
         const logbog = this.utils.extractSection(result1, '---REDAKTØRENS_LOGBOG---') || this.utils.extractSection(result1, 'REDAKTØRENS_LOGBOG:');
         const metadata = this.utils.extractSection(result1, '---LAYOUT_METADATA---') || this.utils.extractSection(result1, 'LAYOUT_METADATA:');
         const matchMd = this.utils.extractSection(result1, '---MATCH---') || this.utils.extractSection(result1, 'MATCH:');
+        this.logger.info("ApplicationService", "TRIN 1 færdig", { logbog, metadata, matchMdLength: matchMd?.length });
 
         // TRIN 2: Målrettet CV (Fundamentet)
         this._updateStatus(jobId, 'Trin 2/4: Genererer Målrettet CV...');
-        const prompt2 = `${baseContext}\n### BRUTTO_CV\n"""\n${bruttoCv}\n"""\n\n### MATCH_ANALYSE (DIN STRATEGI)\n"""\n${matchMd}\n"""\n\n### CV_LAYOUT\n${cvLayout}\n\n### DIN OPGAVE (TRIN 2)\nKog Brutto-CV'et ned til et skarpt, målrettet CV. Du SKAL fremhæve præcis de erfaringer, vi identificerede i Match Analysen. Fjern irrelevant støj.\nStart dit svar DIREKTE med mærkaten ---CV--- og skriv KUN CV'et.`;
+        const prompt2 = `${baseContext}\n### BRUTTO_CV\n"""\n${bruttoCv}\n"""\n\n### MATCH_ANALYSE (DIN STRATEGI)\n"""\n${matchMd}\n"""\n\n### CV_LAYOUT\n${cvLayout}\n\n### DIN OPGAVE (TRIN 2)\nKog Brutto-CV'et ned til et skarpt, målrettet CV. Du SKAL fremhæve præcis de erfaringer, we identificerede i Match Analysen. Fjern irrelevant støj.\nStart dit svar DIREKTE med mærkaten ---CV--- og skriv KUN CV'et.`;
+        this.logger.info("ApplicationService", "Starter TRIN 2: Målrettet CV", { prompt: prompt2 });
         let result2 = await this.aiManager.call(prompt2, jobId, aiProvider) || "";
         const cvMd = result2.replace(/-{3,}\s*CV\s*-*/gi, '').trim();
+        this.logger.info("ApplicationService", "TRIN 2 færdig", { cvMdLength: cvMd.length });
 
         // TRIN 3: Ansøgningen (Salget)
         this._updateStatus(jobId, 'Trin 3/4: Skriver Ansøgning...');
         const prompt3 = `${baseContext}\n### MATCH_ANALYSE (DIN STRATEGI)\n"""\n${matchMd}\n"""\n\n### DET MÅLRETTEDE CV\n"""\n${cvMd}\n"""\n\n### DIN OPGAVE (TRIN 3)\nSkriv selve ansøgningen med udgangspunkt i vinklen fra Match Analysen. Du må KUN henvise til erfaringer og resultater, der rent faktisk er med i 'Det Målrettede CV'. Digt ikke ny erfaring.\nStart dit svar DIREKTE med mærkaten ---ANSØGNING--- og skriv KUN ansøgningen.`;
+        this.logger.info("ApplicationService", "Starter TRIN 3: Ansøgning", { prompt: prompt3 });
         let result3 = await this.aiManager.call(prompt3, jobId, aiProvider) || "";
         const ansogningMd = result3.replace(/-{3,}\s*ANSØGNING\s*-*/gi, '').replace(/-{3,}\s*ANSOGNING\s*-*/gi, '').trim();
+        this.logger.info("ApplicationService", "TRIN 3 færdig", { ansogningMdLength: ansogningMd.length });
 
         // TRIN 4: ICAN+ Pitch
         this._updateStatus(jobId, 'Trin 4/4: Forbereder ICAN+ Pitch...');
         const prompt4 = `${baseContext}\n### DET MÅLRETTEDE CV\n"""\n${cvMd}\n"""\n\n### ANSØGNING\n"""\n${ansogningMd}\n"""\n\n### ICAN+_DEFINITION\n"""\n${icanDef}\n"""\n\n### DIN OPGAVE (TRIN 4)\nKog hele fortællingen (fra ansøgning og CV) ned til skarpe, mundtlige samtalepointer ud fra ICAN-frameworket.\nStart dit svar DIREKTE med mærkaten ---ICAN--- og skriv KUN pitchen.`;
+        this.logger.info("ApplicationService", "Starter TRIN 4: ICAN+ Pitch", { prompt: prompt4 });
         let result4 = await this.aiManager.call(prompt4, jobId, aiProvider) || "";
         const icanMd = result4.replace(/-{3,}\s*ICAN\s*-*/gi, '').trim();
+        this.logger.info("ApplicationService", "TRIN 4 færdig", { icanMdLength: icanMd.length });
 
         // Saml det hele til det eksisterende docsPart format, så resten af pipelinen forstår det
         const docsPart = `---REDAKTØRENS_LOGBOG---\n${logbog}\n\n---LAYOUT_METADATA---\n${metadata}\n\n---MATCH---\n${matchMd}\n\n---CV---\n${cvMd}\n\n---ANSØGNING---\n${ansogningMd}\n\n---ICAN---\n${icanMd}`;

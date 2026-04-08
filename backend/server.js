@@ -16,7 +16,7 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
 
 // Utils og Services
-const { mdToHtml, wrap, logger, printToPdf, parseCandidateInfo, extractSection, getInitials } = require('./utils');
+const { mdToHtml, wrap, logger, printToPdf, parseCandidateInfo, extractSection, getInitials, ensureEnvExists } = require('./utils');
 const { runAiSyreTest } = require('./ai_syre_test');
 const RadarService = require('./services/RadarService');
 const AiManager = require('./services/ai/AiManager');
@@ -28,6 +28,10 @@ const ApplicationController = require('./controllers/ApplicationController');
 const ConfigController = require('./controllers/ConfigController');
 
 const rootDir = '/app/shared';
+
+// Sikrer at .env findes (self-healing)
+ensureEnvExists(rootDir, logger);
+
 dotenv.config({ path: path.join(rootDir, '.env') });
 
 const app = express();

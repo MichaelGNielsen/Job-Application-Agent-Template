@@ -5,7 +5,7 @@
 -->
 
 
-# Job Application Agent Template (v6.0.0)
+# Job Application Agent Template (v6.1.0)
 
 Dette projekt automatiserer processen med at skræddersy ansøgninger og CV'er ved hjælp af AI. Systemet er designet til at skabe en stærk "rød tråd" gennem dit ansøgningsmateriale via en avanceret strategisk pipeline.
 
@@ -33,6 +33,7 @@ Systemet genererer 4 centrale dokumenter i hver pakke:
 
 ## 📚 Dokumentation
 For detaljeret information, se venligst:
+- **[System Oversigt & Status](docs/oversigt.md)** - Lynguide til status, test og dokumentation.
 - [Brugervejledning](docs/usage_guide.md) - Komplet guide til funktioner.
 - [Setup Guide](docs/setup.md) - Installation og konfiguration.
 - [AI Guide: Google Gemini (Cloud)](docs/ai_gemini.md)
@@ -52,4 +53,4 @@ For detaljeret information, se venligst:
 - [Alle docs/](docs/) - Komplet liste over systemdokumentation.
 
 ---
-*Sidst opdateret: 7. april 2026 (v6.0.0)*
+*Sidst opdateret: 8. april 2026 (v6.1.0)*

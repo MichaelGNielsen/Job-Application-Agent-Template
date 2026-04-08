@@ -16,10 +16,12 @@ const wrapAll = require('./wrapAll');
 const fetchCompanyContent = require('./fetchCompanyContent');
 const saveUrlToPdf = require('./saveUrlToPdf');
 const generateMasterDocs = require('./generateMasterDocs');
+const { ensureEnvExists } = require('./envHelper');
 const { getLocalISOTime, getFileSafeTimestamp } = require('./timeUtils');
 
 module.exports = {
     logger,
+    ensureEnvExists,
     getInitials,
     callLocalGemini,
     parseCandidateInfo,

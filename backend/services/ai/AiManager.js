@@ -99,7 +99,7 @@ class AiManager {
      */
     async call(prompt, jobId = "default", provider = null, json = false, aiModel = null) {
         const providerName = provider || this.defaultProvider;
-        this.logger.info("AiManager", `Lægger AI-job i køen (${providerName})`, { jobId, expectJson: json, aiModel });
+        this.logger.info("AiManager", `Lægger AI-job i køen (${providerName})`, { jobId, expectJson: json, aiModel, prompt });
         
         const job = await this.aiQueue.add('ai_call', { 
             prompt, 
@@ -116,7 +116,9 @@ class AiManager {
 
         // Rens resultatet for eventuelle Markdown kode-hegn (ofte set hos mindre modeller)
         if (result.includes('```')) {
+            const originalResult = result;
             result = result.replace(/^```[a-z]*\n/im, '').replace(/\n```$/m, '').trim();
+            this.logger.info("AiManager", "Renset Markdown kode-hegn fra AI svar", { original: originalResult, cleaned: result });
         }
 
         // Send det rå svar til loggeren (loggeren håndterer selv trunkering ved -v vs -vv)

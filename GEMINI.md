@@ -6,7 +6,7 @@
   Brug af softwaren sker på eget ansvar.
 -->
 
-# GEMINI.md - Job Application Agent Template (MGN Edition)
+# GEMINI.md - Job Application Agent (Template Edition)
 
 Dette dokument fungerer som den primære instruks for Gemini CLI i dette projekt. Det definerer roller, arkitektur og workflow for at sikre konsistent og høj kvalitet i hjælpen til brugeren.
 

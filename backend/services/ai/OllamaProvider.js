@@ -11,8 +11,9 @@ class OllamaProvider {
     }
 
     async call(prompt, jobId = "default", aiModel = null) {
+        const startTime = Date.now();
         const modelToUse = aiModel || this.model;
-        this.logger.info("OllamaProvider", `Sender til Ollama (${modelToUse})`, { url: this.baseUrl, tegn: prompt.length });
+        this.logger.info("OllamaProvider", `Sender til Ollama (${modelToUse})`, { url: this.baseUrl, tegn: prompt.length, prompt });
         
         try {
             const response = await fetch(`${this.baseUrl}/api/generate`, {
@@ -31,6 +32,9 @@ class OllamaProvider {
             }
             
             const data = await response.json();
+            const duration = Date.now() - startTime;
+            this.logger.info("OllamaProvider", `Rå svar modtaget fra Ollama`, { durationMs: duration, rawResponse: data });
+            
             // Ollama returnerer { model: "...", created_at: "...", response: "SVAR", ... }
             return data.response || data.text || JSON.stringify(data);
         } catch (error) {

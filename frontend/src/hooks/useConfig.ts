@@ -12,6 +12,8 @@ export const useConfig = () => {
   const [instanceName, setInstanceName] = useState('');
   const [initials, setInitials] = useState('');
   const [modelName, setModelName] = useState('');
+  const [keyStatus, setKeyStatus] = useState<'ok' | 'missing'>('ok');
+  const [aiPrefs, setAiPrefs] = useState<any>({ activeProvider: 'default', providers: {} });
   const [bruttoCv, setBruttoCv] = useState('');
   const [aiInstructions, setAiInstructions] = useState('');
   const [masterLayout, setMasterLayout] = useState('');
@@ -28,20 +30,23 @@ export const useConfig = () => {
   const loadConfig = async () => {
     logger.info("useConfig", "Indlæser system-konfiguration...");
     try {
-      const [brutto, ai, layout, ver] = await Promise.all([
+      const [brutto, ai, layout, ver, prefs] = await Promise.all([
         apiService.getBrutto(),
         apiService.getInstructions(),
         apiService.getLayout(),
-        apiService.getVersion()
+        apiService.getVersion(),
+        apiService.getAiPrefs()
       ]);
       setBruttoCv(brutto.content);
       setAiInstructions(ai.content);
       setMasterLayout(layout.content);
       setVersion(ver.version);
+      setKeyStatus(ver.keyStatus || 'ok');
+      setAiPrefs(prefs);
       setModelName(ver.model || 'Auto-detecting...');
       setInstanceName(ver.instance || 'Template');
       setInitials(ver.initials || 'JAA');
-      logger.info("useConfig", "Konfiguration indlæst", { version: ver.version, instance: ver.instance, model: ver.model });
+      logger.info("useConfig", "Konfiguration indlæst", { version: ver.version, instance: ver.instance, model: ver.model, keyStatus: ver.keyStatus });
     } catch (e) {
       logger.error("useConfig", "Kunne ikke indlæse konfiguration", undefined, e);
     }
@@ -55,6 +60,12 @@ export const useConfig = () => {
       if (type === 'brutto') { await apiService.saveBrutto(bruttoCv); setDirtyBrutto(false); }
       if (type === 'ai') await apiService.saveInstructions(aiInstructions);
       if (type === 'layout') await apiService.saveLayout(masterLayout);
+      if (type === 'ai-prefs') {
+        await apiService.saveAiPrefs(aiPrefs);
+        // Genindlæs version for at tjekke om keyStatus er blevet 'ok'
+        const ver = await apiService.getVersion();
+        setKeyStatus(ver.keyStatus || 'ok');
+      }
       logger.info("useConfig", "Ændringer gemt succesfuldt");
       setStatus('Gemt!');
       setTimeout(() => setStatus(''), 2000);
@@ -103,7 +114,8 @@ export const useConfig = () => {
   };
 
   return {
-    version, instanceName, initials, modelName,
+    version, instanceName, initials, modelName, keyStatus,
+    aiPrefs, setAiPrefs,
     bruttoCv, setBruttoCv: updateBruttoCv,
     aiInstructions, setAiInstructions,
     masterLayout, setMasterLayout,
