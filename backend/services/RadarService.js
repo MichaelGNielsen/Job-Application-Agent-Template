@@ -167,9 +167,10 @@ class RadarService {
         const bruttoCv = this.fs.readFileSync(bruttoPath, 'utf8');
 
         const kwPrompt = `Baseret på dette CV og disse tekniske søgeord (inkluder både danske og engelske synonymer/variationer): ${radarData.config.searchKeywords.join(', ')}. Giv de 3 vigtigste tekniske søgeord og jobtitel. Svar kun JSON: {"keywords": ["ord1", "ord2"], "title": "titel"}\n\nCV: ${bruttoCv}`;
+        this.logger.info("RadarService", "Anmoder AI om søgeord", { prompt: kwPrompt });
         const aiContext = await this.aiManager.call(kwPrompt, "radar_context", activeProvider, true, activeModel);
         
-        this.logger.info("RadarService", `AI foreslår søgeord: ${aiContext.keywords.join(', ')}`);
+        this.logger.info("RadarService", `AI foreslår søgeord: ${aiContext.keywords.join(', ')}`, { suggestions: aiContext });
 
         // Vi samler alle unikke jobs fra flere søgninger for at undgå "for specifikke" queries
         const allFoundJobs = [];
@@ -279,8 +280,9 @@ class RadarService {
             const activeProvider = prefs.activeProvider;
             const activeModel = prefs.providers[activeProvider]?.model;
             const scorePrompt = `Vurdér matchet (0-100) og giv 2 korte grunde. Job: ${job.title} (${job.company}) ved ${job.location}. CV: ${bruttoCv}. Svar kun JSON: {"score": 85, "reasons": ["...", "..."]}`;
+            this.logger.info("RadarService", `Sender job til scoring: ${job.title}`, { prompt: scorePrompt });
             const result = await this.aiManager.call(scorePrompt, "radar_score", activeProvider, true, activeModel);
-            this.logger.info("RadarService", `Scorer job: ${job.title} (${job.company}) | Score: ${result.score}`, { reasons: result.reasons });
+            this.logger.info("RadarService", `Scorer job: ${job.title} (${job.company}) | Score: ${result.score}`, { reasons: result.reasons, result });
             return result;
         } catch (e) { 
             this.logger.error("RadarService", "Fejl ved scoring af job", { error: e.message, job: job.title });
