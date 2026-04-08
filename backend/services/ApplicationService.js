@@ -280,7 +280,7 @@ ${strictFormatInstruction}`;
 
         // TRIN 2: Målrettet CV (Fundamentet)
         this._updateStatus(jobId, 'Trin 2/4: Genererer Målrettet CV...');
-        const prompt2 = `${baseContext}\n### BRUTTO_CV\n"""\n${bruttoCv}\n"""\n\n### MATCH_ANALYSE (DIN STRATEGI)\n"""\n${matchMd}\n"""\n\n### CV_LAYOUT\n${cvLayout}\n\n### DIN OPGAVE (TRIN 2)\nKog Brutto-CV'et ned til et skarpt, målrettet CV. Du SKAL fremhæve præcis de erfaringer, we identificerede i Match Analysen. Fjern irrelevant støj.\nStart dit svar DIREKTE med mærkaten ---CV--- og skriv KUN CV'et.`;
+        const prompt2 = `${baseContext}\n### BRUTTO_CV\n"""\n${bruttoCv}\n"""\n\n### MATCH_ANALYSE (DIN STRATEGI)\n"""\n${matchMd}\n"""\n\n### CV_LAYOUT\n${cvLayout}\n\n### DIN OPGAVE (TRIN 2)\nKog Brutto-CV'et ned til et skarpt, målrettet CV. Du SKAL fremhæve præcis de erfaringer, vi identificerede i Match Analysen. Fjern irrelevant støj.\nStart dit svar DIREKTE med mærkaten ---CV--- og skriv KUN CV'et.`;
         this.logger.info("ApplicationService", "Starter TRIN 2: Målrettet CV", { prompt: prompt2 });
         let result2 = await this.aiManager.call(prompt2, jobId, aiProvider) || "";
         const cvMd = result2.replace(/-{3,}\s*CV\s*-*/gi, '').trim();
