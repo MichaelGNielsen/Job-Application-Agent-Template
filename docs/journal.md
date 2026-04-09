@@ -2,6 +2,24 @@
 
 Dette dokument fungerer som projektets tekniske hukommelse og strategiske roadmap. Det opdateres før hver væsentlig ændring eller commit.
 
+## 🏁 Status 9. April 2026 - Ny Dokumentation: Teknisk Overblik & Stack (v6.1.2) 📚🏗️✨
+
+Fokus på at give et hurtigt og letforståeligt overblik over systemets teknologier og struktur for nye brugere og agenter.
+
+### 🛠️ Tekniske Milepæle
+- **Nyt Dokument: Teknisk Overblik:** Oprettet `docs/tech_stack.md`, der opsummerer systemets kerne-teknologier (Node.js, React, BullMQ, Redis, Chromium, Pandoc) og mappestruktur på en letfordøjelig måde.
+- **Bekræftelse af Sprog-stack:** Eksplicit dokumenteret at projektet er 100% JavaScript/TypeScript-baseret og **ikke** indeholder Python-kode.
+- **Link-integration:** Opdateret `README.md` og `docs/oversigt.md` med direkte links til det nye tekniske overblik for bedre navigation.
+- **Versionsstyring:** Opdateret systemversionen til `v6.1.2` i `VERSION`, `README.md` og relevante dokumenter.
+
+### 🧠 Strategisk Roadmap
+- **Prioritet 1:** Gennemføre "Trial Run" med den nye logning for at finjustere søgeords-generering.
+- **Prioritet 2:** Implementere tooltips (hover-tekst) som planlagt i v6.0.0.
+
+---
+*Sidst opdateret: 9. april 2026 (v6.1.2)*
+
+
 ## 🏁 Status 8. April 2026 (Aften) - Fix: Dokumentations-links & Statisk Servering (v6.1.1) 🛠️📚✨
 
 Fokus på at gøre den tekniske kodedokumentation (JSDoc/TypeDoc) tilgængelig og funktionel direkte via backenden.

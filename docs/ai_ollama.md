@@ -24,7 +24,7 @@ curl http://localhost:11434/api/generate -d '{
 ### Valg af model
 Sørg for, at modellen (f.eks. `llama3.2`) er downloadet før brug:
 ```bash
-docker exec -it ollama-standalone ollama pull llama3.2
+docker exec -it ollama ollama pull llama3.2
 ```
 
 ## 🧠 Optimering for Lokale Modeller

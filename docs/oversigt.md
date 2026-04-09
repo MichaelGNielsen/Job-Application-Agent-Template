@@ -4,7 +4,7 @@
   Brug af softwaren sker på eget ansvar.
 -->
 
-# System Oversigt & Status (v6.0.0)
+# System Oversigt & Status (v6.1.2)
 
 Dette dokument giver et hurtigt overblik over systemets aktuelle tilstand, hvordan man tester det, og hvor man finder den tekniske dokumentation.
 
@@ -45,6 +45,7 @@ docker exec -it jaa-backend node ai_syre_test.js
 
 | Type | Lokation | Beskrivelse |
 | :--- | :--- | :--- |
+| **Teknisk Overblik** | [docs/tech_stack.md](tech_stack.md) | Hurtig oversigt over teknologier og struktur. |
 | **Systemarkitektur** | [docs/architecture.md](architecture.md) | Mermaid diagram og teknisk overblik. |
 | **API (Swagger)** | `http://localhost:3002/api-docs` | Interaktiv REST API dokumentation. |
 | **Kode-dokumentation** | `http://localhost:3002/docs/code/index.html` | Auto-genereret JSDoc (Backend) og TypeDoc (Frontend). |
@@ -59,4 +60,4 @@ Hvis du har lavet store kodeændringer, kan du opdatere den tekniske dokumentati
 Resultatet lander automatisk i `docs/code/`.
 
 ---
-*Sidst opdateret: 8. april 2026 (v6.0.0)*
+*Sidst opdateret: 9. april 2026 (v6.1.2)*
