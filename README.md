@@ -4,7 +4,7 @@
   Brug af softwaren sker på eget ansvar.
 -->
 
-# Job Application Agent Template (v6.2.2)
+# Job Application Agent MGN (v6.2.2)
 
 Dette projekt automatiserer processen med at skræddersy ansøgninger og CV'er ved hjælp af AI. Systemet er designet til at skabe en stærk "rød tråd" gennem dit ansøgningsmateriale via en avanceret strategisk pipeline.
 
