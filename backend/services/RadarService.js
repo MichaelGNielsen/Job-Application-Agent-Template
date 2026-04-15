@@ -147,29 +147,52 @@ class RadarService {
         return newJob;
     }
 
-    async _getAiPrefs() {
+    async _getAiSettings() {
         try {
             const prefsPath = this.path.join(this.rootDir, 'data', 'ai_preferences.json');
             if (this.fs.existsSync(prefsPath)) {
-                return JSON.parse(this.fs.readFileSync(prefsPath, 'utf8'));
+                const prefs = JSON.parse(this.fs.readFileSync(prefsPath, 'utf8'));
+                let provider = prefs.activeProvider || 'default';
+                
+                // Hvis 'default', find ud af hvad den faktiske default er fra process.env
+                const actualProvider = provider === 'default' ? (process.env.AI_PROVIDER || 'gemini') : provider;
+                
+                // Prøv at finde en model gemt for denne provider
+                const model = prefs.providers?.[actualProvider]?.model;
+                
+                this.logger.info("RadarService", `AI Indstillinger indlæst fra præferencer`, { 
+                    provider: actualProvider, 
+                    model: model || 'default (fra .env)',
+                    source: 'ai_preferences.json'
+                });
+                
+                return { provider: actualProvider, model };
             }
-        } catch (e) { this.logger.warn("RadarService", "Kunne ikke læse AI præferencer", e.message); }
-        return { activeProvider: 'gemini', providers: { gemini: { model: 'gemini-1.5-flash' } } };
+        } catch (e) { 
+            this.logger.warn("RadarService", "Kunne ikke læse AI præferencer, bruger .env defaults", { error: e.message }); 
+        }
+        
+        // Fallback til .env hvis filen ikke findes eller er korrupt
+        const envProvider = process.env.AI_PROVIDER || 'gemini';
+        this.logger.info("RadarService", `Bruger AI defaults fra .env`, { provider: envProvider });
+        return { provider: envProvider, model: null };
     }
 
     async refresh() {
         const radarData = await this.getRadarData();
-        const prefs = await this._getAiPrefs();
-        const activeProvider = prefs.activeProvider;
-        const activeModel = prefs.providers[activeProvider]?.model;
+        const { provider, model } = await this._getAiSettings();
 
         const bruttoPath = this.path.join(this.rootDir, 'data', 'brutto_cv.md');
         const bruttoCv = this.fs.readFileSync(bruttoPath, 'utf8');
 
         const kwPrompt = `Baseret på dette CV og disse tekniske søgeord (inkluder både danske og engelske synonymer/variationer): ${radarData.config.searchKeywords.join(', ')}. Giv de 3 vigtigste tekniske søgeord og jobtitel. Svar kun JSON: {"keywords": ["ord1", "ord2"], "title": "titel"}\n\nCV: ${bruttoCv}`;
         this.logger.info("RadarService", "Anmoder AI om søgeord", { prompt: kwPrompt });
-        const aiContext = await this.aiManager.call(kwPrompt, "radar_context", activeProvider, true, activeModel);
+        const aiContext = await this.aiManager.call(kwPrompt, "radar_context", provider, true, model);
         
+        // Sikre at vi har keywords og title, selvom AI'en fejler eller returnerer fallback-objekt
+        aiContext.keywords = aiContext.keywords || [];
+        aiContext.title = aiContext.title || "Ukendt";
+
         this.logger.info("RadarService", `AI foreslår søgeord: ${aiContext.keywords.join(', ')}`, { suggestions: aiContext });
 
         // Vi samler alle unikke jobs fra flere søgninger for at undgå "for specifikke" queries
@@ -276,12 +299,15 @@ class RadarService {
 
     async _scoreJob(job, bruttoCv) {
         try {
-            const prefs = await this._getAiPrefs();
-            const activeProvider = prefs.activeProvider;
-            const activeModel = prefs.providers[activeProvider]?.model;
+            const { provider, model } = await this._getAiSettings();
             const scorePrompt = `Vurdér matchet (0-100) og giv 2 korte grunde. Job: ${job.title} (${job.company}) ved ${job.location}. CV: ${bruttoCv}. Svar kun JSON: {"score": 85, "reasons": ["...", "..."]}`;
-            this.logger.info("RadarService", `Sender job til scoring: ${job.title}`, { prompt: scorePrompt });
-            const result = await this.aiManager.call(scorePrompt, "radar_score", activeProvider, true, activeModel);
+            this.logger.info("RadarService", `Sender job til scoring: ${job.title}`, { provider, model, prompt: scorePrompt });
+            const result = await this.aiManager.call(scorePrompt, "radar_score", provider, true, model);
+            
+            // Sikre at resultatet altid har score og reasons, selv ved fallback
+            result.score = result.score || 0;
+            result.reasons = result.reasons || ["AI'en fejlede i at give en begrundelse."];
+
             this.logger.info("RadarService", `Scorer job: ${job.title} (${job.company}) | Score: ${result.score}`, { reasons: result.reasons, result });
             return result;
         } catch (e) { 
@@ -313,14 +339,12 @@ class RadarService {
 
             if (finalTitle === "Analyserer..." || !finalJobText) {
                 try {
-                    const prefs = await this._getAiPrefs();
-                    const activeProvider = prefs.activeProvider;
-                    const activeModel = prefs.providers[activeProvider]?.model;
+                    const { provider, model } = await this._getAiSettings();
 
                     const response = await this.fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
                     const html = await response.text();
                     const metaPrompt = `Udtræk jobtitel og firmanavn. URL: ${url}. Tekst: ${html}. Svar JSON: {"title": "...", "company": "..."}`;
-                    const metaData = await this.aiManager.call(metaPrompt, radarJobId, activeProvider, true, activeModel);
+                    const metaData = await this.aiManager.call(metaPrompt, radarJobId, provider, true, model);
                     this.logger.info("RadarService", `Udtrukket metadata for job: ${metaData.title} (${metaData.company})`, { radarJobId });
                     finalTitle = metaData.title || finalTitle;
                     finalCompany = metaData.company || finalCompany;

@@ -96,13 +96,25 @@ class AiManager {
      * @param {string|null} provider - Valgfri overstyring af provider.
      * @param {boolean} json - Hvis true, forsøger vi at parse svaret som JSON.
      * @param {string|null} aiModel - Specifik model der skal bruges for provideren.
+     * @param {boolean} returnFull - Hvis true, returneres et objekt med både svar og model-info.
      */
-    async call(prompt, jobId = "default", provider = null, json = false, aiModel = null) {
+    async call(prompt, jobId = "default", provider = null, json = false, aiModel = null, returnFull = false) {
         const providerName = provider || this.defaultProvider;
-        this.logger.info("AiManager", `Lægger AI-job i køen (${providerName})`, { jobId, expectJson: json, aiModel, prompt });
+        
+        // Forstærk prompten hvis vi forventer JSON (især for mindre modeller)
+        let finalPrompt = prompt;
+        if (json) {
+            if (providerName === 'ollama' || providerName === 'opencode') {
+                finalPrompt += "\n\nVIGTIGT: Svar KUN med rå JSON. Ingen forklaring før eller efter. JSON skal starte med { og slutte med }.";
+            } else {
+                finalPrompt += "\n\nOutput format: JSON";
+            }
+        }
+
+        this.logger.info("AiManager", `Lægger AI-job i køen (${providerName})`, { jobId, expectJson: json, aiModel, prompt: finalPrompt });
         
         const job = await this.aiQueue.add('ai_call', { 
-            prompt, 
+            prompt: finalPrompt, 
             jobId, 
             providerName,
             aiModel
@@ -112,7 +124,11 @@ class AiManager {
         });
 
         // Vent på at jobbet bliver færdigt via QueueEvents
-        let result = (await job.waitUntilFinished(this.queueEvents)) || "";
+        const jobResult = await job.waitUntilFinished(this.queueEvents);
+        
+        // Understøt både rå streng (gamle providers) og objekt (nye providers)
+        let result = typeof jobResult === 'object' ? (jobResult.response || "") : (jobResult || "");
+        const usedModel = typeof jobResult === 'object' ? jobResult.model : (aiModel || "unknown");
 
         // Rens resultatet for eventuelle Markdown kode-hegn (ofte set hos mindre modeller)
         if (result.includes('```')) {
@@ -122,7 +138,9 @@ class AiManager {
         }
 
         // Send det rå svar til loggeren (loggeren håndterer selv trunkering ved -v vs -vv)
-        this.logger.info("AiManager", "AI svar modtaget", { response: result });
+        this.logger.info("AiManager", "AI svar modtaget", { response: result, model: usedModel });
+
+        let finalValue = result;
 
         if (json) {
             let jsonContent = "";
@@ -152,31 +170,42 @@ class AiManager {
                 if (jsonContent) {
                     // RESILIENT PARSING: Prøv at fikse småfejl før vi giver op
                     try {
-                        return JSON.parse(jsonContent);
+                        finalValue = JSON.parse(jsonContent);
                     } catch (e) {
                         this.logger.warn("AiManager", "Standard JSON.parse fejlede, prøver at rense indholdet...", { error: e.message });
                         const cleaned = this._cleanJson(jsonContent);
-                        return JSON.parse(cleaned);
+                        finalValue = JSON.parse(cleaned);
                     }
+                } else {
+                    // Fallback: Hvis ingen JSON blok blev fundet, prøv at lave en nød-JSON fra den rå tekst
+                    this.logger.warn("AiManager", "Ingen JSON blok fundet, forsøger nød-fallback", { raw: result });
+                    finalValue = { 
+                        error: "Format fejl", 
+                        raw: result,
+                        company: "Ukendt",
+                        title: "Ukendt",
+                        url: "N/A",
+                        address: "",
+                        keywords: [],
+                        reasons: [],
+                        score: 0
+                    };
                 }
-                
-                // Fallback: Hvis ingen JSON blok blev fundet, prøv at lave en nød-JSON fra den rå tekst
-                this.logger.warn("AiManager", "Ingen JSON blok fundet, forsøger nød-fallback", { raw: result });
-                return { 
-                    error: "Format fejl", 
-                    raw: result,
-                    company: "Ukendt",
-                    title: "Ukendt",
-                    url: "N/A",
-                    address: ""
-                };
             } catch (e) {
                 this.logger.error("AiManager", "Kritisk fejl ved parsing af AI svar", { error: e.message, jsonContent });
-                return { error: e.message, raw: result };
+                finalValue = { error: e.message, raw: result };
             }
         }
 
-        return result;
+        if (returnFull) {
+            return {
+                answer: finalValue,
+                model: usedModel,
+                provider: providerName
+            };
+        }
+
+        return finalValue;
     }
 
     /**

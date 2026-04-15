@@ -30,11 +30,11 @@ class ApplicationService {
     }
 
     async processJob(jobData) {
-        let { jobId, jobText, companyUrl, hint, type: jobType, folder: existingFolder, markdown: existingMarkdown, aiProvider } = jobData;
+        let { jobId, jobText, companyUrl, hint, type: jobType, folder: existingFolder, markdown: existingMarkdown, aiProvider, aiModel } = jobData;
         let foundCompanyAddress = "";
         
         try {
-            this.logger.info("ApplicationService", "--- STARTER NYT JOB ---", { jobId, jobType, aiProvider });
+            this.logger.info("ApplicationService", "--- STARTER NYT JOB ---", { jobId, jobType, aiProvider, aiModel });
             const bruttoPath = this.path.join(this.rootDir, 'data', 'brutto_cv.md');
             if (!this.fs.existsSync(bruttoPath)) throw new Error("Brutto-CV mangler!");
             const bruttoCv = this.fs.readFileSync(bruttoPath, 'utf8');
@@ -48,12 +48,12 @@ class ApplicationService {
             let aiNotes = "AI'en har optimeret dokumenterne.";
 
             if (jobType === 'refine_with_ai') {
-                const result = await this._handleRefineFlow({ jobId, jobData, bruttoCv, existingFolder, existingMarkdown, hint, aiProvider });
+                const result = await this._handleRefineFlow({ jobId, jobData, bruttoCv, existingFolder, existingMarkdown, hint, aiProvider, aiModel });
                 folderName = result.folderName; folderPath = result.folderPath; companyName = result.companyName;
                 jobTitleRaw = result.jobTitleRaw; jobTitleSafe = result.jobTitleSafe; docsPart = result.docsPart; lang = result.lang;
                 layoutMeta = result.layoutMeta || {};
             } else {
-                const result = await this._handleInitialFlow({ jobId, jobText, companyUrl, hint, bruttoCv, icanDef, candidate, aiProvider });
+                const result = await this._handleInitialFlow({ jobId, jobText, companyUrl, hint, bruttoCv, icanDef, candidate, aiProvider, aiModel });
                 folderName = result.folderName; folderPath = result.folderPath; companyName = result.companyName;
                 jobTitleRaw = result.jobTitleRaw; jobTitleSafe = result.jobTitleSafe; docsPart = result.docsPart; lang = result.lang;
                 let foundCompanyAddress = result.foundCompanyAddress; companyUrl = result.companyUrl;

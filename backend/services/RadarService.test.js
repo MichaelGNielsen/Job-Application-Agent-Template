@@ -46,19 +46,19 @@ describe('RadarService', () => {
     });
 
     test('skal indlæse AI præferencer korrekt', async () => {
-        const prefs = await radarService._getAiPrefs();
-        expect(prefs.activeProvider).toBe('gemini');
+        const settings = await radarService._getAiSettings();
+        expect(settings.provider).toBe('gemini');
     });
 
-    test('skal generere korrekt prompt med søgeord', async () => {
-        const spy = jest.spyOn(radarService.aiManager, 'call').mockResolvedValue({ keywords: ['test'] });
-        await radarService.refresh();
-        expect(spy).toHaveBeenCalledWith(
-            expect.stringContaining('embedded sw'),
-            'radar_context',
-            'gemini',
-            true,
-            'gemini-pro'
-        );
+    test('skal håndtere AI-fallback svar uden at crashe (ingen keywords)', async () => {
+        // Simuler et fallback-svar fra AiManager som mangler 'keywords'
+        radarService.aiManager.call.mockResolvedValue({ 
+            error: "Format fejl", 
+            raw: "Dette er ikke JSON",
+            company: "Ukendt" 
+        });
+        
+        // Dette bør ikke kaste en fejl nu efter rettelsen (fordi vi tilføjer .keywords || [])
+        await expect(radarService.refresh()).resolves.not.toThrow();
     });
 });

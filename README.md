@@ -4,13 +4,14 @@
   Brug af softwaren sker på eget ansvar.
 -->
 
-
-# Job Application Agent Template (v6.1.2)
+# Job Application Agent Template (v6.2.2)
 
 Dette projekt automatiserer processen med at skræddersy ansøgninger og CV'er ved hjælp af AI. Systemet er designet til at skabe en stærk "rød tråd" gennem dit ansøgningsmateriale via en avanceret strategisk pipeline.
 
 ## 🚀 Hurtig opstart
 Hvis det er første gang du bruger agenten, så følg vores **[Setup Guide](docs/setup.md)** og **[Brugervejledning](docs/usage_guide.md)**.
+
+> **⚠️ VIGTIGT (Multi-instans):** Da både `MGN` og `Template` versionerne benytter de samme containernavne, kan de ikke køre samtidigt. Husk altid at køre `docker compose down` før du skifter projekt.
 
 ## 🛠️ Kerne-teknologier
 - **Backend:** Node.js (Express), BullMQ (Redis).
@@ -49,9 +50,12 @@ For detaljeret information, se venligst:
 - [Journal & Roadmap](docs/journal.md) - Projektets historik og daglige rettelser.
 
 ### Udvikler-dokumentation
+- [Memory (Langtidshukommelse)](docs/memory.md) - Arkitektoniske beslutninger og læring.
+- [Context (Nuværende Status)](docs/context.md) - Aktuelt fokus og opgaver.
+- [Skills (Procedurer)](docs/skills.md) - Genbrugelige arbejdsgange og opskrifter.
 - [AGENTS.md](AGENTS.md) - Instrukser til AI-agenter (kodekonventioner, test, build).
 - [GEMINI.md](GEMINI.md) - Primær instruks for Gemini CLI og AI-workflow.
-- [Alle docs/](docs/) - Komplet liste over system dokumentation.
+- [Alle docs/](docs/) - Komplet liste over systemdokumentation.
 
 ---
-*Sidst opdateret: 9. april 2026 (v6.1.2)*
+*Sidst opdateret: 15. april 2026 (v6.2.2)*

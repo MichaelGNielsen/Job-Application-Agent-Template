@@ -56,8 +56,12 @@ Før hver `git commit` og `push` SKAL du:
 
 Disse regler er fundamentet for et vellykket AI-drevet projekt og skal overholdes på tværs af alle sessioner:
 
-1. **Dokumentations-drevet Kontekst:** Altid opretholde en `docs/` mappe med beskrivende `.md` filer. Alle dokumenter SKAL linkes direkte fra projektets `README.md`. Dette fungerer som systemets "langtidshukommelse".
-2. **Arkitektur & Design Regler:** De formelle designregler, QA tjeklister (f.eks. ren Markdown, tidszone-håndtering) og arkitektoniske pipelines er beskrevet i de specifikke `.md` filer i `docs/` mappen, som er listet og linket i `README.md`. Disse gælder som hårde regler.
+1. **Dokumentations-drevet Kontekst:** Altid opretholde en `docs/` mappe med beskrivende `.md` filer. Alle dokumenter SKAL linkes direkte fra projektets `README.md`.
+2. **Hukommelseshierarki:** Brug de tre specialiserede filer til at fastholde viden:
+    - **[Memory](docs/memory.md):** Læs for arkitektoniske regler og langsigtede beslutninger. Opdater ved nye tekniske indsigter.
+    - **[Context](docs/context.md):** Læs ALTID ved start af en ny opgave for at forstå nuværende fokus og status. Hold den opdateret med dine fremskridt.
+    - **[Skills](docs/skills.md):** Brug som opskriftssamling til komplekse procedurer (f.eks. Docker port-cleanup og test-flows).
+3. **Arkitektur & Design Regler:** De formelle designregler, QA tjeklister (f.eks. ren Markdown, tidszone-håndtering) og arkitektoniske pipelines er beskrevet i de specifikke `.md` filer i `docs/` mappen, som er listet og linket i `README.md`. Disse gælder som hårde regler.
 3. **High-Alignment Logging:** Logs skal altid følge et fast kolonneformat (bredde-låst). Dette sikrer vertikal skanbarhed i terminalen. Fejl (WARNI/ERROR) skal altid tvinge loggen til maksimal detaljegrad (auto-expand).
 4. **Robusthed over for AI-latens:** Ved brug af asynkrone AI-køer (BullMQ etc.) skal timeouts (`lockDuration`) altid sættes konservativt højt (min. 5 min.), og alle midlertidige filer skal være unikke (jobId-baserede) for at undgå race-conditions.
 5. **Sprog-integritet:** Ved flersprogede systemer skal målssproget dikteres eksplicit i prompterne for at undgå "sprog-glidning".
@@ -82,4 +86,4 @@ For at sikre optimal kompatibilitet med VS Code (især "Markdown All in One" ext
 7. **Niveauer:** Spring aldrig overskriftsniveauer over (MD001).
 
 ---
-*Sidst opdateret: 9. april 2026 (v6.1.2)*
+*Sidst opdateret: 15. april 2026 (v6.2.2)*
